@@ -441,6 +441,8 @@ type IStateAccessor interface {
 	GetDiffRendererConfigManager() *config.DiffRendererConfigManager
 	GetShowExtrasWindow() bool
 	SetShowExtrasWindow(bool)
+	GetSidePanelSizes() map[config.SidePanelLayout][]config.SidePanelSize
+	SetSidePanelSizes(map[config.SidePanelLayout][]config.SidePanelSize)
 	GetRetainOriginalDir() bool
 	SetRetainOriginalDir(bool)
 	GetItemOperation(item HasUrn) ItemOperation

@@ -298,6 +298,9 @@ type View struct {
 	// them; otherwise, they will always be underlined
 	UnderlineHyperLinksOnlyOnHover bool
 
+	// If set, one edge of the view's frame is drawn differently from the rest
+	EdgeHighlight *EdgeHighlight
+
 	// number of spaces per \t character, defaults to 4
 	TabWidth int
 }

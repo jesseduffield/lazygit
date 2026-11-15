@@ -117,6 +117,10 @@ type Gui struct {
 	// the extras window contains things like the command log
 	ShowExtrasWindow bool
 
+	// The sizes of the side panels that the user set, for each layout (see
+	// config.AppState.SidePanelSizes)
+	SidePanelSizes map[config.SidePanelLayout][]config.SidePanelSize
+
 	PopupHandler types.IPopupHandler
 
 	// Bumped every time we switch to a different repository (in resetState).
@@ -186,6 +190,14 @@ func (self *StateAccessor) GetShowExtrasWindow() bool {
 
 func (self *StateAccessor) SetShowExtrasWindow(value bool) {
 	self.gui.ShowExtrasWindow = value
+}
+
+func (self *StateAccessor) GetSidePanelSizes() map[config.SidePanelLayout][]config.SidePanelSize {
+	return self.gui.SidePanelSizes
+}
+
+func (self *StateAccessor) SetSidePanelSizes(value map[config.SidePanelLayout][]config.SidePanelSize) {
+	self.gui.SidePanelSizes = value
 }
 
 func (self *StateAccessor) GetRetainOriginalDir() bool {
@@ -390,6 +402,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			return reloadErr
 		}
 
+		gui.helpers.SidePanelResize.OnFocusLost()
 		return nil
 	})
 
@@ -890,6 +903,8 @@ func NewGui(
 	gui.BackgroundRoutineMgr = &BackgroundRoutineMgr{gui: gui}
 	gui.stateAccessor = &StateAccessor{gui: gui}
 
+	gui.SidePanelSizes = helpers.ValidSidePanelSizes(gui.c.ReadAppState().SidePanelSizes)
+
 	gui.diffRendererConfig = config.NewDiffRendererConfigManager(func() *config.UserConfig { return gui.UserConfig() })
 
 	return gui, nil
@@ -992,6 +1007,13 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		gui.helpers.Diff.RenderToMainAgain()
 		return nil
 	})
+
+	gui.g.OnMouseMove = func(x, y int) {
+		gui.helpers.SidePanelResize.OnMouseMove(x, y)
+	}
+	gui.g.InterceptMouse = func(ev gocui.MouseEvent) bool {
+		return gui.helpers.SidePanelResize.InterceptMouse(ev)
+	}
 
 	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.KeyName) bool {
 		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&

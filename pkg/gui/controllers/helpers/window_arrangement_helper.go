@@ -80,9 +80,42 @@ type WindowArrangementArgs struct {
 	InSearchPrompt bool
 	// One of '' (not searching), 'Search: ', and 'Filter: '
 	SearchPrefix string
+	// The sizes of the side panels that the user set, for each layout (see
+	// config.AppState.SidePanelSizes)
+	SidePanelSizes map[config.SidePanelLayout][]config.SidePanelSize
 }
 
 func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
+	return GetWindowDimensions(self.windowArrangementArgs(informationStr, appStatus))
+}
+
+// SidePanelArrangement describes how the side panels and the main view share
+// the screen.
+type SidePanelArrangement struct {
+	Layout config.SidePanelLayout
+	// True if the side panels are above the main view, false if they are left
+	// of it
+	SidePanelsAbove bool
+	// The size of the screen that config.SidePanelSize refers to
+	ScreenSize int
+}
+
+// GetSidePanelArrangement returns how the side panels and the main view share
+// the screen, or false if only one of the two is visible.
+func (self *WindowArrangementHelper) GetSidePanelArrangement(informationStr string, appStatus string) (SidePanelArrangement, bool) {
+	args := self.windowArrangementArgs(informationStr, appStatus)
+	layout, ok := sidePanelLayout(args)
+	if !ok {
+		return SidePanelArrangement{}, false
+	}
+	return SidePanelArrangement{
+		Layout:          layout,
+		SidePanelsAbove: shouldUsePortraitMode(args),
+		ScreenSize:      sidePanelScreenSize(args),
+	}, true
+}
+
+func (self *WindowArrangementHelper) windowArrangementArgs(informationStr string, appStatus string) WindowArrangementArgs {
 	width, height := self.c.GocuiGui().Size()
 	repoState := self.c.State().GetRepoState()
 
@@ -93,7 +126,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		searchPrefix = self.c.Tr.SearchPrefix
 	}
 
-	args := WindowArrangementArgs{
+	return WindowArrangementArgs{
 		Width:               width,
 		Height:              height,
 		UserConfig:          self.c.UserConfig(),
@@ -112,9 +145,8 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		IsAnyModeActive:  self.modeHelper.IsAnyModeActive(),
 		InSearchPrompt:   repoState.InSearchPrompt(),
 		SearchPrefix:     searchPrefix,
+		SidePanelSizes:   self.c.State().GetSidePanelSizes(),
 	}
-
-	return GetWindowDimensions(args)
 }
 
 func shouldUsePortraitMode(args WindowArrangementArgs) bool {
@@ -141,13 +173,20 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 		sidePanelsDirection = boxlayout.ROW
 	}
 
-	showInfoSection := args.UserConfig.Gui.ShowBottomLine ||
-		args.InSearchPrompt ||
-		args.IsAnyModeActive ||
-		args.AppStatus != ""
-	infoSectionSize := 0
-	if showInfoSection {
-		infoSectionSize = 1
+	sideSectionBox := &boxlayout.Box{
+		Direction:           boxlayout.ROW,
+		Weight:              sideSectionWeight,
+		ConditionalChildren: sidePanelChildren(args),
+	}
+	mainSectionBox := &boxlayout.Box{
+		Direction: boxlayout.ROW,
+		Weight:    mainSectionWeight,
+		Children:  mainPanelChildren(args),
+	}
+	if size, ok := sideSectionSizeSetByUser(args); ok {
+		sideSectionBox.Weight = 0
+		sideSectionBox.Size = size
+		mainSectionBox.Weight = 1
 	}
 
 	root := &boxlayout.Box{
@@ -156,22 +195,11 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 			{
 				Direction: sidePanelsDirection,
 				Weight:    1,
-				Children: []*boxlayout.Box{
-					{
-						Direction:           boxlayout.ROW,
-						Weight:              sideSectionWeight,
-						ConditionalChildren: sidePanelChildren(args),
-					},
-					{
-						Direction: boxlayout.ROW,
-						Weight:    mainSectionWeight,
-						Children:  mainPanelChildren(args),
-					},
-				},
+				Children:  []*boxlayout.Box{sideSectionBox, mainSectionBox},
 			},
 			{
 				Direction: boxlayout.COLUMN,
-				Size:      infoSectionSize,
+				Size:      infoSectionSize(args),
 				Children:  infoSectionChildren(args),
 			},
 		},
@@ -238,34 +266,98 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 	return []*boxlayout.Box{mainPane, secondaryPane}
 }
 
+// sidePanelLayout returns how the side panels are arranged relative to the main
+// view, or false if only one of the two is visible.
+func sidePanelLayout(args WindowArrangementArgs) (config.SidePanelLayout, bool) {
+	if args.ScreenMode == types.SCREEN_FULL {
+		return "", false
+	}
+	if args.ScreenMode == types.SCREEN_HALF {
+		if isMainWindow(args.CurrentWindow) {
+			return "", false
+		}
+		if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
+			return config.SidePanelLayoutHalfScreenTop, true
+		}
+		return config.SidePanelLayoutHalfScreen, true
+	}
+
+	if shouldUsePortraitMode(args) {
+		return config.SidePanelLayoutNormalPortrait, true
+	}
+	if splitMainPanelSideBySide(args) {
+		return config.SidePanelLayoutSplitMainPanel, true
+	}
+	return config.SidePanelLayoutNormal, true
+}
+
+// sidePanelScreenSize returns the size of the screen that config.SidePanelSize
+// refers to.
+func sidePanelScreenSize(args WindowArrangementArgs) int {
+	if shouldUsePortraitMode(args) {
+		return args.Height - infoSectionSize(args)
+	}
+	return args.Width
+}
+
+// sideSectionSizeSetByUser returns the size of the side section if the user has
+// set the size of the side panels for the current layout. Otherwise, the weights
+// from getMidSectionWeights apply.
+func sideSectionSizeSetByUser(args WindowArrangementArgs) (int, bool) {
+	layout, ok := sidePanelLayout(args)
+	if !ok {
+		return 0, false
+	}
+
+	screenSize := sidePanelScreenSize(args)
+	size, ok := sidePanelSizeForScreen(args.SidePanelSizes[layout], screenSize)
+	if !ok {
+		return 0, false
+	}
+	return clampSideSectionSize(size, screenSize), true
+}
+
+func isMainWindow(window string) bool {
+	return window == "main" || window == "secondary"
+}
+
 func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
+	layout, ok := sidePanelLayout(args)
+	if !ok {
+		if isMainWindow(args.CurrentWindow) {
+			return 0, 1
+		}
+		return 1, 0
+	}
+
 	sidePanelWidthRatio := args.UserConfig.Gui.SidePanelWidth
 	// Using 120 so that the default of 0.3333 will remain consistent with previous behavior
 	const maxColumnCount = 120
 	mainSectionWeight := int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
 	sideSectionWeight := int(math.Round(maxColumnCount * sidePanelWidthRatio))
 
-	if splitMainPanelSideBySide(args) {
+	switch layout {
+	case config.SidePanelLayoutSplitMainPanel:
 		mainSectionWeight = sideSectionWeight * 5 // need to shrink side panel to make way for main panels if side-by-side
-	}
-
-	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
-		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {
-			sideSectionWeight = 0
-		}
-	} else {
-		if args.ScreenMode == types.SCREEN_HALF {
-			if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
-				mainSectionWeight = sideSectionWeight * 2
-			} else {
-				mainSectionWeight = sideSectionWeight
-			}
-		} else if args.ScreenMode == types.SCREEN_FULL {
-			mainSectionWeight = 0
-		}
+	case config.SidePanelLayoutHalfScreen:
+		mainSectionWeight = sideSectionWeight
+	case config.SidePanelLayoutHalfScreenTop:
+		mainSectionWeight = sideSectionWeight * 2
+	case config.SidePanelLayoutNormal, config.SidePanelLayoutNormalPortrait:
 	}
 
 	return sideSectionWeight, mainSectionWeight
+}
+
+func infoSectionSize(args WindowArrangementArgs) int {
+	showInfoSection := args.UserConfig.Gui.ShowBottomLine ||
+		args.InSearchPrompt ||
+		args.IsAnyModeActive ||
+		args.AppStatus != ""
+	if showInfoSection {
+		return 1
+	}
+	return 0
 }
 
 func infoSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {

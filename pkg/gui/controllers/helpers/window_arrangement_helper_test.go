@@ -440,6 +440,140 @@ func TestGetWindowDimensions(t *testing.T) {
 			`,
 		},
 		{
+			name: "side panel size set by user",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.SidePanelSizes = map[config.SidePanelLayout][]config.SidePanelSize{
+					config.SidePanelLayoutNormal: {{ScreenSize: 75, Ratio: 0.2}},
+				}
+			},
+			expected: `
+			╭status───────╮╭main──────────────────────────────────────────────────────╮
+			│             ││                                                          │
+			╰─────────────╯│                                                          │
+			╭files────────╮│                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			╰─────────────╯│                                                          │
+			╭branches─────╮│                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			╰─────────────╯│                                                          │
+			╭commits──────╮│                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			│             ││                                                          │
+			╰─────────────╯│                                                          │
+			╭stash────────╮│                                                          │
+			│             ││                                                          │
+			╰─────────────╯╰──────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "side panel size set by user is too small",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.SidePanelSizes = map[config.SidePanelLayout][]config.SidePanelSize{
+					config.SidePanelLayoutNormal: {{ScreenSize: 75, Ratio: 0.01}},
+				}
+			},
+			expected: `
+			╭A╮╭main──────────────────────────────────────────────────────────────────╮
+			│ ││                                                                      │
+			╰─╯│                                                                      │
+			╭B╮│                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			╰─╯│                                                                      │
+			╭C╮│                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			╰─╯│                                                                      │
+			╭D╮│                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			│ ││                                                                      │
+			╰─╯│                                                                      │
+			╭E╮│                                                                      │
+			│ ││                                                                      │
+			╰─╯╰──────────────────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>F<G────────>
+			A: status
+			B: files
+			C: branches
+			D: commits
+			E: stash
+			F: statusSpacer1
+			G: information
+			`,
+		},
+		{
+			name: "side panel size set by user in half screen mode, enlargedSideViewLocation top",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.ScreenMode = types.SCREEN_HALF
+				args.UserConfig.Gui.EnlargedSideViewLocation = "top"
+				// The screen size doesn't include the line at the bottom
+				args.SidePanelSizes = map[config.SidePanelLayout][]config.SidePanelSize{
+					config.SidePanelLayoutHalfScreenTop: {{ScreenSize: 29, Ratio: 0.4}},
+				}
+			},
+			expected: `
+			╭status───────────────────────────────────────────────────────────────────╮
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			╰─────────────────────────────────────────────────────────────────────────╯
+			╭main─────────────────────────────────────────────────────────────────────╮
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			│                                                                         │
+			╰─────────────────────────────────────────────────────────────────────────╯
+			<options──────────────────────────────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
 			name: "half screen mode, enlargedSideViewLocation left",
 			mutateArgs: func(args *WindowArrangementArgs) {
 				args.Height = 20 // smaller height because we don't need more here
@@ -531,6 +665,40 @@ func TestGetWindowDimensions(t *testing.T) {
 			│                                                │
 			│                                                │
 			╰────────────────────────────────────────────────╯
+			<options─────────────────────────────>A<B────────>
+			A: statusSpacer1
+			B: information
+			`,
+		},
+		{
+			name: "portrait mode, main view split side by side",
+			mutateArgs: func(args *WindowArrangementArgs) {
+				args.Width = 50
+				args.Height = 20
+				args.UserConfig.Gui.PortraitMode = "always"
+				args.UserConfig.Gui.MainPanelSplitMode = "horizontal"
+				args.MainPanes = types.BothMainPanes
+			},
+			expected: `
+			<status──────────────────────────────────────────>
+			╭files───────────────────────────────────────────╮
+			│                                                │
+			╰────────────────────────────────────────────────╯
+			<branches────────────────────────────────────────>
+			<commits─────────────────────────────────────────>
+			<stash───────────────────────────────────────────>
+			╭main───────────────────╮╭secondary──────────────╮
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			│                       ││                       │
+			╰───────────────────────╯╰───────────────────────╯
 			<options─────────────────────────────>A<B────────>
 			A: statusSpacer1
 			B: information

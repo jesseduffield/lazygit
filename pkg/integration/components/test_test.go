@@ -67,6 +67,9 @@ func (self *fakeGuiDriver) MouseRelease(x, y int) {
 	self.releasedCoordinates = append(self.releasedCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) Hover(x, y int) {
+}
+
 func (self *fakeGuiDriver) ScrollWheelDown(x, y int) {
 	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
 }
