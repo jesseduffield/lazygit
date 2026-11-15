@@ -178,8 +178,11 @@ GOMODCACHE=/tmp/lg/modcache GOBIN=/tmp/lg/bin GOFLAGS=-modcacherw \
       manager and offers the installation instructions.
 - [ ] A binary in a mise folder (`.../mise/installs/lazygit/0.60.0/`) with
       build source `binaryRelease` counts as Other.
-- [ ] Dev build (`just build`): `u` shows a popup that says why it can't
-      check. No note, and the log shows no check.
+- [ ] Dev build (`just build`, or `go install` from a branch): the
+      bottom-right corner shows the release that the build is based on and
+      its commit, e.g. `v0.66.3+d0d00783`, with `-dirty` if there are
+      uncommitted changes. `u` shows a popup that says why it can't check. No
+      note, and the log shows no check.
 
 ### Windows
 
