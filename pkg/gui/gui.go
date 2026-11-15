@@ -398,6 +398,9 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 		if Focused {
 			gui.git.Config.DropConfigCache()
 
+			// Another lazygit instance may have changed the sizes of the side panels
+			gui.loadSidePanelSizes()
+
 			oldConfig := gui.Config.GetUserConfig()
 			reloadErr, didChange := gui.Config.ReloadChangedUserConfigFiles()
 			if didChange && reloadErr == nil {
