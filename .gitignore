@@ -17,6 +17,9 @@ coverage.txt
 lazygit
 lazygit.exe
 
+# Generated manpage (see `make docs`)
+man/
+
 test/git_server/data
 
 test/_results/**
