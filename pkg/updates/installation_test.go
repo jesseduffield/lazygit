@@ -24,6 +24,13 @@ func TestDetectInstallKind(t *testing.T) {
 			expected:       InstallKindDevBuild,
 		},
 		{
+			name:           "built from a git checkout based on a release",
+			buildSource:    "unknown",
+			version:        "v0.66.2+0123abcd-dirty",
+			executablePath: "/home/user/go/bin/lazygit",
+			expected:       InstallKindDevBuild,
+		},
+		{
 			name:           "built without version",
 			buildSource:    "unknown",
 			version:        "unversioned",
