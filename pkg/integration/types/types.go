@@ -38,6 +38,8 @@ type GuiDriver interface {
 	ClickAndHold(int, int)
 	MouseMove(int, int)
 	MouseRelease(int, int)
+	// Move the mouse with no button held down
+	Hover(int, int)
 	ScrollWheelDown(int, int)
 	// Perform the refresh that a background routine would perform on a timer
 	RefreshInBackground()
@@ -47,6 +49,9 @@ type GuiDriver interface {
 	// Simulate the terminal window regaining focus (which triggers a reload of
 	// changed config files)
 	FocusIn()
+	// Change state.yml the way another lazygit instance would, without
+	// changing what the running instance has read from it
+	UpdateAppStateFile(func(*config.AppState))
 	// Simulate pasting text in a terminal that supports bracketed paste
 	Paste(string)
 	// Simulate a terminal dispatching focus-in immediately followed by a click,

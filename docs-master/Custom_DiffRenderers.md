@@ -82,8 +82,6 @@ git:
 ## ydiff
 
 ```yaml
-gui:
-  sidePanelWidth: 0.2 # gives you more space to show things side-by-side
 git:
   diffRenderers:
     - colorArg: never

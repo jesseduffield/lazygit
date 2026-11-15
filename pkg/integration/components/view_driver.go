@@ -792,6 +792,13 @@ func (self *ViewDriver) MouseMove(x, y int) *ViewDriver {
 	return self
 }
 
+// moves the mouse to the given position with no button held down
+func (self *ViewDriver) Hover(x, y int) *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+	self.t.hover(offsetX+1+x, offsetY+1+y)
+	return self
+}
+
 func (self *ViewDriver) MouseMoveToBottom(x int) *ViewDriver {
 	offsetX, offsetY, innerHeight := self.viewGeometry()
 	self.t.mouseMove(offsetX+1+x, offsetY+innerHeight)
@@ -974,6 +981,19 @@ func (self *ViewDriver) getLineCount() int {
 
 	view := self.getView()
 	return len(view.BufferLines())
+}
+
+// asserts on the width of the view, including its frame
+func (self *ViewDriver) HasWidth(expected int) *ViewDriver {
+	self.t.assertWithRetries(func() (bool, string) {
+		var actual int
+		self.t.gui.OnUIThreadAndWait(func() {
+			actual = self.getView().Width()
+		})
+		return actual == expected, fmt.Sprintf("%s: Expected width %d, got %d", self.context, expected, actual)
+	})
+
+	return self
 }
 
 func (self *ViewDriver) IsVisible() *ViewDriver {

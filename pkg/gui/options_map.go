@@ -26,6 +26,10 @@ func (gui *Gui) renderContextOptionsMap() {
 		return
 	}
 	mgr := OptionsMapMgr{c: gui.c}
+	if gui.helpers.SidePanelResize.IsActive() {
+		mgr.renderOptions(theme.OptionsFgColor.Sprint(gui.c.Tr.SidePanelResizeHint))
+		return
+	}
 	mgr.renderContextOptionsMap()
 }
 

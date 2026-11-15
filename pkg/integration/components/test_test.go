@@ -67,6 +67,9 @@ func (self *fakeGuiDriver) MouseRelease(x, y int) {
 	self.releasedCoordinates = append(self.releasedCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) Hover(x, y int) {
+}
+
 func (self *fakeGuiDriver) ScrollWheelDown(x, y int) {
 	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
 }
@@ -82,6 +85,9 @@ func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
 }
 
 func (self *fakeGuiDriver) FocusIn() {
+}
+
+func (self *fakeGuiDriver) UpdateAppStateFile(update func(*config.AppState)) {
 }
 
 func (self *fakeGuiDriver) Paste(text string) {
