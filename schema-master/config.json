@@ -607,7 +607,7 @@
           "type": "number",
           "maximum": 1,
           "minimum": 0,
-          "description": "Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.\nNumber from 0 to 1.0.",
+          "description": "Deprecated: drag the boundary between the side panels and the main view with the mouse instead.\nUntil you do that, this is the fraction of the screen width (or of its height in portrait mode) that the side panels take up.",
           "default": 0.3333
         },
         "expandFocusedSidePanel": {

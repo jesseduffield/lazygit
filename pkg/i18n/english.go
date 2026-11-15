@@ -882,6 +882,7 @@ type TranslationSet struct {
 	CantSwitchWhileOperationInProgress       string
 	CommandLog                               string
 	ToggleShowCommandLog                     string
+	SidePanelResizeHint                      string
 	FocusCommandLog                          string
 	CommandLogHeader                         string
 	RandomTip                                string
@@ -2135,6 +2136,7 @@ func EnglishTranslationSet() *TranslationSet {
 		ErrWorktreeMovedOrRemoved:                "Cannot find worktree. It might have been moved or removed ¯\\_(ツ)_/¯",
 		CantSwitchWhileOperationInProgress:       "Can't switch repositories while an operation is in progress",
 		ToggleShowCommandLog:                     "Toggle show/hide command log",
+		SidePanelResizeHint:                      "Drag to resize | Double-click to reset",
 		FocusCommandLog:                          "Focus command log",
 		CommandLogHeader:                         "You can hide/focus this panel by pressing '%s'\n",
 		RandomTip:                                "Random tip",

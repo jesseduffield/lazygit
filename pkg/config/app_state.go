@@ -246,6 +246,10 @@ type AppState struct {
 	HideCommandLog bool
 
 	Updates UpdatesState
+
+	// The sizes of the side panels that the user set by dragging the boundary
+	// between them and the main view, for each layout
+	SidePanelSizes map[SidePanelLayout][]SidePanelSize
 }
 
 // UpdatesState is what lazygit remembers about updates
@@ -271,6 +275,35 @@ type UpdatesState struct {
 	InstalledVersion string
 	InstalledPath    string
 }
+
+// SidePanelSize is a size of the side panels that the user set by dragging the
+// boundary between them and the main view.
+type SidePanelSize struct {
+	// The size of the screen at the time: its width if the side panels are
+	// left of the main view, otherwise its height without the line at the
+	// bottom of the screen
+	ScreenSize int
+	// The fraction of ScreenSize that the side panels took up
+	Ratio float64
+}
+
+// SidePanelLayout names an arrangement of the side panels relative to the main
+// view. It only covers the arrangements that show both.
+type SidePanelLayout string
+
+const (
+	// The side panels are left of the main view.
+	SidePanelLayoutNormal SidePanelLayout = "normal"
+	// The side panels are above the main view (portrait mode).
+	SidePanelLayoutNormalPortrait SidePanelLayout = "normalPortrait"
+	// The side panels are left of the main view, and the main view is split
+	// into two panes side by side.
+	SidePanelLayoutSplitMainPanel SidePanelLayout = "splitMainPanel"
+	// Half screen mode, with the focused side panel left of the main view.
+	SidePanelLayoutHalfScreen SidePanelLayout = "halfScreen"
+	// Half screen mode, with the focused side panel above the main view.
+	SidePanelLayoutHalfScreenTop SidePanelLayout = "halfScreenTop"
+)
 
 func getDefaultAppState() *AppState {
 	return &AppState{}

@@ -50,6 +50,7 @@ type Helpers struct {
 	AppStatus         *AppStatusHelper
 	InlineStatus      *InlineStatusHelper
 	WindowArrangement *WindowArrangementHelper
+	SidePanelResize   *SidePanelResizeHelper
 	Search            *SearchHelper
 	Worktree          *WorktreeHelper
 	SubCommits        *SubCommitsHelper
@@ -87,6 +88,7 @@ func NewStubHelpers() *Helpers {
 		AppStatus:         &AppStatusHelper{},
 		InlineStatus:      &InlineStatusHelper{},
 		WindowArrangement: &WindowArrangementHelper{},
+		SidePanelResize:   &SidePanelResizeHelper{},
 		Search:            &SearchHelper{},
 		Worktree:          &WorktreeHelper{},
 		SubCommits:        &SubCommitsHelper{},
