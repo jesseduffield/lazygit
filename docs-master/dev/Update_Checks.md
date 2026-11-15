@@ -105,6 +105,25 @@ or `unknown` (Other). Set `os.openLink` in the config to something like
 opening a browser. On Windows, put the binary into a folder like
 `...\scoop\apps\lazygit\0.60.0\` to test the package manager detection.
 
+To test a real `go install` build with the code of your branch, serve the
+branch to `go install` as a made-up release version through a local module
+proxy. Pick a version that doesn't exist and is older than the latest release.
+The separate module cache keeps the made-up version out of your real one.
+
+```sh
+V=v0.60.99
+P=/tmp/lg/proxy/github.com/jesseduffield/lazygit/@v
+mkdir -p $P
+git archive --format=zip --prefix=github.com/jesseduffield/lazygit@$V/ -o $P/$V.zip HEAD
+git show HEAD:go.mod > $P/$V.mod
+echo "{\"Version\":\"$V\"}" > $P/$V.info
+echo $V > $P/list
+GOMODCACHE=/tmp/lg/modcache GOBIN=/tmp/lg/bin GOFLAGS=-modcacherw \
+  GOPROXY="file:///tmp/lg/proxy,https://proxy.golang.org" \
+  GONOSUMDB=github.com/jesseduffield/lazygit \
+  go install github.com/jesseduffield/lazygit@$V
+```
+
 ### Release archive in a writable folder
 
 - [ ] At startup, the note says "Update available". The log shows one check.
@@ -150,7 +169,9 @@ opening a browser. On Windows, put the binary into a folder like
 - [ ] `Homebrew`: the menu and the exit message show `brew upgrade lazygit`,
       the menu says that package managers can take a while, and "Copy
       command" copies the command.
-- [ ] `goInstall`: the menu and the exit message show
+- [ ] `goInstall`, or a real `go install` build (see above): `lazygit
+      --version` shows `build source=goInstall`, and the menu and the exit
+      message show
       `go install github.com/jesseduffield/lazygit@latest`, and "Copy command"
       copies it.
 - [ ] `unknown` (Other): the menu tells the user to check their package
