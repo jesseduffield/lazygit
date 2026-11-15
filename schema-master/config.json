@@ -1688,6 +1688,20 @@
             }
           ],
           "default": "s"
+        },
+        "viewBranchDiff": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "\u003cctrl+b\u003e"
         }
       },
       "additionalProperties": false,
