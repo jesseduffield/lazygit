@@ -33,10 +33,15 @@ func (self *UpdateHelper) OnStartup() {
 
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
 	if self.updater.Installation().Kind == updates.InstallKindDevBuild {
-		return &types.DisabledReason{Text: utils.ResolvePlaceholderString(
-			self.c.Tr.UpdateCheckNotPossibleForDevBuild,
-			map[string]string{"version": self.c.GetConfig().GetVersion()},
-		)}
+		return &types.DisabledReason{
+			Text: utils.ResolvePlaceholderString(
+				self.c.Tr.UpdateCheckNotPossibleForDevBuild,
+				map[string]string{"version": self.c.GetConfig().GetVersion()},
+			),
+			// The user asked for the check, so make sure they see why it
+			// doesn't happen
+			ShowErrorInPanel: true,
+		}
 	}
 
 	if self.updater.IsInstalling() {

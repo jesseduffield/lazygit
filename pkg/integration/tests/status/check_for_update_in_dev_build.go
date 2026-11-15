@@ -16,9 +16,12 @@ var CheckForUpdateInDevBuild = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			Press(keys.Status.CheckForUpdate)
 
-		t.ExpectToast(
-			Contains("Disabled: This is a development build (").
-				Contains("), so lazygit can't check for updates."),
-		)
+		t.ExpectPopup().Alert().
+			Title(Equals("Error")).
+			Content(
+				Contains("This is a development build (").
+					Contains("), so lazygit can't check for updates."),
+			).
+			Confirm()
 	},
 })
