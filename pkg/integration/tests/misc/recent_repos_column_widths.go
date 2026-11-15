@@ -18,7 +18,9 @@ var RecentReposColumnWidths = NewIntegrationTest(NewIntegrationTestArgs{
 		// the first entry is the repo we're in, so it isn't offered
 		current, _ := filepath.Abs(".")
 		target, _ := filepath.Abs("../other")
-		cfg.GetAppState().RecentRepos = []string{current, target}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{current, target}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")

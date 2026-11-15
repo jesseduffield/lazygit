@@ -55,7 +55,7 @@ func TestSetTreeSelectsNewFileWhenSelectedRenameSplits(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Gui.ShowRootItemInFileTree = s.showRootItem
-			cmn := common.NewDummyCommonWithUserConfigAndAppState(userConfig, nil)
+			cmn := common.NewDummyCommonWithUserConfig(userConfig)
 
 			files := []*models.File{
 				{Path: "dir/new.go", PreviousPath: "dir/old.go"},
@@ -102,7 +102,7 @@ func TestSetTreeFollowsRenameIntoCollapsedDir(t *testing.T) {
 		t.Run(s.name, func(t *testing.T) {
 			userConfig := config.GetDefaultConfig()
 			userConfig.Gui.ShowRootItemInFileTree = s.showRootItem
-			cmn := common.NewDummyCommonWithUserConfigAndAppState(userConfig, nil)
+			cmn := common.NewDummyCommonWithUserConfig(userConfig)
 
 			files := []*models.File{
 				{Path: "a/b.go"},

@@ -85,16 +85,16 @@ func (self *guiCommon) ContextForKey(key types.ContextKey) types.Context {
 	return self.gui.State.ContextMgr.ContextForKey(key)
 }
 
-func (self *guiCommon) GetAppState() *config.AppState {
-	return self.gui.Config.GetAppState()
+func (self *guiCommon) ReadAppState() *config.AppState {
+	appState, err := self.gui.Config.ReadAppState()
+	if err != nil {
+		self.gui.Log.Errorf("error when reading app state: %v", err)
+	}
+	return appState
 }
 
-func (self *guiCommon) SaveAppState() error {
-	return self.gui.Config.SaveAppState()
-}
-
-func (self *guiCommon) SaveAppStateAndLogError() {
-	if err := self.gui.Config.SaveAppState(); err != nil {
+func (self *guiCommon) UpdateAppState(update func(state *config.AppState)) {
+	if err := self.gui.Config.UpdateAppState(update); err != nil {
 		self.gui.Log.Errorf("error when saving app state: %v", err)
 	}
 }
