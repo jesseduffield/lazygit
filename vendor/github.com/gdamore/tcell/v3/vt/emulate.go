@@ -1153,10 +1153,18 @@ func (em *emulator) processIndex() {
 	}
 }
 
-// processCarriageReturn handle CR.
+// processCarriageReturn handle CR.  This clears any pending wrap, and moves to the
+// left margin, or to the first column if we are already to the left of the margin.
 func (em *emulator) processCarriageReturn() {
 	em.lastIndex = 0
-	em.setPosition(Coord{0, em.getPosition().Y})
+	em.autoWrap = false
+	pos := em.getPosition()
+	if pos.X >= em.ltMargin {
+		pos.X = em.ltMargin
+	} else {
+		pos.X = 0
+	}
+	em.setPosition(pos)
 }
 
 // processLineFeed is like IND, but if ANSI mode 20 is set, then a CR is appended as well.
@@ -1168,10 +1176,11 @@ func (em *emulator) processLineFeed() {
 	}
 }
 
-// processReverseIndex moves up, unless already on the top margin, in which case it scrolls down.
+// processReverseIndex moves up, unless already on the top margin (and within the
+// left and right margins), in which case it scrolls down.
 func (em *emulator) processReverseIndex() {
 	pos := em.getPosition()
-	if pos.Y == em.topMargin {
+	if pos.Y == em.topMargin && em.ltMargin <= pos.X && pos.X <= em.rtMargin {
 		em.scrollDown()
 	} else {
 		em.processCursorUp("")
@@ -1218,7 +1227,7 @@ func (em *emulator) processInsertLine(str string) {
 			em.scrollDown()
 		}
 		em.topMargin = top
-		em.pos.X = 0
+		em.pos.X = em.ltMargin
 		em.setPosition(em.pos)
 	}
 }
@@ -1244,7 +1253,7 @@ func (em *emulator) processDeleteLine(str string) {
 			em.scrollUp()
 		}
 		em.topMargin = top
-		em.pos.X = 0
+		em.pos.X = em.ltMargin
 		em.setPosition(em.pos)
 	}
 }
@@ -2286,6 +2295,12 @@ func (em *emulator) setPrivateMode(pm PrivateMode, ms ModeStatus) {
 			}
 			cursor = em.cursor
 			setCursor = true
+		case PmLeftRightMargin:
+			if ms != ModeOn {
+				// resetting DECLRMM also resets the left and right margins
+				em.ltMargin = 0
+				em.rtMargin = em.size.X - 1
+			}
 		}
 		em.modeLock.Unlock()
 
@@ -2380,6 +2395,7 @@ func (em *emulator) ResizeEvent(size Coord) {
 
 func (em *emulator) applyResize(size Coord) {
 	// resize clobbers our content, until it is redrawn
+	em.lastIndex = 0
 	em.size = size
 	em.tabStops = slices.DeleteFunc(em.tabStops, func(x Col) bool { return x >= em.size.X })
 	// resizing resets the margins

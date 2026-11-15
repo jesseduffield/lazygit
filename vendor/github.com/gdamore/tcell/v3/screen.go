@@ -106,6 +106,10 @@ type Screen interface {
 	// and the terminal supports doing so.
 	SetCursorStyle(CursorStyle, ...color.Color)
 
+	// GetCursor returns the last cursor's location as x,y coordinates.
+	// If the cursor is hidden, -1, -1 are returned
+	GetCursor() (x, y int)
+
 	// Size returns the screen size as width, height.  This changes in
 	// response to a call to Clear or Flush.
 	Size() (width, height int)
@@ -343,6 +347,7 @@ type screenImpl interface {
 	ShowCursor(x int, y int)
 	HideCursor()
 	SetCursor(CursorStyle, color.Color)
+	GetCursor() (x, y int)
 	Size() (width, height int)
 	EnableMouse(...MouseFlags)
 	DisableMouse()

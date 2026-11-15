@@ -23,25 +23,23 @@ type cell struct {
 	lastStyle Style
 	width     int
 	lock      bool
+	redraw    bool // draw the cell even if its content and style are unchanged
+	lastWidth int8 // width of lastStr, or 0 while redraw is set
 }
 
 func (c *cell) setDirty(dirty bool) {
+	c.redraw = dirty
 	if dirty {
-		// Empty cells use currStr == "" until they are first drawn, at which
-		// point SetDirty(false) normalizes them to a space.  Using "" as the
-		// dirty marker for an untouched empty cell would therefore leave
-		// lastStr == currStr and fail to force a redraw.
-		if c.currStr == "" {
-			c.lastStr = " "
-		} else {
-			c.lastStr = ""
-		}
+		// What the terminal shows is unknown until the cell is drawn.
+		c.lastStr = ""
+		c.lastWidth = 0
 	} else {
 		if c.currStr == "" {
 			c.currStr = " "
 		}
 		c.lastStr = c.currStr
 		c.lastStyle = c.currStyle
+		c.lastWidth = int8(c.width)
 	}
 }
 
@@ -82,6 +80,10 @@ func (cb *CellBuffer) put(x int, y int, str string, style Style) (string, int) {
 			// Printable ASCII followed by ASCII cannot be part of a larger
 			// grapheme cluster, so avoid constructing a grapheme iterator.
 			cl, width, str = str[:1], 1, str[1:]
+		} else if str == c.lastStr && c.lastWidth > 0 {
+			// Putting back what is on screen, as after a Clear: reuse the
+			// width measured when it was drawn.
+			cl, width, str = str, int(c.lastWidth), ""
 		} else {
 			g := textWidthOptions.StringGraphemes(str)
 			for width == 0 && g.Next() {
@@ -95,8 +97,9 @@ func (cb *CellBuffer) put(x int, y int, str string, style Style) (string, int) {
 		// Wide characters: we want to mark the "wide" cells
 		// dirty as well as the base cell, to make sure we consider
 		// both cells as dirty together.  We only need to do this
-		// if we're changing content
-		if width > 1 && cl != c.currStr {
+		// if we're changing content: compare with what is on screen, since
+		// a Clear before the redraw leaves currStr as a space.
+		if width > 1 && cl != c.lastStr {
 			// Prevent unnecessary bounds checks for first cell, since we already
 			// received that one.
 			c.setDirty(true)
@@ -151,13 +154,17 @@ func (cb *CellBuffer) Invalidate() {
 }
 
 // Dirty checks if a character at the given location needs to be
-// refreshed on the physical display.  This returns true if the cell
-// content is different since the last time it was marked clean.
+// refreshed on the physical display.  This returns true if the cell was
+// marked dirty, or if its content is different since the last time it
+// was marked clean.
 func (cb *CellBuffer) Dirty(x, y int) bool {
 	if x >= 0 && y >= 0 && x < cb.w && y < cb.h {
 		c := &cb.cells[(y*cb.w)+x]
 		if c.lock {
 			return false
+		}
+		if c.redraw {
+			return true
 		}
 		if c.lastStyle != c.currStyle {
 			return true

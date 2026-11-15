@@ -96,7 +96,7 @@ func newGPMConsoleMouse(eventQ chan<- Event) (consoleMouse, error) {
 	if err != nil {
 		return nil, err
 	}
-	sock, err := net.Dial("unix", gpmCtlPath)
+	sock, err := net.DialUnix("unix", nil, &net.UnixAddr{Name: gpmCtlPath})
 	if err != nil {
 		return nil, fmt.Errorf("failed opening gpmctl: %w", err)
 	}
