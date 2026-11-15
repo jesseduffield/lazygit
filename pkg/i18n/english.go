@@ -291,6 +291,7 @@ type TranslationSet struct {
 	RestartToUseNewVersion                string
 	RemindMeTomorrow                      string
 	SkipThisVersion                       string
+	TurnOffUpdateReminders                string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1529,6 +1530,7 @@ func EnglishTranslationSet() *TranslationSet {
 		RestartToUseNewVersion:               "Restart to use {{.newVersion}}",
 		RemindMeTomorrow:                     "Remind me tomorrow",
 		SkipThisVersion:                      "Skip this version",
+		TurnOffUpdateReminders:               "To turn off these reminders, set update.method to never in your config file.",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,

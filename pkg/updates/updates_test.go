@@ -351,7 +351,7 @@ func TestIsHandledAfter(t *testing.T) {
 	assert.True(t, updater.IsHandledAfter(shownAt))
 }
 
-func TestRemindersAreOffWhenChecksAre(t *testing.T) {
+func TestRemindersAreOffWithUpdateMethodNever(t *testing.T) {
 	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: "/bin/lazygit"})
 	updater.appState.(*fakeAppStateStore).state.Updates = config.UpdatesState{LatestVersion: "v0.67.0"}
 	updater.UserConfig().Update.Method = "never"

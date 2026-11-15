@@ -307,6 +307,8 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 			},
 		},
 	)
+	paragraphs = append(paragraphs, self.c.Tr.TurnOffUpdateReminders)
+
 	// Whatever the user chooses counts as a response, and so does closing the
 	// menu
 	for _, item := range items {

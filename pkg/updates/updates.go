@@ -256,6 +256,13 @@ func (u *Updater) IsStartingUp() bool {
 	return u.now().Sub(u.startTime) < startupPeriod
 }
 
+// RemindersEnabled returns whether lazygit reminds the user of available
+// updates. With update.method set to never, it only shows the note in the
+// bottom-right corner.
+func (u *Updater) RemindersEnabled() bool {
+	return u.ChecksEnabled() && u.UserConfig().Update.Method != "never"
+}
+
 // DueReminder returns the version to remind the user of, or nil if no reminder
 // is due
 func (u *Updater) DueReminder(reminder Reminder) *types.VersionNumber {
@@ -263,7 +270,7 @@ func (u *Updater) DueReminder(reminder Reminder) *types.VersionNumber {
 }
 
 func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.VersionNumber {
-	if !u.ChecksEnabled() {
+	if !u.RemindersEnabled() {
 		return nil
 	}
 
