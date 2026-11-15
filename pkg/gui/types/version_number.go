@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strconv"
 )
@@ -14,6 +15,12 @@ func (v *VersionNumber) IsOlderThan(otherVersion *VersionNumber) bool {
 	this := v.Major*1000*1000 + v.Minor*1000 + v.Patch
 	other := otherVersion.Major*1000*1000 + otherVersion.Minor*1000 + otherVersion.Patch
 	return this < other
+}
+
+// String formats the version as "v1.2.3", regardless of how it was written when
+// it was parsed
+func (v *VersionNumber) String() string {
+	return fmt.Sprintf("v%d.%d.%d", v.Major, v.Minor, v.Patch)
 }
 
 func ParseVersionNumber(versionStr string) (*VersionNumber, error) {

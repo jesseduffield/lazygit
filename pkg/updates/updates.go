@@ -1,334 +1,405 @@
 package updates
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
+	"context"
+	"errors"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/go-errors/errors"
-
-	"github.com/kardianos/osext"
-
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
-// Updater checks for updates and does updates
+const (
+	checkTimeout   = 30 * time.Second
+	installTimeout = 10 * time.Minute
+
+	// How long we wait before showing the update menu again after the user
+	// responded to it
+	reminderInterval = 24 * time.Hour
+	// How long an update must have been available before we show the update
+	// menu at startup, if the user hasn't responded to it otherwise
+	startupReminderDelay = 7 * 24 * time.Hour
+	// How long after lazygit started we use ReminderMenuAtStartup
+	startupPeriod = time.Minute
+)
+
+// The ways in which lazygit reminds the user of an available update
+type Reminder int
+
+const (
+	// Show the update menu after the user hasn't used lazygit for a while
+	ReminderMenuWhenIdle Reminder = iota
+	// Show the update menu at startup. We only do this if the user hasn't
+	// responded to the menu for a long time, e.g. because they never leave
+	// lazygit idle.
+	ReminderMenuAtStartup
+	// Print a message to the terminal after lazygit exits
+	ReminderExitMessage
+)
+
+// The part of config.AppConfigurer that the updater needs
+type appStateStore interface {
+	ReadAppState() (*config.AppState, error)
+	UpdateAppState(update func(state *config.AppState)) error
+}
+
+// Updater checks for new lazygit releases, and installs them if lazygit was
+// installed from one of our release archives.
 type Updater struct {
 	*common.Common
-	Config    config.AppConfigurer
-	OSCommand *oscommands.OSCommand
+	appState       appStateStore
+	installation   Installation
+	currentVersion *types.VersionNumber
+
+	httpClient *http.Client
+	repoURL    string
+	goos       string
+	goarch     string
+
+	installing atomic.Bool
+
+	statusMutex sync.Mutex
+	status      Status
+
+	startTime time.Time
+
+	// Replaced in tests
+	now func() time.Time
+
+	// Held while we replace the executable, so that lazygit doesn't exit in
+	// the middle of it
+	replaceMutex sync.Mutex
 }
 
-// Updaterer implements the check and update methods
-type Updaterer interface {
-	CheckForNewUpdate()
-	Update()
-}
+func NewUpdater(cmn *common.Common, config config.AppConfigurer) *Updater {
+	currentVersion, _ := types.ParseVersionNumber(config.GetVersion())
 
-// NewUpdater creates a new updater
-func NewUpdater(cmn *common.Common, config config.AppConfigurer, osCommand *oscommands.OSCommand) (*Updater, error) {
 	return &Updater{
-		Common:    cmn,
-		Config:    config,
-		OSCommand: osCommand,
-	}, nil
+		Common:         cmn,
+		appState:       config,
+		installation:   DetectInstallation(config.GetBuildSource(), config.GetVersion(), executablePath()),
+		currentVersion: currentVersion,
+		httpClient:     &http.Client{},
+		repoURL:        constants.Links.RepoUrl,
+		goos:           runtime.GOOS,
+		goarch:         runtime.GOARCH,
+		startTime:      time.Now(),
+		now:            time.Now,
+	}
 }
 
-func (u *Updater) getLatestVersionNumber() (string, error) {
-	req, err := http.NewRequest("GET", constants.Links.RepoUrl+"/releases/latest", nil)
+func executablePath() string {
+	path, err := os.Executable()
 	if err != nil {
-		return "", err
+		return ""
 	}
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
+	if resolvedPath, err := filepath.EvalSymlinks(path); err == nil {
+		return resolvedPath
 	}
-	defer resp.Body.Close()
-
-	dec := json.NewDecoder(resp.Body)
-	data := struct {
-		TagName string `json:"tag_name"`
-	}{}
-	if err := dec.Decode(&data); err != nil {
-		return "", err
-	}
-
-	return data.TagName, nil
+	return path
 }
 
-// RecordLastUpdateCheck records last time an update check was performed
-func (u *Updater) RecordLastUpdateCheck() error {
-	return u.Config.UpdateAppState(func(state *config.AppState) {
-		state.LastUpdateCheck = time.Now().Unix()
+func (u *Updater) Installation() Installation {
+	return u.installation
+}
+
+// CurrentVersion returns nil for dev builds
+func (u *Updater) CurrentVersion() *types.VersionNumber {
+	return u.currentVersion
+}
+
+// Status is what lazygit knows about updates
+type Status struct {
+	// The latest release that a check found, if it is newer than the running
+	// lazygit
+	AvailableVersion *types.VersionNumber
+	// The version that an update installed in place of the running lazygit.
+	// This lazygit, or another one running from the same executable, can have
+	// installed it. The new version takes effect when lazygit is restarted.
+	InstalledVersion *types.VersionNumber
+}
+
+// ChecksEnabled returns whether lazygit checks for updates regularly. It
+// doesn't for dev builds.
+func (u *Updater) ChecksEnabled() bool {
+	return u.installation.Kind != InstallKindDevBuild
+}
+
+// CheckForUpdateIfDue checks for an update if lazygit checks regularly, and
+// the last successful check is long enough ago.
+func (u *Updater) CheckForUpdateIfDue() error {
+	if !u.ChecksEnabled() {
+		return nil
+	}
+
+	state := u.readAppState()
+	interval := time.Duration(u.UserConfig().Update.Days) * 24 * time.Hour
+	if u.now().Sub(time.Unix(state.Updates.LastCheck, 0)) < interval {
+		u.RefreshStatus()
+		return nil
+	}
+
+	_, err := u.CheckForUpdate()
+	return err
+}
+
+// CheckForUpdate returns the latest version if it is newer than the current
+// one, or nil if it isn't. Don't call it for dev builds.
+func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), checkTimeout)
+	defer cancel()
+
+	latestVersion, err := fetchLatestVersion(ctx, u.httpClient, u.repoURL)
+	if err != nil {
+		return nil, err
+	}
+
+	u.Log.Infof("Current version is %s, latest version is %s", u.currentVersion, latestVersion)
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.LastCheck = u.now().Unix()
+		if state.Updates.LatestVersion != latestVersion.String() {
+			state.Updates.LatestVersion = latestVersion.String()
+			state.Updates.LatestVersionFoundAt = u.now().Unix()
+		}
 	})
+	u.RefreshStatus()
+
+	if !u.currentVersion.IsOlderThan(latestVersion) {
+		return nil, nil
+	}
+	return latestVersion, nil
 }
 
-// expecting version to be of the form `v12.34.56`
-func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
-	if oldVersion == "unversioned" {
-		return false
-	}
-	oldVersion = strings.TrimPrefix(oldVersion, "v")
-	newVersion = strings.TrimPrefix(newVersion, "v")
-	return strings.Split(oldVersion, ".")[0] != strings.Split(newVersion, ".")[0]
+// CheckCanInstall returns an error if we can't install an update in place
+// because we don't have write access to the folder of the executable. Only call
+// it for InstallKindRelease.
+func (u *Updater) CheckCanInstall() error {
+	return checkCanReplaceExecutable(u.installation.ExecutablePath)
 }
 
-func (u *Updater) currentVersion() string {
-	versionNumber := u.Config.GetVersion()
-	if versionNumber == "unversioned" {
-		return versionNumber
+// Install downloads the given release and installs it in place of the running
+// lazygit. Only call it for InstallKindRelease.
+func (u *Updater) Install(version *types.VersionNumber) error {
+	if !u.installing.CompareAndSwap(false, true) {
+		return errors.New("an update is already in progress")
 	}
+	defer u.installing.Store(false)
 
-	return fmt.Sprintf("v%s", u.Config.GetVersion())
-}
+	ctx, cancel := context.WithTimeout(context.Background(), installTimeout)
+	defer cancel()
 
-func (u *Updater) checkForNewUpdate() (string, error) {
-	u.Log.Info("Checking for an updated version")
-	currentVersion := u.currentVersion()
-	if err := u.RecordLastUpdateCheck(); err != nil {
-		return "", err
-	}
+	url := assetURL(u.repoURL, version, u.goos, u.goarch)
+	u.Log.Infof("Installing %s", url)
 
-	newVersion, err := u.getLatestVersionNumber()
-	if err != nil {
-		return "", err
-	}
-	u.Log.Info("Current version is " + currentVersion)
-	u.Log.Info("New version is " + newVersion)
-
-	if newVersion == currentVersion {
-		return "", errors.New(u.Tr.OnLatestVersionErr)
-	}
-
-	if u.majorVersionDiffers(currentVersion, newVersion) {
-		errMessage := utils.ResolvePlaceholderString(
-			u.Tr.MajorVersionErr, map[string]string{
-				"newVersion":     newVersion,
-				"currentVersion": currentVersion,
-			},
-		)
-		return "", errors.New(errMessage)
-	}
-
-	rawUrl := u.getBinaryUrl(newVersion)
-
-	u.Log.Info("Checking for resource at url " + rawUrl)
-	if !u.verifyResourceFound(rawUrl) {
-		errMessage := utils.ResolvePlaceholderString(
-			u.Tr.CouldNotFindBinaryErr, map[string]string{
-				"url": rawUrl,
-			},
-		)
-
-		return "", errors.New(errMessage)
-	}
-	u.Log.Info("Verified resource is available, ready to update")
-
-	return newVersion, nil
-}
-
-// CheckForNewUpdate checks if there is an available update
-func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequested bool) {
-	if !userRequested && u.skipUpdateCheck() {
-		return
-	}
-
-	newVersion, err := u.checkForNewUpdate()
-	if err = onFinish(newVersion, err); err != nil {
-		u.Log.Error(err)
-	}
-}
-
-func (u *Updater) skipUpdateCheck() bool {
-	// will remove the check for windows after adding a manifest file asking for
-	// the required permissions
-	if runtime.GOOS == "windows" {
-		u.Log.Info("Updating is currently not supported for windows until we can fix permission issues")
-		return true
-	}
-
-	if u.Config.GetVersion() == "unversioned" {
-		u.Log.Info("Current version is not built from an official release so we won't check for an update")
-		return true
-	}
-
-	if u.Config.GetBuildSource() != "buildBinary" {
-		u.Log.Info("Binary is not built with the buildBinary flag so we won't check for an update")
-		return true
-	}
-
-	userConfig := u.UserConfig()
-	if userConfig.Update.Method == "never" {
-		u.Log.Info("Update method is set to never so we won't check for an update")
-		return true
-	}
-
-	currentTimestamp := time.Now().Unix()
-	appState, err := u.Config.ReadAppState()
-	if err != nil {
-		u.Log.Errorf("error when reading app state: %v", err)
-	}
-	lastUpdateCheck := appState.LastUpdateCheck
-	days := userConfig.Update.Days
-
-	if (currentTimestamp-lastUpdateCheck)/(60*60*24) < days {
-		u.Log.Info("Last update was too recent so we won't check for an update")
-		return true
-	}
-
-	return false
-}
-
-func (u *Updater) mappedOs(os string) string {
-	osMap := map[string]string{
-		"darwin":  "Darwin",
-		"linux":   "Linux",
-		"windows": "Windows",
-	}
-	result, found := osMap[os]
-	if found {
-		return result
-	}
-	return os
-}
-
-func (u *Updater) mappedArch(arch string) string {
-	archMap := map[string]string{
-		"386":   "32-bit",
-		"amd64": "x86_64",
-	}
-	result, found := archMap[arch]
-	if found {
-		return result
-	}
-	return arch
-}
-
-func (u *Updater) zipExtension() string {
-	if runtime.GOOS == "windows" {
-		return "zip"
-	}
-
-	return "tar.gz"
-}
-
-// example: https://github.com/jesseduffield/lazygit/releases/download/v0.1.73/lazygit_0.1.73_Darwin_x86_64.tar.gz
-func (u *Updater) getBinaryUrl(newVersion string) string {
-	url := fmt.Sprintf(
-		"%s/releases/download/%s/lazygit_%s_%s_%s.%s",
-		constants.Links.RepoUrl,
-		newVersion,
-		newVersion[1:],
-		u.mappedOs(runtime.GOOS),
-		u.mappedArch(runtime.GOARCH),
-		u.zipExtension(),
-	)
-	u.Log.Info("Url for latest release is " + url)
-	return url
-}
-
-// Update downloads the latest binary and replaces the current binary with it
-func (u *Updater) Update(newVersion string) error {
-	return u.update(newVersion)
-}
-
-func (u *Updater) update(newVersion string) error {
-	rawUrl := u.getBinaryUrl(newVersion)
-	u.Log.Info("Updating with url " + rawUrl)
-	return u.downloadAndInstall(rawUrl)
-}
-
-func (u *Updater) downloadAndInstall(rawUrl string) error {
-	configDir := u.Config.GetUserConfigDir()
-	u.Log.Info("Download directory is " + configDir)
-
-	zipPath := filepath.Join(configDir, "temp_lazygit."+u.zipExtension())
-	u.Log.Info("Temp path to tarball/zip file is " + zipPath)
-
-	// remove existing zip file
-	if err := os.RemoveAll(zipPath); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	// Create the zip file
-	out, err := os.Create(zipPath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Get the data
-	resp, err := http.Get(rawUrl)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check server response
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error while trying to download latest lazygit: %s", resp.Status)
-	}
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
+	binary, err := downloadBinary(ctx, u.httpClient, url, u.goos)
 	if err != nil {
 		return err
 	}
 
-	u.Log.Info("untarring tarball/unzipping zip file")
-	err = u.OSCommand.Cmd.New([]string{"tar", "-zxf", zipPath, "lazygit"}).Run()
-	if err != nil {
+	if err := u.replaceExecutable(binary); err != nil {
 		return err
 	}
 
-	// the `tar` terminal cannot store things in a new location without permission
-	// so it creates it in the current directory. As such our path is fairly simple.
-	// You won't see it because it's gitignored.
-	tempLazygitFilePath := "lazygit"
-
-	u.Log.Infof("Path to temp binary is %s", tempLazygitFilePath)
-
-	// get the path of the current binary
-	binaryPath, err := osext.Executable()
-	if err != nil {
-		return err
-	}
-	u.Log.Info("Binary path is " + binaryPath)
-
-	// Verify the main file exists
-	if _, err := os.Stat(zipPath); err != nil {
-		return err
-	}
-
-	// swap out the old binary for the new one
-	err = os.Rename(tempLazygitFilePath, binaryPath)
-	if err != nil {
-		return err
-	}
-	u.Log.Info("Update complete!")
-
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.InstalledVersion = version.String()
+		state.Updates.InstalledPath = u.installation.ExecutablePath
+	})
+	u.RefreshStatus()
 	return nil
 }
 
-func (u *Updater) verifyResourceFound(rawUrl string) bool {
-	resp, err := http.Head(rawUrl)
-	if err != nil {
-		return false
+func (u *Updater) replaceExecutable(binary []byte) error {
+	u.replaceMutex.Lock()
+	defer u.replaceMutex.Unlock()
+	return replaceExecutable(u.installation.ExecutablePath, binary, u.goos)
+}
+
+// RefreshStatus reads the status from the app state, where other lazygit
+// instances can have changed it, and returns it. Don't call it on the UI
+// thread, because it accesses the file system.
+func (u *Updater) RefreshStatus() Status {
+	state := u.readAppState()
+
+	status := u.statusFromAppState(state)
+
+	u.statusMutex.Lock()
+	defer u.statusMutex.Unlock()
+	u.status = status
+	return status
+}
+
+func (u *Updater) statusFromAppState(state *config.AppState) Status {
+	status := Status{
+		AvailableVersion: u.newerVersion(state.Updates.LatestVersion),
 	}
-	defer resp.Body.Close()
-	u.Log.Info("Received status code ", resp.StatusCode)
-	// OK (200) indicates that the resource is present.
-	return resp.StatusCode == http.StatusOK
+	if state.Updates.InstalledPath == u.installation.ExecutablePath {
+		status.InstalledVersion = u.newerVersion(state.Updates.InstalledVersion)
+	}
+	return status
+}
+
+// Status returns the status as of the last refresh
+func (u *Updater) Status() Status {
+	u.statusMutex.Lock()
+	defer u.statusMutex.Unlock()
+	return u.status
+}
+
+// IsStartingUp returns whether lazygit started less than a minute ago
+func (u *Updater) IsStartingUp() bool {
+	return u.now().Sub(u.startTime) < startupPeriod
+}
+
+// RemindersEnabled returns whether lazygit reminds the user of available
+// updates. With update.method set to never, it only shows the note in the
+// bottom-right corner.
+func (u *Updater) RemindersEnabled() bool {
+	return u.ChecksEnabled() && u.UserConfig().Update.Method != "never"
+}
+
+// DueReminder returns the version to remind the user of, or nil if no reminder
+// is due
+func (u *Updater) DueReminder(reminder Reminder) *types.VersionNumber {
+	return u.dueReminder(u.readAppState(), reminder)
+}
+
+// ClaimExitMessage returns the version to remind the user of in a message
+// after lazygit exits, or nil if no reminder is due, and records that we print
+// the message. We print it at most once a day.
+func (u *Updater) ClaimExitMessage() *types.VersionNumber {
+	var version *types.VersionNumber
+	u.updateAppState(func(state *config.AppState) {
+		version = u.dueReminder(state, ReminderExitMessage)
+		if version != nil {
+			state.Updates.LastExitMessage = u.now().Unix()
+		}
+	})
+	return version
+}
+
+func (u *Updater) dueReminder(state *config.AppState, reminder Reminder) *types.VersionNumber {
+	if !u.RemindersEnabled() || u.IsInstalling() {
+		return nil
+	}
+
+	status := u.statusFromAppState(state)
+	if status.AvailableVersion == nil || status.InstalledVersion != nil {
+		return nil
+	}
+	if state.Updates.SkippedVersion == state.Updates.LatestVersion {
+		return nil
+	}
+	if u.now().Sub(time.Unix(state.Updates.LastResponse, 0)) < reminderInterval {
+		return nil
+	}
+	if reminder == ReminderMenuAtStartup {
+		if state.Updates.RespondedVersion == state.Updates.LatestVersion ||
+			u.now().Sub(time.Unix(state.Updates.LatestVersionFoundAt, 0)) < startupReminderDelay {
+			return nil
+		}
+	}
+	if reminder == ReminderExitMessage &&
+		u.now().Sub(time.Unix(state.Updates.LastExitMessage, 0)) < reminderInterval {
+		return nil
+	}
+	return status.AvailableVersion
+}
+
+// VersionToInstallInBackground returns the version that lazygit should install
+// without asking the user, or nil if there's none. This is the case if the user
+// config asks for it, and lazygit can update itself.
+func (u *Updater) VersionToInstallInBackground() *types.VersionNumber {
+	if u.installation.Kind != InstallKindRelease || u.UserConfig().Update.Method != "background" {
+		return nil
+	}
+
+	state := u.readAppState()
+	status := u.statusFromAppState(state)
+	if status.AvailableVersion == nil || status.InstalledVersion != nil ||
+		state.Updates.SkippedVersion == state.Updates.LatestVersion {
+		return nil
+	}
+	if err := u.CheckCanInstall(); err != nil {
+		return nil
+	}
+	return status.AvailableVersion
+}
+
+// RecordResponse records that the user responded to the update menu for the
+// given version, in whatever way. lazygit doesn't show the menu again for a
+// day, and the other lazygit instances close theirs.
+func (u *Updater) RecordResponse(version *types.VersionNumber) {
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.LastResponse = u.now().Unix()
+		state.Updates.RespondedVersion = version.String()
+	})
+}
+
+// IsHandledAfter returns whether the user responded to the update menu in any
+// lazygit instance after the given time, or the update got installed. A menu
+// that was shown at that time is obsolete then.
+func (u *Updater) IsHandledAfter(t time.Time) bool {
+	state := u.readAppState()
+	return state.Updates.LastResponse > t.Unix() || u.statusFromAppState(state).InstalledVersion != nil
+}
+
+// SkipVersion keeps lazygit from reminding the user of the given version
+func (u *Updater) SkipVersion(version *types.VersionNumber) {
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.SkippedVersion = version.String()
+	})
+}
+
+// newerVersion parses the given version and returns it if it is newer than the
+// running lazygit, or nil otherwise
+func (u *Updater) newerVersion(versionStr string) *types.VersionNumber {
+	if u.currentVersion == nil {
+		return nil
+	}
+	version, err := types.ParseVersionNumber(versionStr)
+	if err != nil || !u.currentVersion.IsOlderThan(version) {
+		return nil
+	}
+	return version
+}
+
+func (u *Updater) readAppState() *config.AppState {
+	state, err := u.appState.ReadAppState()
+	if err != nil {
+		u.Log.Errorf("Error reading the app state: %v", err)
+	}
+	return state
+}
+
+// Errors from saving the update state aren't worth bothering the user with; at
+// worst, we check or remind again.
+func (u *Updater) updateAppState(update func(state *config.AppState)) {
+	if err := u.appState.UpdateAppState(update); err != nil {
+		u.Log.Errorf("Error saving the app state: %v", err)
+	}
+}
+
+func (u *Updater) IsInstalling() bool {
+	return u.installing.Load()
+}
+
+// WaitForInstallToFinish waits until a running install is done replacing the
+// executable, and keeps later installs from starting. Call it before exiting.
+func (u *Updater) WaitForInstallToFinish() {
+	u.replaceMutex.Lock()
+}
+
+// CleanUpAfterUpdate removes files that an earlier update left behind
+func (u *Updater) CleanUpAfterUpdate() {
+	if u.installation.Kind == InstallKindRelease {
+		cleanUpAfterUpdate(u.installation.ExecutablePath)
+	}
 }

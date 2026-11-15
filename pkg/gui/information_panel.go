@@ -9,7 +9,12 @@ func (gui *Gui) informationStr() string {
 		return activeMode.InfoLabel()
 	}
 
-	return gui.Config.GetVersion()
+	version := gui.Config.GetVersion()
+	if note := gui.helpers.Update.Note(); note != "" {
+		version = note + " " + version
+	}
+
+	return version
 }
 
 func (gui *Gui) handleInfoClick() error {

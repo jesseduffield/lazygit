@@ -16,10 +16,13 @@ var Links = struct {
 	Issues   string
 	RepoUrl  string
 	Releases string
+	// Released binaries link here, so the anchor must never change
+	InstallationInstructions string
 }{
-	RepoUrl:  "https://github.com/jesseduffield/lazygit",
-	Issues:   "https://github.com/jesseduffield/lazygit/issues",
-	Releases: "https://github.com/jesseduffield/lazygit/releases",
+	RepoUrl:                  "https://github.com/jesseduffield/lazygit",
+	Issues:                   "https://github.com/jesseduffield/lazygit/issues",
+	Releases:                 "https://github.com/jesseduffield/lazygit/releases",
+	InstallationInstructions: "https://github.com/jesseduffield/lazygit#install-the-latest-release",
 	Docs: Docs{
 		CustomDiffRenderers: "https://github.com/jesseduffield/lazygit/blob/master/docs/Custom_DiffRenderers.md",
 		CustomKeybindings:   "https://github.com/jesseduffield/lazygit/blob/master/docs/keybindings/Custom_Keybindings.md",

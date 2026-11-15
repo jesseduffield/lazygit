@@ -20,10 +20,6 @@ func (self *QuitActions) QuitWithoutChangingDirectory() error {
 }
 
 func (self *QuitActions) quitAux() error {
-	if self.c.State().GetUpdating() {
-		return self.confirmQuitDuringUpdate()
-	}
-
 	return self.c.ConfirmIf(self.c.UserConfig().ConfirmOnQuit,
 		types.ConfirmOpts{
 			Title:  "",
@@ -32,18 +28,6 @@ func (self *QuitActions) quitAux() error {
 				return gocui.ErrQuit
 			},
 		})
-}
-
-func (self *QuitActions) confirmQuitDuringUpdate() error {
-	self.c.Confirm(types.ConfirmOpts{
-		Title:  self.c.Tr.ConfirmQuitDuringUpdateTitle,
-		Prompt: self.c.Tr.ConfirmQuitDuringUpdate,
-		HandleConfirm: func() error {
-			return gocui.ErrQuit
-		},
-	})
-
-	return nil
 }
 
 func (self *QuitActions) Escape() error {

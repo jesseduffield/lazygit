@@ -2,7 +2,6 @@ package gui
 
 import (
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
-	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -10,8 +9,7 @@ import (
 
 func NewDummyUpdater() *updates.Updater {
 	newAppConfig := config.NewDummyAppConfig()
-	dummyUpdater, _ := updates.NewUpdater(common.NewDummyCommon(), newAppConfig, oscommands.NewDummyOSCommand())
-	return dummyUpdater
+	return updates.NewUpdater(common.NewDummyCommon(), newAppConfig)
 }
 
 // NewDummyGui creates a new dummy GUI for testing
