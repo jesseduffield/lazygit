@@ -148,8 +148,6 @@ type Gui struct {
 	// for accessing the gui's state from outside this package
 	stateAccessor *StateAccessor
 
-	Updating bool
-
 	c       *helpers.HelperCommon
 	helpers *helpers.Helpers
 
@@ -168,14 +166,6 @@ var _ types.IStateAccessor = new(StateAccessor)
 
 func (self *StateAccessor) GetRepoPathStack() *utils.Stack[types.RepoLocation] {
 	return self.gui.RepoPathStack
-}
-
-func (self *StateAccessor) GetUpdating() bool {
-	return self.gui.Updating
-}
-
-func (self *StateAccessor) SetUpdating(value bool) {
-	self.gui.Updating = value
 }
 
 func (self *StateAccessor) GetRepoState() types.IRepoStateAccessor {
@@ -416,6 +406,10 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 				return gui.helpers.Diff.EditFileOfDiffAtLine(filepath, lineNumber, viewname)
 			}
 			return gui.helpers.Diff.EditFilesOfDiff([]string{filepath})
+		}
+
+		if url == helpers.UpdateNoteLink {
+			return gui.helpers.Update.ShowUpdateMenu()
 		}
 
 		if entry, ok := strings.CutPrefix(url, helpers.DiffStatLinkScheme); ok {
@@ -1070,6 +1064,10 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 			// so that they don't outlive lazygit.
 			oscommands.TerminateLivePtys()
 
+			// Don't exit in the middle of replacing the executable with an
+			// update, or the user might be left without a lazygit binary
+			gui.Updater.WaitForInstallToFinish()
+
 			close(gui.stopChan)
 
 			if errors.Is(err, gocui.ErrQuit) && !errors.As(err, &types.ErrQuitWithMessage{}) {
@@ -1081,6 +1079,10 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 					if err := gui.helpers.RecordDirectory.RecordCurrentDirectory(); err != nil {
 						return err
 					}
+				}
+
+				if message := gui.helpers.Update.ExitMessage(); message != "" {
+					fmt.Println(message)
 				}
 
 				return nil

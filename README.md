@@ -243,9 +243,23 @@ In the branches panel, lazygit can show which of your branches have an associate
 
 _Most of the above packages are maintained by third parties so be sure to vet them yourself and confirm that the maintainer is a trustworthy looking person who attends local sports games and gives back to their communities with barbeque fundraisers etc_
 
+<!-- Released versions of lazygit link to this anchor, so never change it -->
+<a name="install-the-latest-release"></a>
+
 ### Binary Releases
 
-For Windows, Mac OS(10.12+) or Linux, you can download a binary release [here](../../releases).
+For Windows, macOS (10.12+), Linux or FreeBSD, you can download a binary release [here](../../releases).
+
+If you install it in a folder that you can write to, lazygit keeps itself up to date. It checks for a new release once a day and offers to install it. This is also a good way to get the latest version if your package manager has an older one; uninstall it there first.
+
+On macOS, Linux and FreeBSD, extract `lazygit` from the archive for your platform into a folder that is on your PATH, e.g. `~/.local/bin`:
+
+```sh
+mkdir -p ~/.local/bin
+tar -xzf lazygit_*_linux_x86_64.tar.gz -C ~/.local/bin lazygit
+```
+
+On Windows, extract `lazygit.exe` from the zip archive for your platform into a folder such as `%LOCALAPPDATA%\Programs\lazygit`, and add that folder to your PATH.
 
 ### Dev container feature
 
@@ -358,10 +372,12 @@ For **Debian 12 "Bookworm", Ubuntu 25.04 "Plucky Puffin"** and earlier:
 ```sh
 LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
 LAZYGIT_ARCH=$(uname -m | sed -e 's/aarch64/arm64/')
-curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz"
+curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_linux_${LAZYGIT_ARCH}.tar.gz"
 tar xf lazygit.tar.gz lazygit
-sudo install lazygit -D -t /usr/local/bin/
+install lazygit -D -t ~/.local/bin/
 ```
+
+This installs lazygit into `~/.local/bin`, so that it can keep itself up to date. On Debian and Ubuntu, the default `~/.profile` adds this folder to your PATH if it exists when you log in.
 
 Verify the correct installation of lazygit:
 

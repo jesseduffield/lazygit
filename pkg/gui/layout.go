@@ -322,7 +322,7 @@ func (gui *Gui) onInitialViewsCreation() error {
 		gui.showRecentRepos = false
 	}
 
-	gui.helpers.Update.CheckForUpdateInBackground()
+	gui.helpers.Update.OnStartup()
 
 	gui.waitForIntro.Done()
 

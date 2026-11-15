@@ -258,6 +258,10 @@ type Gui struct {
 	blockInputCount     int
 	bufferedInputEvents []GocuiEvent
 	replayPending       bool
+
+	// When the user last pressed a key, used the mouse, or pasted (Unix
+	// nanoseconds); see TimeSinceLastInput
+	lastInputTime atomic.Int64
 }
 
 type NewGuiOpts struct {
@@ -276,6 +280,7 @@ type NewGuiOpts struct {
 // NewGui returns a new Gui object with a given output mode.
 func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g := &Gui{}
+	g.lastInputTime.Store(time.Now().UnixNano())
 
 	var err error
 	if opts.Headless {
@@ -1266,6 +1271,10 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
+	if isUserInput(ev) {
+		g.lastInputTime.Store(time.Now().UnixNano())
+	}
+
 	if g.withholdingInput() && eventWithheldWhileBlocking(ev) {
 		if ev.Type == eventKey || ev.Type == eventPaste {
 			// Buffer keys so they replay against fresh state on unblock. Buffer
@@ -1298,6 +1307,10 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	default:
 		return nil
 	}
+}
+
+func isUserInput(ev *GocuiEvent) bool {
+	return ev.Type == eventKey || ev.Type == eventMouse || ev.Type == eventMouseMove || ev.Type == eventPaste
 }
 
 // withholdingInput reports whether events are being kept from the handlers. They
@@ -2232,12 +2245,22 @@ func (g *Gui) Resume() error {
 
 	g.suspended = false
 
+	// The user was busy in the subprocess, so the time we were suspended
+	// doesn't count as idle time
+	g.lastInputTime.Store(time.Now().UnixNano())
+
 	// Schedule a redraw of the whole screen. Nothing else guarantees one:
 	// flushes are skipped while suspended, and after re-engaging the screen
 	// the terminal shows nothing until we draw again.
 	go safe(func() { g.gEvents <- GocuiEvent{Type: eventResize} })
 
 	return nil
+}
+
+// TimeSinceLastInput returns how long ago the user last pressed a key, used the
+// mouse, or pasted. Time spent in a subprocess doesn't count.
+func (g *Gui) TimeSinceLastInput() time.Duration {
+	return time.Since(time.Unix(0, g.lastInputTime.Load()))
 }
 
 func (g *Gui) isSuspended() bool {

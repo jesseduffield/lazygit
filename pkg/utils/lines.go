@@ -109,11 +109,14 @@ const (
 	notInEscapeSequence escapeSequenceState = iota
 	afterEscapeChar
 	inCSISequence
+	inOSCSequence
+	afterEscapeCharInOSCSequence
 )
 
 // Recognizes ANSI escape sequences while iterating over the characters of a
-// string. Only CSI sequences (ESC [ ... final byte) are recognized; these are
-// the color and style codes that lazygit puts into view content.
+// string. It recognizes CSI sequences (ESC [ ... final byte), which are the
+// color and style codes that lazygit puts into view content, and OSC sequences
+// (ESC ] ... BEL or ESC \), which lazygit uses for hyperlinks.
 type escapeSequenceTracker struct {
 	state escapeSequenceState
 }
@@ -123,9 +126,12 @@ type escapeSequenceTracker struct {
 func (self *escapeSequenceTracker) consume(chr rune) bool {
 	switch self.state {
 	case afterEscapeChar:
-		if chr == '[' {
+		switch chr {
+		case '[':
 			self.state = inCSISequence
-		} else {
+		case ']':
+			self.state = inOSCSequence
+		default:
 			self.state = notInEscapeSequence
 		}
 		return true
@@ -135,6 +141,18 @@ func (self *escapeSequenceTracker) consume(chr rune) bool {
 		if chr >= 0x40 && chr <= 0x7e {
 			self.state = notInEscapeSequence
 		}
+		return true
+	case inOSCSequence:
+		switch chr {
+		case '\x07':
+			self.state = notInEscapeSequence
+		case '\x1b':
+			self.state = afterEscapeCharInOSCSequence
+		}
+		return true
+	case afterEscapeCharInOSCSequence:
+		// The backslash of the string terminator (ESC \)
+		self.state = notInEscapeSequence
 		return true
 	default:
 		if chr == '\x1b' {

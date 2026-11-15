@@ -22,7 +22,6 @@ require (
 	github.com/integrii/flaggy v1.8.0
 	github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
 	github.com/kyokomi/emoji/v2 v2.2.14
 	github.com/lucasb-eyer/go-colorful v1.4.1
@@ -41,6 +40,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/xo/terminfo v1.2.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+	golang.org/x/mod v0.41.0
 	golang.org/x/sync v0.24.0
 	golang.org/x/sys v0.49.0
 	gopkg.in/ozeidan/fuzzy-patricia.v3 v3.0.0
@@ -66,7 +66,6 @@ require (
 	github.com/onsi/gomega v1.34.1 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
