@@ -97,9 +97,9 @@ type GuiConfig struct {
 	SkipRewordInEditorWarning bool `yaml:"skipRewordInEditorWarning"`
 	// If true, switch to a different worktree without confirmation when checking out a branch that is checked out in that worktree
 	SkipSwitchWorktreeOnCheckoutWarning bool `yaml:"skipSwitchWorktreeOnCheckoutWarning"`
-	// Fraction of the total screen width to use for the left side section. You may want to pick a small number (e.g. 0.2) if you're using a narrow screen, so that you can see more of the main section.
-	// Number from 0 to 1.0.
-	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"maximum=1,minimum=0"`
+	// Deprecated: drag the boundary between the side panels and the main view with the mouse instead.
+	// Until you do that, this is the fraction of the screen width (or of its height in portrait mode) that the side panels take up.
+	SidePanelWidth float64 `yaml:"sidePanelWidth" jsonschema:"deprecated,maximum=1,minimum=0"`
 	// If true, increase the height of the focused side window; creating an accordion effect.
 	ExpandFocusedSidePanel bool `yaml:"expandFocusedSidePanel"`
 	// The weight of the expanded side panel, relative to the other panels. 2 means twice as tall as the other panels. Only relevant if `expandFocusedSidePanel` is true.
