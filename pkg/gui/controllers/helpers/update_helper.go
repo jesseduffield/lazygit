@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -91,11 +92,14 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 // a new version. Call it on a worker, because it accesses the file system.
 func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) types.CreateMenuOptions {
 	installation := self.updater.Installation()
+	// The release notes are a link rather than a menu item, because choosing a
+	// menu item closes the menu
 	paragraphs := []string{utils.ResolvePlaceholderString(
 		self.c.Tr.NewVersionAvailable,
 		map[string]string{
 			"newVersion":     newVersion.String(),
 			"currentVersion": self.updater.CurrentVersion().String(),
+			"releaseNotes":   style.PrintHyperlink(self.c.Tr.ReleaseNotes, constants.Links.Releases),
 		},
 	)}
 	items := []*types.MenuItem{}
@@ -144,10 +148,6 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 		items = append(items, self.openInstallationInstructionsMenuItem())
 	}
 
-	items = append(items, &types.MenuItem{
-		Label:   self.c.Tr.OpenReleaseNotes,
-		OnPress: func() error { return self.c.OS().OpenLink(constants.Links.Releases) },
-	})
 	paragraphs = append(paragraphs, self.c.Tr.TurnOffUpdateChecks)
 
 	return types.CreateMenuOptions{
