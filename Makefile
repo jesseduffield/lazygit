@@ -75,3 +75,10 @@ rerecord-demos:
 .PHONY: vendor
 vendor:
 	go mod tidy && go mod vendor
+
+# Build the manpage from the scdoc source (requires scdoc)
+.PHONY: docs
+docs:
+	mkdir -p man
+	scdoc < docs-master/lazygit.1.scd > man/lazygit.1
+	@echo "Wrote man/lazygit.1"
