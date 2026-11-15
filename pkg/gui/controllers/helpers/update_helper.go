@@ -148,8 +148,6 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 		items = append(items, self.openInstallationInstructionsMenuItem())
 	}
 
-	paragraphs = append(paragraphs, self.c.Tr.TurnOffUpdateChecks)
-
 	return types.CreateMenuOptions{
 		Title:  self.c.Tr.UpdateAvailableTitle,
 		Prompt: strings.Join(paragraphs, "\n\n"),

@@ -279,7 +279,6 @@ type TranslationSet struct {
 	UpdateWithPackageManager              string
 	PackageManagersCanBeSlow              string
 	UpdateFromPackageManagerOrRelease     string
-	TurnOffUpdateChecks                   string
 	InstallUpdateNow                      string
 	CopyUpdateCommand                     string
 	UpdateCommandCopiedToClipboard        string
@@ -1514,7 +1513,6 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateWithPackageManager:             "You installed lazygit with {{.packageManager}}. To update it, run:\n\n{{.command}}",
 		PackageManagersCanBeSlow:             "Package managers sometimes take a few days to get a new version.",
 		UpdateFromPackageManagerOrRelease:    "If you installed lazygit with a package manager, check whether it has the new version yet. If it doesn't, you can install lazygit from our releases instead, and it will keep itself up to date from then on.",
-		TurnOffUpdateChecks:                  "To turn off update checks, set update.method to never in your config file.",
 		InstallUpdateNow:                     "Install now",
 		CopyUpdateCommand:                    "Copy command",
 		UpdateCommandCopiedToClipboard:       "Command copied to clipboard",
