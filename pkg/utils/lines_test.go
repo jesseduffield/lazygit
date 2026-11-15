@@ -487,3 +487,14 @@ func TestWrapViewLinesToWidth(t *testing.T) {
 		})
 	}
 }
+
+func TestWrapViewLinesToWidthWithHyperlink(t *testing.T) {
+	text := "Hello \x1b]8;;https://example.com\x1b\\big\x1b]8;;\x1b\\ world"
+	wrappedLines, _, _ := WrapViewLinesToWidth(true, false, text, 9, 4)
+	assert.Equal(t,
+		/* EXPECTED:
+		[]string{"Hello \x1b]8;;https://example.com\x1b\\big\x1b]8;;\x1b\\", "world"},
+		ACTUAL: */
+		[]string{"Hello", "\x1b]8;;https:", "//example", ".com\x1b\\big\x1b]8;", ";\x1b\\ world"},
+		wrappedLines)
+}
