@@ -144,6 +144,12 @@ func (self *GuiDriver) FocusIn() {
 	self.waitTillIdle()
 }
 
+func (self *GuiDriver) UpdateAppStateFile(update func(*config.AppState)) {
+	if err := self.gui.Config.UpdateAppState(update); err != nil {
+		self.Fail(fmt.Sprintf("Failed to update state.yml: %v", err))
+	}
+}
+
 // Paste sends the events that a terminal with bracketed paste mode sends: the
 // start of the paste, a key press for each character, and the end of the paste.
 func (self *GuiDriver) Paste(text string) {

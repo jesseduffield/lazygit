@@ -143,6 +143,12 @@ func (self *TestDriver) FocusIn() {
 	self.Wait(self.inputDelay)
 }
 
+// Change state.yml the way another lazygit instance would, e.g. to test that
+// lazygit picks up the change when its window regains focus
+func (self *TestDriver) UpdateAppStateFile(update func(*config.AppState)) {
+	self.gui.UpdateAppStateFile(update)
+}
+
 func (self *TestDriver) paste(text string) {
 	self.SetCaption(fmt.Sprintf("Pasting %q", text))
 	self.gui.Paste(text)

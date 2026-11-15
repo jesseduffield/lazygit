@@ -87,6 +87,9 @@ func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
 func (self *fakeGuiDriver) FocusIn() {
 }
 
+func (self *fakeGuiDriver) UpdateAppStateFile(update func(*config.AppState)) {
+}
+
 func (self *fakeGuiDriver) Paste(text string) {
 }
 
