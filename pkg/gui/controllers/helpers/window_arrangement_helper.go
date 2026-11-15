@@ -86,6 +86,10 @@ type WindowArrangementArgs struct {
 }
 
 func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, appStatus string) map[string]boxlayout.Dimensions {
+	return GetWindowDimensions(self.windowArrangementArgs(informationStr, appStatus))
+}
+
+func (self *WindowArrangementHelper) windowArrangementArgs(informationStr string, appStatus string) WindowArrangementArgs {
 	width, height := self.c.GocuiGui().Size()
 	repoState := self.c.State().GetRepoState()
 
@@ -96,7 +100,7 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		searchPrefix = self.c.Tr.SearchPrefix
 	}
 
-	args := WindowArrangementArgs{
+	return WindowArrangementArgs{
 		Width:               width,
 		Height:              height,
 		UserConfig:          self.c.UserConfig(),
@@ -117,8 +121,6 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 		SearchPrefix:     searchPrefix,
 		SidePanelSizes:   self.c.State().GetSidePanelSizes(),
 	}
-
-	return GetWindowDimensions(args)
 }
 
 func shouldUsePortraitMode(args WindowArrangementArgs) bool {
