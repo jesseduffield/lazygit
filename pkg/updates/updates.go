@@ -97,9 +97,10 @@ type Status struct {
 	InstalledVersion *types.VersionNumber
 }
 
-// ChecksEnabled returns whether lazygit checks for updates regularly
+// ChecksEnabled returns whether lazygit checks for updates regularly. It
+// doesn't for dev builds.
 func (u *Updater) ChecksEnabled() bool {
-	return u.installation.Kind != InstallKindDevBuild && u.UserConfig().Update.Method != "never"
+	return u.installation.Kind != InstallKindDevBuild
 }
 
 // CheckForUpdateIfDue checks for an update if lazygit checks regularly, and

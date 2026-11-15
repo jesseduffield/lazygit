@@ -101,11 +101,12 @@ func TestCheckForUpdateIfDue(t *testing.T) {
 			expectStatus:  nil,
 		},
 		{
-			name:        "checks turned off",
-			version:     "0.66.2",
-			method:      "never",
-			days:        1,
-			expectCheck: false,
+			name:         "update.method never",
+			version:      "0.66.2",
+			method:       "never",
+			days:         1,
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
 			name:        "dev build",
