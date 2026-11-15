@@ -20,7 +20,7 @@ executable:
 | Kind | How we detect it | What we offer |
 |---|---|---|
 | Release | build source `binaryRelease`, not in a package manager's folder | install in place, if we can write to the folder |
-| Homebrew | build source `Homebrew`, or the path contains `/Cellar/lazygit/` | run `brew upgrade lazygit` |
+| Homebrew | build source `Homebrew`, or the path contains `/Cellar/lazygit/` | show the command |
 | go install | build source `goInstall` (see `mergeBuildInfo`) | show the command |
 | Scoop, winget, Chocolatey | path of the executable | show the command |
 | Other | any other build with a release version | tell the user to check their package manager |
@@ -36,9 +36,9 @@ wrong version.
 - At startup, if the last successful check is at least `update.days` ago
   (default 1). Every hour, lazygit tests again whether a check is due.
 - With `u` in the status panel.
-- For Homebrew, the latest version comes from Homebrew's API, because
-  homebrew-core gets new versions a few hours after we release them. Everyone
-  else gets the latest GitHub release.
+
+All install kinds compare with our latest release on GitHub. Package managers
+get a new release some time later; the menu tells the user so.
 
 The result goes into the `updates` section of `state.yml`, which all running
 instances share.
@@ -48,9 +48,10 @@ instances share.
 - A note in the bottom-right corner ("Update available", or "Restart to use
   vX" after an install). Clicking it opens the update menu.
 - The update menu, when the user hasn't used lazygit for a minute and no popup
-  is open. It has "Remind me tomorrow" and "Skip this version". Whatever the
-  user chooses, including closing the menu, counts as a response, and the menu
-  doesn't appear again for a day.
+  is open. It has "Remind me tomorrow" and "Skip this version", and a link to
+  the release notes in its first line. Whatever the user chooses, including
+  closing the menu, counts as a response, and the menu doesn't appear again for
+  a day. Clicking the link doesn't count.
 - A message after lazygit exits, for users who never leave lazygit idle. It
   appears at most once a day, and not on a day when the user responded to the
   menu. It doesn't count as a response.
@@ -63,7 +64,8 @@ When the user responds in one instance, the others close their menus within
 ten seconds.
 
 With `update.method: background`, lazygit installs a new release without
-asking if it can. With `never`, it doesn't check at all, but `u` still works.
+asking if it can. With `never`, it still checks and shows the note, but doesn't
+remind the user.
 
 ## Automated tests
 
@@ -98,14 +100,18 @@ lazygit check at the next start; setting `lastresponse` and `lastexitmessage`
 to 0 allows reminders right away.
 
 For the other install kinds, use these build sources: `Homebrew`, `goInstall`,
-or `unknown` (Other). On Windows, put the binary into a folder like
+or `unknown` (Other). Set `os.openLink` in the config to something like
+`echo {{link}} >> /tmp/lg/links` to see which links lazygit opens without
+opening a browser. On Windows, put the binary into a folder like
 `...\scoop\apps\lazygit\0.60.0\` to test the package manager detection.
 
 ### Release archive in a writable folder
 
 - [ ] At startup, the note says "Update available". The log shows one check.
 - [ ] Starting again on the same day shows the note without a check.
-- [ ] `u` shows the menu with "Install now". Installing shows a waiting
+- [ ] `u` shows the menu with "Install now". Clicking "Release notes" in its
+      first line opens the releases page, and the menu stays open.
+- [ ] Installing shows a waiting
       status, then a toast. The note says "Restart to use vX". `lazygit
       --version` shows the new version, and no temporary files are left in the
       folder.
@@ -127,7 +133,8 @@ or `unknown` (Other). On Windows, put the binary into a folder like
       doesn't remind any more. Its note says "Restart to use vX" after its
       next hourly check.
 - [ ] `update.method: background` installs at startup without asking.
-- [ ] `update.method: never`: no check, no note, no reminders; `u` works.
+- [ ] `update.method: never`: the check happens and the note appears, but
+      there's no menu and no message after exiting; `u` works.
 - [ ] Installed through a symlink (e.g. `~/bin/lazygit` pointing to the
       binary): the update replaces the binary, and the symlink stays.
 
@@ -138,19 +145,11 @@ or `unknown` (Other). On Windows, put the binary into a folder like
       installation instructions instead of "Install now". The exit message
       says the same.
 
-### Homebrew
-
-- [ ] With build source `Homebrew`, the log shows that the version comes from
-      formulae.brew.sh, and the menu offers "Upgrade with Homebrew".
-- [ ] With a real Homebrew install that is outdated (e.g. the day a release
-      comes out, before running `brew upgrade`), "Upgrade with Homebrew" runs
-      brew in the terminal. Afterwards lazygit says that the update is
-      complete, and the note says "Restart to use vX".
-- [ ] With `HOMEBREW_NO_AUTO_UPDATE=1` and brew's list of formulae out of
-      date, lazygit says that Homebrew didn't install the new version.
-
 ### Other kinds
 
+- [ ] `Homebrew`: the menu and the exit message show `brew upgrade lazygit`,
+      the menu says that package managers can take a while, and "Copy
+      command" copies the command.
 - [ ] `goInstall`: the menu and the exit message show
       `go install github.com/jesseduffield/lazygit@latest`, and "Copy command"
       copies it.
@@ -158,8 +157,8 @@ or `unknown` (Other). On Windows, put the binary into a folder like
       manager and offers the installation instructions.
 - [ ] A binary in a mise folder (`.../mise/installs/lazygit/0.60.0/`) with
       build source `binaryRelease` counts as Other.
-- [ ] Dev build (`just build`): `u` says why it can't check. No note, and the
-      log shows no check.
+- [ ] Dev build (`just build`): `u` shows a popup that says why it can't
+      check. No note, and the log shows no check.
 
 ### Windows
 
@@ -181,5 +180,4 @@ or `unknown` (Other). On Windows, put the binary into a folder like
 - [ ] The release assets have the names that `assetName` produces
       (`TestAssetName` lists the names of a real release).
 - [ ] In the release after the next one, the released version finds and
-      installs the new one, and Homebrew users see the upgrade once
-      homebrew-core has it.
+      installs the new one.
