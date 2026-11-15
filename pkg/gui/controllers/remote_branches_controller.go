@@ -248,11 +248,12 @@ func (self *RemoteBranchesController) deleteSvnRemoteBranches(selectedBranches [
 func (self *RemoteBranchesController) deleteSvnLocalRefs(selectedBranches []*models.RemoteBranch) error {
 	return self.c.WithWaitingStatus(self.c.Tr.DeletingStatus, func(task gocui.Task) error {
 		for _, branch := range selectedBranches {
-			refName := branch.RemoteName + "/" + branch.Name
+			refName := "refs/remotes/" + branch.RemoteName + "/" + branch.Name
 			if err := self.c.Git().Svn.DeleteLocalRef(refName); err != nil {
 				return err
 			}
 		}
+		self.c.Git().Svn.InvalidateStatusCache()
 		self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
 		self.c.RefreshFromWorker(types.RefreshOptions{
 			Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},
@@ -284,9 +285,10 @@ func (self *RemoteBranchesController) confirmDeleteSvnBoth(selectedBranches []*m
 							map[string]string{"error": err.Error()},
 						))
 					}
-					refName := branch.RemoteName + "/" + branch.Name
+					refName := "refs/remotes/" + branch.RemoteName + "/" + branch.Name
 					_ = self.c.Git().Svn.DeleteLocalRef(refName)
 				}
+				self.c.Git().Svn.InvalidateStatusCache()
 				self.c.Contexts().RemoteBranches.CollapseRangeSelectionToTop()
 				self.c.RefreshFromWorker(types.RefreshOptions{
 					Scope: []types.RefreshableView{types.BRANCHES, types.REMOTES},

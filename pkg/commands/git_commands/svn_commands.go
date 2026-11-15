@@ -255,15 +255,68 @@ func (self *SvnCommands) CreateBranch(branchName string) error {
 }
 
 // DeleteServerBranch deletes a branch from the SVN server.
-// branchPath is relative to the SVN root, e.g. "branches/proj1/xxx"
-// Implementation: runs svn delete -m "..." <svn-url>/<branchPath>
-func (self *SvnCommands) DeleteServerBranch(task gocui.Task, branchPath string) error {
+// branchName is RemoteBranch.Name (ref relative path, e.g. "ver_85_V1.0"),
+// which is resolved to the full SVN server path via ref mappings
+// (e.g. "branches/rtl_branches/ver_85_V1.0")
+func (self *SvnCommands) DeleteServerBranch(task gocui.Task, branchName string) error {
 	svnUrl, err := self.GetSvnUrl()
 	if err != nil {
 		return err
 	}
-	cmdArgs := []string{"svn", "delete", fmt.Sprintf("%s/%s", svnUrl, branchPath), "-m", fmt.Sprintf("Delete branch %s", branchPath)}
+	fullSvnPath, err := self.resolveSvnBranchPath(branchName)
+	if err != nil {
+		return err
+	}
+	cmdArgs := []string{"svn", "delete", fmt.Sprintf("%s/%s", svnUrl, fullSvnPath), "-m", fmt.Sprintf("Delete branch %s", branchName)}
 	return self.cmd.New(cmdArgs).PromptOnCredentialRequest(task).Run()
+}
+
+// resolveSvnBranchPath maps a RemoteBranch.Name (ref relative path after
+// stripping "refs/remotes/<svn-remote>/") to the full SVN server path
+// relative to the SVN root.
+// e.g. branchName="ver_85_V1.0" with config
+//   branches = branches/rtl_branches/*:refs/remotes/origin/*
+// return "branches/rtl_branches/ver_85_V1.0".
+//
+// When multiple mappings could match (e.g. branches RefsPath
+// "refs/remotes/origin" is a prefix of trunk RefsPath
+// "refs/remotes/origin/trunk"), the longest (most specific) RefsPath
+// wins, so trunk/tags refs are not mistaken for branches.
+func (self *SvnCommands) resolveSvnBranchPath(branchName string) (string, error) {
+	mappings, err := self.GetSvnRefMappings()
+	if err != nil {
+		return "", err
+	}
+
+	remoteName := self.GetSvnRemoteName()
+	refsPrefix := "refs/remotes/" + remoteName + "/"
+	fullRef := refsPrefix + branchName
+
+	// Find the most specific mapping (longest RefsPath) whose RefsPath
+	// either equals fullRef or is a parent prefix of fullRef
+	var bestMatch *SvnRefMapping
+	for i := range mappings {
+		m := &mappings [i]
+		if fullRef == m.RefsPath || strings.HasPrefix(fullRef, m.RefsPath + "/") {
+			if bestMatch == nil || len(m.RefsPath) > len(bestMatch.RefsPath) {
+				bestMatch = m
+			}
+		}
+	}
+
+	if bestMatch == nil {
+		// No mapping found; fall back to branchName as-is.
+		return branchName, nil
+	}
+
+	if fullRef == bestMatch.RefsPath {
+		return bestMatch.SvnPath, nil
+	}
+	remaining := strings.TrimPrefix(fullRef, bestMatch.RefsPath+"/")
+	if bestMatch.SvnPath == "" {
+		return remaining, nil
+	}
+	return bestMatch.SvnPath + "/" + remaining, nil
 }
 
 // DeleteLocalRef deletes only the local remote-tracking ref (refs/remotes/<svn-remote>/xxx)
