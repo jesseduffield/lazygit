@@ -129,7 +129,7 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 				"command":        installation.UpdateCommand(),
 			},
 		))
-		if installation.Kind != updates.InstallKindHomebrew && installation.Kind != updates.InstallKindGoInstall {
+		if installation.Kind != updates.InstallKindGoInstall {
 			paragraphs = append(paragraphs, self.c.Tr.PackageManagersCanBeSlow)
 		}
 		items = append(items, &types.MenuItem{
