@@ -1502,13 +1502,6 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) {
 
 	tabs := v.Tabs
 	prefix := v.TitlePrefix
-	if prefix != "" {
-		if len(v.FrameRunes) > 0 {
-			prefix += string(v.FrameRunes[0])
-		} else {
-			prefix += "─"
-		}
-	}
 	separator := " - "
 	charIndex := 0
 	currentTabStart := -1
@@ -1532,9 +1525,14 @@ func (g *Gui) drawTitle(v *View, fgColor, bgColor Attribute) {
 	str := strings.Join(tabs, separator)
 
 	x := v.x0 + 2
-	for _, ch := range prefix {
-		g.SetRune(x, v.y0, ch, fgColor, bgColor)
-		x += uniseg.StringWidth(string(ch))
+	if prefix != "" {
+		for _, ch := range prefix {
+			g.SetRune(x, v.y0, ch, fgColor, bgColor)
+			x += uniseg.StringWidth(string(ch))
+		}
+		separator, separatorColor := v.titlePrefixSeparator(fgColor)
+		g.SetRune(x, v.y0, separator, separatorColor, bgColor)
+		x += uniseg.StringWidth(string(separator))
 	}
 	for i, ch := range str {
 		if x < 0 {
@@ -1755,6 +1753,9 @@ func (g *Gui) draw(v *View) {
 
 		g.drawFrameEdges(v, frameColor, bgColor)
 		g.drawFrameCorners(v, frameColor, bgColor)
+		if v.EdgeHighlight != nil {
+			g.drawEdgeHighlight(v, bgColor)
+		}
 		if v.Title != "" || len(v.Tabs) > 0 {
 			g.drawTitle(v, fgColor, bgColor)
 		}
