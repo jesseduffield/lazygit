@@ -77,6 +77,11 @@ func (self *ListContextTrait) FocusLine(scrollIntoView bool) {
 				self.refreshViewport()
 			}
 		}
+
+		// The search couldn't scroll sideways to a match whose line wasn't rendered.
+		if inOnSearchSelect && self.renderOnlyVisibleLines {
+			self.GetView().ScrollSidewaysToCurrentSearchResult()
+		}
 		return nil
 	})
 

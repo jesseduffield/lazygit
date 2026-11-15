@@ -99,6 +99,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Kopieer branch name naar klembord |  |
+| `` b `` | View bisect options |  |
 | `` i `` | Laat git-flow opties zien |  |
 | `` <space> `` | Uitchecken | Geselecteerd item uitchecken. |
 | `` n `` | Nieuwe branch |  |
@@ -257,6 +258,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` b `` | View bisect options |  |
 | `` <space> `` | Uitchecken | Check de geselecteerde branch uit als een detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -287,6 +289,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | Sort order |  |
 | `` g `` | Bekijk reset opties | View reset options (soft/mixed/hard) for resetting onto selected item. |
 | `` <ctrl+t> `` | Open externe diff applicatie (git difftool) |  |
+| `` b `` | View bisect options |  |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | Bekijk commits |  |
 | `` / `` | Filter the current view by text |  |
@@ -358,6 +361,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy abbreviated commit hash to clipboard |  |
+| `` b `` | View bisect options |  |
 | `` <space> `` | Uitchecken | Check de geselecteerde branch uit als een detached HEAD. |
 | `` y `` | Copy commit attribute to clipboard | Copy commit attribute to clipboard (e.g. hash, URL, diff, message, author). |
 | `` o `` | Open commit in browser |  |
@@ -392,6 +396,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | Key | Action | Info |
 |-----|--------|-------------|
 | `` <ctrl+o> `` | Copy tag to clipboard |  |
+| `` b `` | View bisect options |  |
 | `` <space> `` | Uitchecken | Geselecteerde tag uitchecken als detached HEAD. |
 | `` n `` | Creëer tag | Maak een nieuwe tag die naar de huidige commit wijst. Je wordt gevraagd om een tag naam en optionele beschrijving. |
 | `` w `` | New worktree |  |

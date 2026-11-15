@@ -666,7 +666,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 	gui.applySidePanelConfig()
 
-	return initialContext(contextTree, startArgs)
+	return initialContext(contextTree, startArgs, gui.git.Bisect.GetInfo().Started())
 }
 
 func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
@@ -754,7 +754,7 @@ func parseScreenModeArg(screenModeArg string) types.ScreenMode {
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.IListContext {
+func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs, bisectStarted bool) types.IListContext {
 	var initialContext types.IListContext = contextTree.Files
 
 	if startArgs.FilterPath != "" {
@@ -772,6 +772,10 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 		default:
 			panic("unhandled git arg")
 		}
+	} else if bisectStarted {
+		// The commits panel shows how far the bisect has got, and the user
+		// marks the commits to test there
+		initialContext = contextTree.LocalCommits
 	}
 
 	return initialContext

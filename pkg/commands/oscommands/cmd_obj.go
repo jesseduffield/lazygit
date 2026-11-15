@@ -37,6 +37,9 @@ type CmdObj struct {
 
 	// can be set so that we don't run certain commands simultaneously
 	mutex *deadlock.Mutex
+
+	// see RecoverFromLockErrorWith()
+	lockErrorRecovery func() *CmdObj
 }
 
 type CredentialStrategy int
@@ -199,6 +202,27 @@ func (self *CmdObj) WithMutex(mutex *deadlock.Mutex) *CmdObj {
 	self.mutex = mutex
 
 	return self
+}
+
+// RecoverFromLockErrorWith sets what the git command runner does when this
+// command fails because another git process holds a lock (see
+// gitCmdObjRunner.retryOnLockError). Without it, the runner runs the command
+// again. That is wrong for a command that starts an operation of several
+// steps, such as a rebase, if the lock only stopped it partway through.
+//
+// The runner calls recovery after each failed attempt, including the last
+// one, so that recovery can also clean up after the command. It returns the
+// command to run next: this one to run it again, a different one (for
+// example, one that resumes the operation), or nil to give up and return the
+// error.
+func (self *CmdObj) RecoverFromLockErrorWith(recovery func() *CmdObj) *CmdObj {
+	self.lockErrorRecovery = recovery
+
+	return self
+}
+
+func (self *CmdObj) GetLockErrorRecovery() func() *CmdObj {
+	return self.lockErrorRecovery
 }
 
 // runs the command and returns an error if any

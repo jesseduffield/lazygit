@@ -20,6 +20,7 @@ const (
 	StatusMerged
 	StatusRebasing
 	StatusCherryPickingOrReverting
+	StatusApplyingPatch
 	StatusConflicted
 	StatusReflog
 )
@@ -62,6 +63,10 @@ type Commit struct {
 	Action     todo.TodoCommand
 	ActionFlag string     // e.g. "-C" for fixup -C
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view
+
+	// For a patch that "git am" hasn't applied yet, the file that contains
+	// it; empty for all other commits.
+	PatchFile string
 }
 
 type NewCommitOpts struct {
@@ -77,6 +82,7 @@ type NewCommitOpts struct {
 	UnixTimestamp int64
 	Divergence    Divergence
 	Parents       []string
+	PatchFile     string
 }
 
 func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
@@ -92,6 +98,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
+		PatchFile:     opts.PatchFile,
 		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}
 }
