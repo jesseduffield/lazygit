@@ -71,7 +71,8 @@ type Gui struct {
 
 	diffRendererConfig *config.DiffRendererConfigManager
 
-	CustomCommandsClient *custom_commands.Client
+	CustomCommandsClient  *custom_commands.Client
+	customCommandBindings []*types.Binding
 
 	// Unlike the other modes, the cherry-picking mode is shared by all repo
 	// states, so that you can copy commits in one worktree or repo and paste
