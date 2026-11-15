@@ -210,6 +210,10 @@ func (self *StateAccessor) GetSidePanelSizes() map[config.SidePanelLayout][]conf
 	return self.gui.SidePanelSizes
 }
 
+func (self *StateAccessor) SetSidePanelSizes(value map[config.SidePanelLayout][]config.SidePanelSize) {
+	self.gui.SidePanelSizes = value
+}
+
 func (self *StateAccessor) GetRetainOriginalDir() bool {
 	return self.gui.RetainOriginalDir
 }
@@ -412,6 +416,7 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			return reloadErr
 		}
 
+		gui.helpers.SidePanelResize.OnFocusLost()
 		return nil
 	})
 
@@ -990,6 +995,13 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		gui.helpers.Diff.RenderToMainAgain()
 		return nil
 	})
+
+	gui.g.OnMouseMove = func(x, y int) {
+		gui.helpers.SidePanelResize.OnMouseMove(x, y)
+	}
+	gui.g.InterceptMouse = func(ev gocui.MouseEvent) bool {
+		return gui.helpers.SidePanelResize.InterceptMouse(ev)
+	}
 
 	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.KeyName) bool {
 		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&

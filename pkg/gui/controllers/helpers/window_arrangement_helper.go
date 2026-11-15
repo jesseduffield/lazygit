@@ -89,6 +89,32 @@ func (self *WindowArrangementHelper) GetWindowDimensions(informationStr string, 
 	return GetWindowDimensions(self.windowArrangementArgs(informationStr, appStatus))
 }
 
+// SidePanelArrangement describes how the side panels and the main view share
+// the screen.
+type SidePanelArrangement struct {
+	Layout config.SidePanelLayout
+	// True if the side panels are above the main view, false if they are left
+	// of it
+	SidePanelsAbove bool
+	// The size of the screen that config.SidePanelSize refers to
+	ScreenSize int
+}
+
+// GetSidePanelArrangement returns how the side panels and the main view share
+// the screen, or false if only one of the two is visible.
+func (self *WindowArrangementHelper) GetSidePanelArrangement(informationStr string, appStatus string) (SidePanelArrangement, bool) {
+	args := self.windowArrangementArgs(informationStr, appStatus)
+	layout, ok := sidePanelLayout(args)
+	if !ok {
+		return SidePanelArrangement{}, false
+	}
+	return SidePanelArrangement{
+		Layout:          layout,
+		SidePanelsAbove: shouldUsePortraitMode(args),
+		ScreenSize:      sidePanelScreenSize(args),
+	}, true
+}
+
 func (self *WindowArrangementHelper) windowArrangementArgs(informationStr string, appStatus string) WindowArrangementArgs {
 	width, height := self.c.GocuiGui().Size()
 	repoState := self.c.State().GetRepoState()

@@ -73,6 +73,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	)
 	bisectHelper := helpers.NewBisectHelper(helperCommon)
 	windowHelper := helpers.NewWindowHelper(helperCommon, viewHelper)
+	confirmationHelper := helpers.NewConfirmationHelper(helperCommon)
 	modeHelper := helpers.NewModeHelper(
 		helperCommon,
 		diffHelper,
@@ -115,10 +116,11 @@ func (gui *Gui) resetHelpersAndControllers() {
 		Window:          windowHelper,
 		View:            viewHelper,
 		Refresh:         refreshHelper,
-		Confirmation:    helpers.NewConfirmationHelper(helperCommon),
+		Confirmation:    confirmationHelper,
 		Mode:            modeHelper,
 		AppStatus:       appStatusHelper,
 		InlineStatus:    helpers.NewInlineStatusHelper(helperCommon, windowHelper),
+		SidePanelResize: helpers.NewSidePanelResizeHelper(helperCommon, windowHelper, confirmationHelper),
 		WindowArrangement: helpers.NewWindowArrangementHelper(
 			gui.c,
 			windowHelper,

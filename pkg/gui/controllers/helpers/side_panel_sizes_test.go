@@ -93,6 +93,91 @@ func TestSidePanelSizeForScreen(t *testing.T) {
 	}
 }
 
+func TestRecordSidePanelSize(t *testing.T) {
+	scenarios := []struct {
+		name       string
+		sizes      []config.SidePanelSize
+		screenSize int
+		size       int
+		expected   []config.SidePanelSize
+	}{
+		{
+			name:       "first size",
+			sizes:      nil,
+			screenSize: 160,
+			size:       50,
+			expected:   []config.SidePanelSize{{ScreenSize: 160, Ratio: 0.3125}},
+		},
+		{
+			name:       "a clearly different screen size adds a size",
+			sizes:      []config.SidePanelSize{{ScreenSize: 160, Ratio: 0.3125}},
+			screenSize: 380,
+			size:       80,
+			expected: []config.SidePanelSize{
+				{ScreenSize: 160, Ratio: 0.3125},
+				{ScreenSize: 380, Ratio: 0.2105},
+			},
+		},
+		{
+			name:       "a smaller screen size is sorted first",
+			sizes:      []config.SidePanelSize{{ScreenSize: 160, Ratio: 0.3125}},
+			screenSize: 100,
+			size:       40,
+			expected: []config.SidePanelSize{
+				{ScreenSize: 100, Ratio: 0.4},
+				{ScreenSize: 160, Ratio: 0.3125},
+			},
+		},
+		{
+			name: "a similar screen size replaces the size",
+			sizes: []config.SidePanelSize{
+				{ScreenSize: 160, Ratio: 0.3125},
+				{ScreenSize: 380, Ratio: 0.2105},
+			},
+			screenSize: 400,
+			size:       100,
+			expected: []config.SidePanelSize{
+				{ScreenSize: 160, Ratio: 0.3125},
+				{ScreenSize: 400, Ratio: 0.25},
+			},
+		},
+		{
+			name: "replaces all similar screen sizes",
+			sizes: []config.SidePanelSize{
+				{ScreenSize: 100, Ratio: 0.4},
+				{ScreenSize: 110, Ratio: 0.35},
+				{ScreenSize: 120, Ratio: 0.3},
+				{ScreenSize: 200, Ratio: 0.2},
+			},
+			screenSize: 110,
+			size:       33,
+			expected: []config.SidePanelSize{
+				{ScreenSize: 110, Ratio: 0.3},
+				{ScreenSize: 200, Ratio: 0.2},
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			assert.Equal(t, s.expected, recordSidePanelSize(s.sizes, s.screenSize, s.size))
+		})
+	}
+}
+
+func TestRecordedSidePanelSizeComesBackUnchanged(t *testing.T) {
+	for screenSize := 20; screenSize <= 2000; screenSize++ {
+		for _, size := range []int{3, screenSize / 3, screenSize - 3} {
+			sizes := recordSidePanelSize(nil, screenSize, size)
+			result, ok := sidePanelSizeForScreen(sizes, screenSize)
+			assert.True(t, ok)
+			if result != size {
+				t.Fatalf("size %d at screen size %d came back as %d", size, screenSize, result)
+			}
+		}
+	}
+}
+
 func TestValidSidePanelSizes(t *testing.T) {
 	input := map[config.SidePanelLayout][]config.SidePanelSize{
 		config.SidePanelLayoutNormal: {

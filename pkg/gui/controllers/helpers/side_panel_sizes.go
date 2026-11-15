@@ -47,6 +47,28 @@ func sidePanelSizeForScreen(sizes []config.SidePanelSize, screenSize int) (int, 
 	return int(math.Round(lowerSize + t*(upperSize-lowerSize))), true
 }
 
+// recordSidePanelSize returns sizes plus the size that the user set at the given
+// screen size. It replaces the sizes for similar screen sizes, so that e.g.
+// zooming the terminal's font in or out by a step doesn't keep adding sizes.
+func recordSidePanelSize(sizes []config.SidePanelSize, screenSize int, size int) []config.SidePanelSize {
+	result := lo.Reject(sizes, func(existing config.SidePanelSize, _ int) bool {
+		return isSimilarScreenSize(existing.ScreenSize, screenSize)
+	})
+	// Four decimals are enough to get the same size back for any realistic
+	// screen size, and they keep state.yml readable.
+	ratio := math.Round(float64(size)/float64(screenSize)*10000) / 10000
+	result = append(result, config.SidePanelSize{ScreenSize: screenSize, Ratio: ratio})
+	slices.SortFunc(result, func(a, b config.SidePanelSize) int {
+		return a.ScreenSize - b.ScreenSize
+	})
+	return result
+}
+
+// isSimilarScreenSize returns true if the two screen sizes differ by at most 15%.
+func isSimilarScreenSize(a int, b int) bool {
+	return float64(max(a, b)) <= float64(min(a, b))*1.15
+}
+
 func clampSideSectionSize(size int, screenSize int) int {
 	return max(minSideSectionSize, min(size, screenSize-minSideSectionSize))
 }
