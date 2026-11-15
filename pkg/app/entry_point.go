@@ -25,6 +25,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
+	"golang.org/x/mod/module"
 	"gopkg.in/yaml.v3"
 )
 
@@ -308,6 +309,12 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 		// record the version of the module.
 		buildInfo.Version = strings.TrimPrefix(goBuildInfo.Main.Version, "v")
 		buildInfo.BuildSource = updates.BuildSourceGoInstall
+	} else if rev, err := module.PseudoVersionRev(goBuildInfo.Main.Version); err == nil {
+		// Built with `go install github.com/jesseduffield/lazygit@<branch>`.
+		// The module version is a pseudo-version, which contains the commit
+		// and the release that it is based on.
+		buildInfo.Commit = rev
+		buildInfo.Version = devBuildVersion(goBuildInfo.Main.Version, rev)
 	}
 
 	// if version hasn't been set we assume that neither has the date
@@ -317,6 +324,17 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 	if ok {
 		buildInfo.Date = time.Value
 	}
+}
+
+// devBuildVersion returns the version that we show for a build from a commit
+// that isn't a release: the release that it is based on, and the commit, e.g.
+// "v0.66.3+d0d00783"
+func devBuildVersion(pseudoVersion string, commit string) string {
+	version := utils.ShortHash(commit)
+	if base, _ := module.PseudoVersionBase(pseudoVersion); base != "" {
+		version = base + "+" + version
+	}
+	return version
 }
 
 func getGitVersionInfo() string {
