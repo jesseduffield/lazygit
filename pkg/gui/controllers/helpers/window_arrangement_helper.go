@@ -141,15 +141,6 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 		sidePanelsDirection = boxlayout.ROW
 	}
 
-	showInfoSection := args.UserConfig.Gui.ShowBottomLine ||
-		args.InSearchPrompt ||
-		args.IsAnyModeActive ||
-		args.AppStatus != ""
-	infoSectionSize := 0
-	if showInfoSection {
-		infoSectionSize = 1
-	}
-
 	root := &boxlayout.Box{
 		Direction: boxlayout.ROW,
 		Children: []*boxlayout.Box{
@@ -171,7 +162,7 @@ func GetWindowDimensions(args WindowArrangementArgs) map[string]boxlayout.Dimens
 			},
 			{
 				Direction: boxlayout.COLUMN,
-				Size:      infoSectionSize,
+				Size:      infoSectionSize(args),
 				Children:  infoSectionChildren(args),
 			},
 		},
@@ -293,6 +284,17 @@ func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
 	}
 
 	return sideSectionWeight, mainSectionWeight
+}
+
+func infoSectionSize(args WindowArrangementArgs) int {
+	showInfoSection := args.UserConfig.Gui.ShowBottomLine ||
+		args.InSearchPrompt ||
+		args.IsAnyModeActive ||
+		args.AppStatus != ""
+	if showInfoSection {
+		return 1
+	}
+	return 0
 }
 
 func infoSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
