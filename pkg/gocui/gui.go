@@ -110,6 +110,16 @@ type ViewMouseBindingOpts struct {
 	IsDoubleClick bool // true if this is a double click
 }
 
+// MouseEvent is a mouse event as Gui.InterceptMouse gets to see it.
+type MouseEvent struct {
+	// The position on the screen
+	X, Y int
+	Key  KeyName
+	Mod  Modifier
+	// When the terminal reported the event
+	When time.Time
+}
+
 type GuiMutexes struct {
 	ViewsMutex sync.Mutex
 }
@@ -231,6 +241,16 @@ type Gui struct {
 	lastHoverView        *View
 	mouseCapture         *View
 	mouseGestureCanceled bool
+
+	// OnMouseMove, if set, is called whenever the mouse moves while no button
+	// is held, wherever the pointer is.
+	OnMouseMove func(x, y int)
+
+	// InterceptMouse, if set, sees mouse button events before the views do.
+	// If it returns true for a press, it owns the gesture: all events up to
+	// and including the release go to it, and the views never see them.
+	InterceptMouse   func(ev MouseEvent) bool
+	mouseIntercepted bool
 
 	// uiThreadID is the goroutine id of the main event loop, recorded when
 	// MainLoop starts. IsUIThread compares against it. Written once, read from
@@ -1832,6 +1852,9 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 			return nil
 		}
+		if g.interceptMouseEvent(ev) {
+			return nil
+		}
 		// While the mouse is captured, all mouse events go to the view that
 		// was under the pointer when the button was pressed, even if the
 		// pointer has since left it; this is what lets drag gestures keep
@@ -1974,6 +1997,9 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 
 	case eventMouseMove:
 		mx, my := ev.MouseX, ev.MouseY
+		if g.OnMouseMove != nil {
+			g.OnMouseMove(mx, my)
+		}
 		v, err := g.VisibleViewByPosition(mx, my)
 		if err != nil {
 			break
@@ -1989,6 +2015,31 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 	}
 
 	return nil
+}
+
+// interceptMouseEvent gives InterceptMouse a chance to handle a mouse event,
+// and returns true if the views must not see it.
+func (g *Gui) interceptMouseEvent(ev *GocuiEvent) bool {
+	intercepted := g.mouseIntercepted
+	if !intercepted && (g.InterceptMouse == nil || g.mouseCapture != nil) {
+		return false
+	}
+
+	handled := g.InterceptMouse(MouseEvent{
+		X:    ev.MouseX,
+		Y:    ev.MouseY,
+		Key:  ev.Key.KeyName(),
+		Mod:  ev.Key.Mod(),
+		When: ev.When,
+	})
+	isPress := ev.Key.Mod()&ModMotion == 0 &&
+		(ev.Key.KeyName() == MouseLeft || ev.Key.KeyName() == MouseRight || ev.Key.KeyName() == MouseMiddle)
+	if ev.Key.KeyName() == MouseRelease {
+		g.mouseIntercepted = false
+	} else if handled && isPress {
+		g.mouseIntercepted = true
+	}
+	return handled || intercepted
 }
 
 // isDoubleClick reports whether this click follows one just like it, closely
