@@ -238,31 +238,58 @@ func mainSectionChildren(args WindowArrangementArgs) []*boxlayout.Box {
 	return []*boxlayout.Box{mainPane, secondaryPane}
 }
 
+// sidePanelLayout returns how the side panels are arranged relative to the main
+// view, or false if only one of the two is visible.
+func sidePanelLayout(args WindowArrangementArgs) (config.SidePanelLayout, bool) {
+	if args.ScreenMode == types.SCREEN_FULL {
+		return "", false
+	}
+	if args.ScreenMode == types.SCREEN_HALF {
+		if isMainWindow(args.CurrentWindow) {
+			return "", false
+		}
+		if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
+			return config.SidePanelLayoutHalfScreenTop, true
+		}
+		return config.SidePanelLayoutHalfScreen, true
+	}
+
+	if shouldUsePortraitMode(args) {
+		return config.SidePanelLayoutNormalPortrait, true
+	}
+	if splitMainPanelSideBySide(args) {
+		return config.SidePanelLayoutSplitMainPanel, true
+	}
+	return config.SidePanelLayoutNormal, true
+}
+
+func isMainWindow(window string) bool {
+	return window == "main" || window == "secondary"
+}
+
 func getMidSectionWeights(args WindowArrangementArgs) (int, int) {
+	layout, ok := sidePanelLayout(args)
+	if !ok {
+		if isMainWindow(args.CurrentWindow) {
+			return 0, 1
+		}
+		return 1, 0
+	}
+
 	sidePanelWidthRatio := args.UserConfig.Gui.SidePanelWidth
 	// Using 120 so that the default of 0.3333 will remain consistent with previous behavior
 	const maxColumnCount = 120
 	mainSectionWeight := int(math.Round(maxColumnCount * (1 - sidePanelWidthRatio)))
 	sideSectionWeight := int(math.Round(maxColumnCount * sidePanelWidthRatio))
 
-	if splitMainPanelSideBySide(args) && !shouldUsePortraitMode(args) {
+	switch layout {
+	case config.SidePanelLayoutSplitMainPanel:
 		mainSectionWeight = sideSectionWeight * 5 // need to shrink side panel to make way for main panels if side-by-side
-	}
-
-	if args.CurrentWindow == "main" || args.CurrentWindow == "secondary" {
-		if args.ScreenMode == types.SCREEN_HALF || args.ScreenMode == types.SCREEN_FULL {
-			sideSectionWeight = 0
-		}
-	} else {
-		if args.ScreenMode == types.SCREEN_HALF {
-			if args.UserConfig.Gui.EnlargedSideViewLocation == "top" {
-				mainSectionWeight = sideSectionWeight * 2
-			} else {
-				mainSectionWeight = sideSectionWeight
-			}
-		} else if args.ScreenMode == types.SCREEN_FULL {
-			mainSectionWeight = 0
-		}
+	case config.SidePanelLayoutHalfScreen:
+		mainSectionWeight = sideSectionWeight
+	case config.SidePanelLayoutHalfScreenTop:
+		mainSectionWeight = sideSectionWeight * 2
+	case config.SidePanelLayoutNormal, config.SidePanelLayoutNormalPortrait:
 	}
 
 	return sideSectionWeight, mainSectionWeight
