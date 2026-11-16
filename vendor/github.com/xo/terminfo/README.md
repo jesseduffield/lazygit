@@ -1,139 +1,153 @@
-# About terminfo [![GoDoc][1]][2]
+<div align="center">
+  <a href="#installing" title="Installing">Installing</a> |
+  <a href="#using" title="Using">Using</a> |
+  <a href="#the-example" title="The example">Example</a> |
+  <a href="#infocmp" title="infocmp">infocmp</a> |
+  <a href="https://pkg.go.dev/github.com/xo/terminfo" title="Go Reference">Reference</a> |
+  <a href="#documents" title="Documents">Documents</a> |
+  <a href="#about" title="About">About</a>
+</div>
 
-Package `terminfo` provides a pure-Go implementation of reading information
-from the terminfo database.
+<br/>
 
-`terminfo` is meant as a replacement for `ncurses` in simple Go programs.
+[![Unit Tests][terminfo-ci-status]][terminfo-ci]
+[![Go Reference][goref-terminfo-status]][goref-terminfo]
+[![Releases][release-status]][releases]
+[![Discord Discussion][discord-status]][discord]
+
+[terminfo-ci]: https://github.com/xo/terminfo/actions/workflows/test.yml "Test CI"
+[terminfo-ci-status]: https://github.com/xo/terminfo/actions/workflows/test.yml/badge.svg "Test CI"
+[goref-terminfo]: https://pkg.go.dev/github.com/xo/terminfo "Go Reference"
+[goref-terminfo-status]: https://pkg.go.dev/badge/github.com/xo/terminfo.svg "Go Reference"
+[release-status]: https://img.shields.io/github/v/release/xo/terminfo?display_name=tag "Latest Release"
+[releases]: https://github.com/xo/terminfo/releases "Releases"
+[discord]: https://discord.gg/WDWAgXwJqN "Discord Discussion"
+[discord-status]: https://img.shields.io/discord/829150509658013727.svg?label=Discord&logo=Discord&colorB=7289da&style=flat-square "Discord Discussion"
+
+# terminfo
+
+`terminfo` reads the terminfo database in Go. The terminfo database describes
+what each kind of terminal can do, and the byte sequences that make it do
+each thing. A program uses those sequences to move the cursor, set colors,
+clear the screen or flash it.
+
+This package is written in pure Go. It does not use cgo, and it does not link
+the `ncurses` library. It replaces `ncurses` in a Go program that needs the
+terminal capabilities and not a full screen library.
+
+The package can:
+
+- Find the entry for a terminal name in the directories that terminfo(5)
+  names, and cache it.
+- Decode the legacy format and the 32-bit number format of `ncurses` 6.1, with
+  the extended capabilities.
+- Evaluate a parameterized string, such as the value of `cup`.
+- Write a capability with its padding applied, as `tputs` does.
+- Find the color level of the terminal from the environment.
+
+The system `infocmp` is the reference. The tests compare each decoded value
+with the output of `infocmp` for every entry on the machine.
 
 ## Installing
 
-Install in the usual Go way:
+Install `terminfo` with the [Go][go-project] tool:
 
 ```sh
-$ go get -u github.com/xo/terminfo
+go get github.com/xo/terminfo@latest
 ```
 
 ## Using
 
-Please see the [GoDoc API listing][2] for more information on using `terminfo`.
+`LoadFromEnv` loads the entry that `$TERM` names. `Printf` evaluates a
+capability with its parameters, and `Puts` writes a capability with its
+padding applied:
 
 ```go
-// _examples/simple/main.go
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"strings"
-	"sync"
-	"syscall"
 
 	"github.com/xo/terminfo"
 )
 
 func main() {
-	//r := rand.New(nil)
-
-	// load terminfo
+	// load the entry that $TERM names
 	ti, err := terminfo.LoadFromEnv()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// cleanup
-	defer func() {
-		err := recover()
-		termreset(ti)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	terminit(ti)
-	termtitle(ti, "simple example!")
-	termputs(ti, 3, 3, "Ctrl-C to exit")
-	maxColors := termcolors(ti)
-	if maxColors > 256 {
-		maxColors = 256
+	// move the cursor to row 5, column 10, and write in bold
+	fmt.Print(ti.Printf(terminfo.CursorAddress, 5, 10))
+	fmt.Print(ti.Printf(terminfo.EnterBoldMode) + "hello" + ti.Printf(terminfo.ExitAttributeMode))
+	// flash the screen, with the delay that the entry asks for
+	if _, err := ti.Puts(os.Stdout, ti.Printf(terminfo.FlashScreen), 1, 38400); err != nil {
+		log.Fatal(err)
 	}
-	for i := 0; i < maxColors; i++ {
-		termputs(ti, 5+i/16, 5+i%16, ti.Colorf(i, 0, "█"))
-	}
-
-	// wait for signal
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
-}
-
-// terminit initializes the special CA mode on the terminal, and makes the
-// cursor invisible.
-func terminit(ti *terminfo.Terminfo) {
-	buf := new(bytes.Buffer)
-	// set the cursor invisible
-	ti.Fprintf(buf, terminfo.CursorInvisible)
-	// enter special mode
-	ti.Fprintf(buf, terminfo.EnterCaMode)
-	// clear the screen
-	ti.Fprintf(buf, terminfo.ClearScreen)
-	os.Stdout.Write(buf.Bytes())
-}
-
-// termreset is the inverse of terminit.
-func termreset(ti *terminfo.Terminfo) {
-	buf := new(bytes.Buffer)
-	ti.Fprintf(buf, terminfo.ExitCaMode)
-	ti.Fprintf(buf, terminfo.CursorNormal)
-	os.Stdout.Write(buf.Bytes())
-}
-
-// termputs puts a string at row, col, interpolating v.
-func termputs(ti *terminfo.Terminfo, row, col int, s string, v ...interface{}) {
-	buf := new(bytes.Buffer)
-	ti.Fprintf(buf, terminfo.CursorAddress, row, col)
-	fmt.Fprintf(buf, s, v...)
-	os.Stdout.Write(buf.Bytes())
-}
-
-// sl is the status line terminfo.
-var sl *terminfo.Terminfo
-
-// termtitle sets the window title.
-func termtitle(ti *terminfo.Terminfo, s string) {
-	var once sync.Once
-	once.Do(func() {
-		if ti.Has(terminfo.HasStatusLine) {
-			return
-		}
-		// load the sl xterm if terminal is an xterm or has COLORTERM
-		if strings.Contains(strings.ToLower(os.Getenv("TERM")), "xterm") || os.Getenv("COLORTERM") == "truecolor" {
-			sl, _ = terminfo.Load("xterm+sl")
-		}
-	})
-	if sl != nil {
-		ti = sl
-	}
-	if !ti.Has(terminfo.HasStatusLine) {
-		return
-	}
-	buf := new(bytes.Buffer)
-	ti.Fprintf(buf, terminfo.ToStatusLine)
-	fmt.Fprint(buf, s)
-	ti.Fprintf(buf, terminfo.FromStatusLine)
-	os.Stdout.Write(buf.Bytes())
-}
-
-// termcolors returns the maximum colors available for the terminal.
-func termcolors(ti *terminfo.Terminfo) int {
-	if colors := ti.Num(terminfo.MaxColors); colors > 0 {
-		return colors
-	}
-	return int(terminfo.ColorLevelBasic)
 }
 ```
 
-[1]: https://godoc.org/github.com/xo/terminfo?status.svg
-[2]: https://godoc.org/github.com/xo/terminfo
+A capability that holds a padding marker, such as the `$<100/>` in the
+`flash` of `xterm`, must go through `Puts`. If you write the value of
+`Strings` or of `Printf` directly, the terminal shows the marker.
+
+`ColorLevelFromEnv` returns the color level of the terminal. It reads
+`COLORTERM`, `FORCE_COLOR` and `TERM_PROGRAM` first, then the `max_colors`
+capability of the entry.
+
+`Load` and `Open` return the same `*Terminfo` to every caller. Do not change
+the returned value or its maps.
+
+## The example
+
+[`_examples/main.go`](_examples/main.go) draws the color table of the
+terminal and waits for Ctrl-C. Run it in the repository root:
+
+```sh
+go run ./_examples
+```
+
+## infocmp
+
+[`cmd/infocmp`](cmd/infocmp) prints an entry in the same form as
+`infocmp -1 -L`. It shows what the package decodes. Install it and run it:
+
+```sh
+go install github.com/xo/terminfo/cmd/infocmp@latest
+TERM=xterm-256color infocmp -x
+```
+
+## Documents
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to change the project, the checks
+  to run, and how to install the agent skills.
+- [AGENTS.md](AGENTS.md): the rules for a coding agent. `CLAUDE.md` imports
+  it.
+- [docs/PLAN.md](docs/PLAN.md): the plan, every decision, and the open
+  questions.
+- [docs/BACKLOG.md](docs/BACKLOG.md): the work that is known and not done.
+
+## About
+
+`terminfo` supports [rline][rline], the line editor of [usql][usql].
+
+<br/>
+
+<div align="center">
+  <a href="https://github.com/xo/usql" title="A command line client for many databases">usql</a> |
+  <a href="https://github.com/xo/dburl" title="Database connection URLs">dburl</a> |
+  <a href="https://github.com/xo/dbmeta" title="Database metadata">dbmeta</a> |
+  <a href="https://github.com/xo/dbimp" title="Database drivers in pure Go">dbimp</a> |
+  <a href="https://github.com/xo/cassandra" title="A database/sql driver for Cassandra">cassandra</a> |
+  <a href="https://github.com/xo/dbtpl" title="Go code generated from a database">dbtpl</a> |
+  <a href="https://github.com/xo/tblfmt" title="Tables of database results">tblfmt</a> |
+  <a href="https://github.com/xo/rline" title="The line editor of usql">rline</a> |
+  <a href="https://github.com/xo/terminfo" title="The terminfo database in pure Go, this project">terminfo</a> |
+  <a href="https://github.com/xo/transit" title="tree-sitter in pure Go">transit</a>
+</div>
+
+[go-project]: https://go.dev/project
+[rline]: https://github.com/xo/rline
+[usql]: https://github.com/xo/usql
