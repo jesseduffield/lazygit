@@ -6,6 +6,19 @@ import (
 	"github.com/samber/lo"
 )
 
+// IsStackBranch tells whether the given branch can be one of the stack of
+// branches below the current branch. The commits list visualizes them with
+// markers at their heads. The current branch and the main branches are not,
+// because the goal is to show stacks of local branches, and they don't
+// contribute to one.
+func IsStackBranch(branch *models.Branch, currentBranchName string, mainBranches []string) bool {
+	// Branches without a commit hash are excluded too. As far as I can see,
+	// this happens for a detached head.
+	return branch.CommitHash != "" &&
+		branch.Name != currentBranchName &&
+		!lo.Contains(mainBranches, branch.Name)
+}
+
 // Returns the branches stacked below the branch with the given name: those
 // whose tip is one of the given commits of the branch that hasn't been
 // merged into a main branch yet. The branch itself and the main branches
@@ -28,7 +41,7 @@ func BranchesBelow(
 ) []*models.Branch {
 	branchesByTip := map[string][]*models.Branch{}
 	for _, other := range branches {
-		if !lo.Contains(mainBranches, other.Name) && other.Name != branchName {
+		if IsStackBranch(other, branchName, mainBranches) {
 			branchesByTip[other.CommitHash] = append(branchesByTip[other.CommitHash], other)
 		}
 	}

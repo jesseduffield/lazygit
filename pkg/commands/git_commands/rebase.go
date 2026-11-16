@@ -111,31 +111,43 @@ func (self *RebaseCommands) GenericAmend(commits []*models.Commit, start, end in
 	return nil
 }
 
-func (self *RebaseCommands) MoveCommitsDown(commits []*models.Commit, startIdx int, endIdx int) error {
-	return self.MoveCommits(commits, startIdx, endIdx, 1)
-}
-
-func (self *RebaseCommands) MoveCommitsUp(commits []*models.Commit, startIdx int, endIdx int) error {
-	return self.MoveCommits(commits, startIdx, endIdx, -1)
-}
-
-func (self *RebaseCommands) MoveCommits(commits []*models.Commit, startIdx int, endIdx int, offset int) error {
-	baseHashOrRoot := getBaseHashOrRoot(commits, endIdx+max(offset, 0)+1)
+// MoveCommitsTo moves the commits from startIdx to endIdx so that they sit
+// directly on top of the commit at destinationIdx, which must be outside of
+// that range; if destinationIdx is len(commits), they go below the last
+// commit. Branches that point at commits inside the range stay with them.
+//
+// Once the moved commits are taken out, some branches may point at the commit
+// at destinationIdx: its own ones and, if it is the commit directly below the
+// moved commits, the ones that pointed at the newest of them. Those listed in
+// branchesAbove point at the newest moved commit afterwards, the others at the
+// commit at destinationIdx.
+func (self *RebaseCommands) MoveCommitsTo(
+	commits []*models.Commit, startIdx int, endIdx int, destinationIdx int, branchesAbove []string,
+) error {
+	// The commit at destinationIdx needs to be part of the rebase only if some
+	// of the branches pointing at it are to move; otherwise, the moved commits
+	// can go first in the rebase todo.
+	baseIdx := destinationIdx
+	if len(branchesAbove) > 0 {
+		baseIdx++
+	}
+	baseIdx = max(baseIdx, endIdx+1)
+	destination := utils.TodoMoveDestination{
+		RefsAfter: lo.Map(branchesAbove, func(branch string, _ int) string {
+			return "refs/heads/" + branch
+		}),
+	}
+	if baseIdx != destinationIdx {
+		destination.AfterHash = commits[destinationIdx].Hash()
+	}
 
 	hashes := lo.Map(commits[startIdx:endIdx+1], func(commit *models.Commit, _ int) string {
 		return commit.Hash()
 	})
 
-	var instruction daemon.Instruction
-	if offset > 0 {
-		instruction = daemon.NewMoveTodosDownInstruction(hashes, offset)
-	} else {
-		instruction = daemon.NewMoveTodosUpInstruction(hashes, -offset)
-	}
-
 	return self.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: baseHashOrRoot,
-		instruction:    instruction,
+		baseHashOrRoot: getBaseHashOrRoot(commits, baseIdx),
+		instruction:    daemon.NewMoveCommitTodosInstruction(hashes, destination),
 		overrideEditor: true,
 	}).Run()
 }
@@ -380,21 +392,13 @@ func (self *RebaseCommands) DeleteUpdateRefTodos(commits []*models.Commit) error
 	return self.GitRebaseEditTodo(todosFileContent)
 }
 
-func (self *RebaseCommands) MoveTodosDown(commits []*models.Commit) error {
-	return self.MoveTodos(commits, 1)
-}
-
-func (self *RebaseCommands) MoveTodosUp(commits []*models.Commit) error {
-	return self.MoveTodos(commits, -1)
-}
-
 func (self *RebaseCommands) MoveTodos(commits []*models.Commit, offset int) error {
 	fileName := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "rebase-merge/git-rebase-todo")
 	todosToMove := lo.Map(commits, func(commit *models.Commit, _ int) utils.Todo {
 		return todoFromCommit(commit)
 	})
 
-	return utils.MoveTodos(fileName, todosToMove, true, offset, self.config.GetCoreCommentChar())
+	return utils.MoveTodos(fileName, todosToMove, offset, self.config.GetCoreCommentChar())
 }
 
 // SquashAllAboveFixupCommits squashes all fixup! commits above the given one
