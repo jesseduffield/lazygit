@@ -9,6 +9,12 @@ import (
 
 func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, diffName string) [][]string {
 	return lo.Map(branches, func(branch *models.RemoteBranch, _ int) []string {
+		if branch == nil {
+			if icons.IsIconEnabled() {
+				return []string{"", ""}
+			}
+			return []string{""}
+		}
 		diffed := branch.FullName() == diffName
 		return getRemoteBranchDisplayStrings(branch, diffed)
 	})
