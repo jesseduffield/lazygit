@@ -86,8 +86,12 @@ func (self *GpgHelper) runAndStream(
 	failureRefreshOptions types.RefreshOptions,
 	successRefreshOptions types.RefreshOptions,
 ) error {
-	return self.c.WithWaitingStatus(waitingStatus, func(gocui.Task) error {
-		if err := cmdObj.StreamOutput().Run(); err != nil {
+	return self.c.WithWaitingStatus(waitingStatus, func(task gocui.Task) error {
+		// Signing can pause to ask for a passphrase or a security key PIN, just
+		// as pushing can. PromptOnCredentialRequest gives the command a pty and
+		// routes that question to the same popup the sync commands use, so a
+		// signed commit doesn't need a subprocess terminal to collect it.
+		if err := cmdObj.PromptOnCredentialRequest(task).Run(); err != nil {
 			self.c.RefreshFromWorker(failureRefreshOptions)
 			return fmt.Errorf(
 				self.c.Tr.GitCommandFailed, self.c.UserConfig().Keybinding.Universal.ExtrasMenu,
