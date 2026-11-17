@@ -733,6 +733,7 @@ var tests = []*components.IntegrationTest{
 	ui.KeybindingSuggestionsWhenSwitchingRepos,
 	ui.MenuScrollPositionIsReset,
 	ui.ModeSpecificKeybindingSuggestions,
+	ui.MoveCommitRespectsScrollOffMargin,
 	ui.MoveCommitScrollsSelectionIntoView,
 	ui.OpenLinkFailure,
 	ui.PageUpAndDown,

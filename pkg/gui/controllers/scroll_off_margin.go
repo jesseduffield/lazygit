@@ -33,6 +33,30 @@ func checkScrollDown(view types.IViewTrait, userConfig *config.UserConfig, lineI
 	}
 }
 
+// To be called after moving the list selection; checks whether it entered the
+// scroll-off margin, and scrolls the view if so.
+func checkScrollAfterSelectionMove(
+	ctx types.IListContext, userConfig *config.UserConfig, change int, lineIdxBefore int, lineIdxAfter int,
+) {
+	view := ctx.GetView()
+	originYBefore := view.OriginY()
+
+	before := ctx.ModelIndexToViewIndex(lineIdxBefore)
+	after := ctx.ModelIndexToViewIndex(lineIdxAfter)
+	switch change {
+	case 1:
+		checkScrollDown(ctx.GetViewTrait(), userConfig, before, after)
+	case -1:
+		checkScrollUp(ctx.GetViewTrait(), userConfig, before, after)
+	}
+
+	if originYBefore != view.OriginY() {
+		// FocusLine only knows to rerender visible lines when it changes the
+		// origin itself, so tell it explicitly about the scroll we just did.
+		ctx.SetNeedRerenderVisibleLines()
+	}
+}
+
 func calculateLinesToScrollUp(viewPortStart int, viewPortHeight int, scrollOffMargin int, lineIdxBefore int, lineIdxAfter int) int {
 	// Cap the margin to half the view height. This allows setting the config to
 	// a very large value to keep the cursor always in the middle of the screen.

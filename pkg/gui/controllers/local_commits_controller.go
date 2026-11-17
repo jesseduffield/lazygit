@@ -1209,6 +1209,16 @@ func (self *LocalCommitsController) moveUp(selectedCommits []*models.Commit, sta
 	return self.move(selectedCommits, startIdx, endIdx, -1, nil)
 }
 
+func (self *LocalCommitsController) moveSelectionWithScroll(offset int) {
+	ctx := self.context()
+	before := ctx.GetList().GetSelectedLineIdx()
+	ctx.MoveSelection(offset)
+	after := ctx.GetList().GetSelectedLineIdx()
+	if before != after {
+		checkScrollAfterSelectionMove(ctx, self.c.UserConfig(), offset, before, after)
+	}
+}
+
 func (self *LocalCommitsController) move(
 	selectedCommits []*models.Commit, startIdx int, endIdx int, offset int, onComplete func() error,
 ) error {
@@ -1224,7 +1234,7 @@ func (self *LocalCommitsController) move(
 			Scope:              []types.RefreshableView{types.REBASE_COMMITS},
 			SkipMainViewUpdate: true,
 			Then: func() error {
-				self.context().MoveSelection(offset)
+				self.moveSelectionWithScroll(offset)
 				self.context().FocusLine(true)
 				if onComplete != nil {
 					return onComplete()
@@ -1254,7 +1264,7 @@ func (self *LocalCommitsController) move(
 				// lands in the same frame as the refreshed commit list.
 				Then: func() error {
 					if err == nil {
-						self.context().MoveSelection(offset)
+						self.moveSelectionWithScroll(offset)
 						self.context().HandleFocus(types.OnFocusOpts{})
 					}
 					if onComplete != nil {
