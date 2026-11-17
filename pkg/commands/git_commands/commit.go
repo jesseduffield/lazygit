@@ -135,6 +135,10 @@ func (self *CommitCommands) commitMessageArgs(summary string, description string
 		args = append(args, "-m", description)
 	}
 
+	if strings.TrimSpace(summary) == "" && strings.TrimSpace(description) == "" {
+		args = append(args, "--allow-empty-message")
+	}
+
 	return args
 }
 
