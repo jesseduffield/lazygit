@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 )
 
@@ -9,12 +10,23 @@ func (gui *Gui) informationStr() string {
 		return activeMode.InfoLabel()
 	}
 
-	version := gui.Config.GetVersion()
+	version := displayVersion(gui.Config.GetVersion())
 	if note := gui.helpers.Update.Note(); note != "" {
 		version = note + " " + version
 	}
 
 	return version
+}
+
+// displayVersion formats a release version as "v1.2.3", the way the update
+// note and the docs links in the status panel show versions, no matter how the
+// build set it. Other version strings, e.g. those of dev builds, stay as they
+// are.
+func displayVersion(versionStr string) string {
+	if version, err := types.ParseVersionNumber(versionStr); err == nil {
+		return version.String()
+	}
+	return versionStr
 }
 
 func (gui *Gui) handleInfoClick() error {
