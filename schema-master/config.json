@@ -537,6 +537,14 @@
     },
     "GuiConfig": {
       "properties": {
+        "additionalAuthors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "description": "See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-co-authors"
+        },
         "customIcons": {
           "$ref": "#/$defs/CustomIconsConfig",
           "description": "Custom icons for filenames and file extensions\nSee https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-files-icon--color"
