@@ -48,7 +48,11 @@ func (self *HostHelper) GetPullRequestURL(from string, to string) (string, error
 }
 
 func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
-	mgr, err := self.getHostingServiceMgr()
+	return self.GetCommitURLForRemote(commitHash, "origin")
+}
+
+func (self *HostHelper) GetCommitURLForRemote(commitHash string, remoteName string) (string, error) {
+	mgr, err := self.getHostingServiceMgrForRemote(remoteName)
 	if err != nil {
 		return "", err
 	}
@@ -58,7 +62,11 @@ func (self *HostHelper) GetCommitURL(commitHash string) (string, error) {
 // getting this on every request rather than storing it in state in case our remoteURL changes
 // from one invocation to the next.
 func (self *HostHelper) getHostingServiceMgr() (*hosting_service.HostingServiceMgr, error) {
-	remoteUrl, err := self.c.Git().Remote.GetRemoteURL("origin")
+	return self.getHostingServiceMgrForRemote("origin")
+}
+
+func (self *HostHelper) getHostingServiceMgrForRemote(remoteName string) (*hosting_service.HostingServiceMgr, error) {
+	remoteUrl, err := self.c.Git().Remote.GetRemoteURL(remoteName)
 	if err != nil {
 		return nil, err
 	}
