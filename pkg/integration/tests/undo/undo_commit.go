@@ -14,7 +14,7 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 		shell.CreateFileAndAdd("other-file", "other-file-1")
 		shell.Commit("one")
 		shell.CreateFileAndAdd("file", "file-1")
-		shell.Commit("two")
+		shell.RunCommand([]string{"git", "commit", "-m", "two", "-m", "first paragraph\n\nsecond paragraph"})
 		shell.UpdateFile("other-file", "other-file-2")
 	},
 	Run: func(t *TestDriver, keys config.KeybindingConfig) {
@@ -62,6 +62,15 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("   M other-file"),
 			)
 
+		t.Views().Files().Focus().
+			Press(keys.Files.CommitChanges)
+
+		t.ExpectPopup().CommitMessagePanel().
+			Content(Equals("two")).
+			SwitchToDescription().
+			Content(Equals("first paragraph\n\nsecond paragraph")).
+			Cancel()
+
 		t.Views().Commits().Focus().
 			Press(keys.Universal.Redo).
 			Tap(confirmRedo).
@@ -69,6 +78,8 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("two").IsSelected(),
 				Contains("one"),
 			)
+
+		t.FileSystem().PathNotPresent(".git/LAZYGIT_PENDING_COMMIT")
 
 		t.Views().Files().
 			Lines(
@@ -98,7 +109,7 @@ var UndoCommit = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Redo).
 			Tap(confirmRedo)
 
-		t.Views().Commits().
+		t.Views().Commits().Focus().
 			Lines(
 				Contains("two"),
 				Contains("one"),
