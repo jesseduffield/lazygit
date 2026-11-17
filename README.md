@@ -75,8 +75,9 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [Scoop (Windows)](#scoop-windows)
   - [gah (Linux and Mac OS)](#gah-linux-and-mac-os)
   - [Arch Linux](#arch-linux)
-  - [Fedora / Amazon Linux 2023 / CentOS Stream](#fedora--amazon-linux-2023--centos-stream)
-    - [Fedora / RHEL Derivatives (Terra)](#fedora--rhel-derivatives-terra)
+  - [Fedora](#fedora)
+  - [Amazon Linux 2023 / CentOS Stream](#amazon-linux-2023--centos-stream)
+    - [RHEL Derivatives (Terra)](#rhel-derivatives-terra)
   - [Solus Linux](#solus-linux)
   - [Debian and Ubuntu](#debian-and-ubuntu)
   - [Funtoo Linux](#funtoo-linux)
@@ -311,9 +312,15 @@ and the git version which builds from the most recent commit.
 Instruction of how to install AUR content can be found here:
 <https://wiki.archlinux.org/index.php/Arch_User_Repository>
 
-### Fedora / Amazon Linux 2023 / CentOS Stream
+### Fedora
 
-Packages for Fedora, Amazon Linux 2023 and CentOS Stream are available via
+```sh
+sudo dnf install lazygit
+```
+
+### Amazon Linux 2023 / CentOS Stream
+
+Packages for Amazon Linux 2023 and CentOS Stream are available via
 [Copr](https://copr.fedorainfracloud.org/coprs/dejan/lazygit/) (Cool Other Package Repo).
 
 ```sh
@@ -323,12 +330,12 @@ sudo dnf install lazygit
 
 These packages are built using the RPM spec file located here: https://codeberg.org/dejan/rpm-lazygit
 
-You should be able to build RPMs for Fedora 41 or older, and other Fedora derivatives using the
+You should be able to build RPMs for Fedora derivatives using the
 SRPM (Source RPM) file that you can grab from the latest COPR build.
 
-#### Fedora / RHEL Derivatives (Terra)
+#### RHEL Derivatives (Terra)
 
-Packages for Fedora and RHEL derivatives are also available from the [Terra Repository](https://terra.fyralabs.com/).
+Packages for RHEL derivatives are also available from the [Terra Repository](https://terra.fyralabs.com/).
 
 ```sh
 sudo dnf install --nogpgcheck --repofrompath 'terra,https://repos.fyralabs.com/terra$releasever' terra-release
