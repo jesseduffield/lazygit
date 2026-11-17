@@ -572,7 +572,7 @@ func TestContainsColoredText(t *testing.T) {
 	greenStr := func(text string) []cell { return hexColor(text, green) }
 
 	concat := func(lines ...[]cell) []cell {
-		var cells []cell
+		cells := make([]cell, 0, len(lines))
 		for _, line := range lines {
 			cells = append(cells, line...)
 		}
