@@ -130,6 +130,8 @@ func (c *Config) Set(keys []string, value string) {
 }
 
 func (c *Config) deepCopy() *Config {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return ReadFromString(c.entries.String())
 }
 
@@ -143,6 +145,28 @@ var Read = func(fallback *Config) (*Config, error) {
 		cfg, loadErr = load(generalConfigFile(), hostsConfigFile(), fallback)
 	})
 	return cfg, loadErr
+}
+
+// Reload re-reads the gh configuration files from disk and refreshes the
+// configuration returned by Read in place. The cached *Config keeps the same
+// pointer, so every existing holder of it observes the new values.
+//
+// Any in-memory configuration changes that have not been written to disk are
+// discarded by the refresh. Callers that need such changes preserved must Write
+// them before calling Reload.
+var Reload = func(fallback *Config) error {
+	cached, err := Read(fallback)
+	if err != nil {
+		return err
+	}
+	fresh, err := load(generalConfigFile(), hostsConfigFile(), fallback)
+	if err != nil {
+		return err
+	}
+	cached.mu.Lock()
+	defer cached.mu.Unlock()
+	cached.entries = fresh.entries
+	return nil
 }
 
 // ReadFromString takes a yaml string and returns a Config.
