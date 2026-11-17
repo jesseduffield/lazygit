@@ -119,6 +119,20 @@ func (self *WorktreeHelper) Switch(worktree *models.Worktree, contextKey types.C
 	return self.reposHelper.DispatchSwitchTo(worktree.Path, self.c.Tr.ErrWorktreeMovedOrRemoved, contextKey)
 }
 
+func (self *WorktreeHelper) PromptToSwitchToWorktree(worktree *models.Worktree, contextKey types.ContextKey) error {
+	prompt := utils.ResolvePlaceholderString(self.c.Tr.AlreadyCheckedOutByWorktree, map[string]string{
+		"worktreeName": worktree.Name,
+	})
+
+	return self.c.ConfirmIf(!self.c.UserConfig().Gui.SkipSwitchWorktreeOnCheckoutWarning, types.ConfirmOpts{
+		Title:  self.c.Tr.SwitchToWorktree,
+		Prompt: prompt,
+		HandleConfirm: func() error {
+			return self.Switch(worktree, contextKey)
+		},
+	})
+}
+
 // Remove deletes the worktree without confirming first; callers are expected to
 // have confirmed (or shown a menu) already. If git refuses because the worktree
 // is dirty or contains submodules, we ask for confirmation and retry with
