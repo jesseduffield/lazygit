@@ -314,6 +314,71 @@ func TestGetBehindBaseBranchValuesForAllBranches_LegacyPath(t *testing.T) {
 	runner.CheckForMissingCalls()
 }
 
+func TestGetBaseBranch(t *testing.T) {
+	mainBranchRefs := []string{"refs/remotes/origin/master", "refs/remotes/origin/rc", "refs/remotes/origin/dev"}
+
+	scenarios := []struct {
+		testName           string
+		mergeBase          string
+		containingBranches string
+		expected           string
+	}{
+		{
+			testName:           "only one main branch contains the merge base",
+			mergeBase:          "abc123\n",
+			containingBranches: "refs/remotes/origin/dev\n",
+			expected:           "refs/remotes/origin/dev",
+		},
+		{
+			testName:           "several main branches contain the merge base",
+			mergeBase:          "abc123\n",
+			containingBranches: "refs/remotes/origin/dev\nrefs/remotes/origin/rc\n",
+			expected:           "refs/remotes/origin/rc",
+		},
+		{
+			testName:           "all main branches contain the merge base",
+			mergeBase:          "abc123\n",
+			containingBranches: "refs/remotes/origin/dev\nrefs/remotes/origin/master\nrefs/remotes/origin/rc\n",
+			expected:           "refs/remotes/origin/master",
+		},
+		{
+			testName:           "no main branch contains the merge base",
+			mergeBase:          "abc123\n",
+			containingBranches: "",
+			expected:           "",
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			runner := oscommands.NewFakeRunner(t).
+				ExpectGitArgs(append([]string{"merge-base", "refs/heads/feat-x"}, mainBranchRefs...), s.mergeBase, nil).
+				ExpectGitArgs(append([]string{"for-each-ref", "--contains", "abc123", "--format=%(refname)"}, mainBranchRefs...), s.containingBranches, nil)
+
+			gitCommon := buildGitCommon(commonDeps{runner: runner})
+
+			loader := &BranchLoader{
+				Common:    gitCommon.Common,
+				GitCommon: gitCommon,
+				cmd:       gitCommon.cmd,
+			}
+
+			mainBranches := &MainBranches{
+				c:                    gitCommon.Common,
+				cmd:                  gitCommon.cmd,
+				existingMainBranches: mainBranchRefs,
+				previousMainBranches: gitCommon.Common.UserConfig().Git.MainBranches,
+			}
+
+			baseBranch, err := loader.GetBaseBranch(&models.Branch{Name: "feat-x"}, mainBranches)
+			assert.NoError(t, err)
+			assert.Equal(t, s.expected, baseBranch)
+
+			runner.CheckForMissingCalls()
+		})
+	}
+}
+
 func TestCheckForRewrittenUpstreams(t *testing.T) {
 	branch := func(name string, ahead string, behind string) *models.Branch {
 		return &models.Branch{

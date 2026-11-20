@@ -462,6 +462,10 @@ git:
 
   # list of branches that are considered 'main' branches, used when displaying
   # commits
+  # When several main branches contain the point where a branch was forked off
+  # (e.g. with nested release branches like master, rc, dev), the one listed first
+  # is used as the branch's base branch. So list more stable branches before the
+  # ones that are derived from them.
   mainBranches:
     - master
     - main
