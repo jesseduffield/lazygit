@@ -3,6 +3,8 @@ package updates
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/common"
@@ -35,6 +37,50 @@ func TestCheckForUpdate(t *testing.T) {
 	}
 }
 
+func TestInstall(t *testing.T) {
+	server := newReleaseServer(t)
+
+	dir := t.TempDir()
+	executablePath := filepath.Join(dir, "lazygit")
+	assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
+
+	updater := newTestUpdater(t, server, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: executablePath})
+	assert.NoError(t, updater.Install(&types.VersionNumber{Major: 0, Minor: 67, Patch: 0}))
+	assertFileContent(t, executablePath, "new")
+	assertDirContains(t, dir, "lazygit")
+}
+
+func TestInstallFails(t *testing.T) {
+	server := newReleaseServer(t)
+
+	dir := t.TempDir()
+	executablePath := filepath.Join(dir, "lazygit")
+	assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
+
+	updater := newTestUpdater(t, server, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: executablePath})
+	err := updater.Install(&types.VersionNumber{Major: 0, Minor: 68, Patch: 0})
+	assert.ErrorContains(t, err, "lazygit_0.68.0_linux_x86_64.tar.gz returned 404 Not Found")
+	assertFileContent(t, executablePath, "old")
+	assertDirContains(t, dir, "lazygit")
+}
+
+// newReleaseServer returns a server that has the release archive of v0.67.0
+// for linux on x86_64, with "new" as the content of the lazygit binary
+func newReleaseServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
+	archive := makeTarGz(t, map[string]string{"LICENSE": "license", "lazygit": "new"})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/releases/download/v0.67.0/lazygit_0.67.0_linux_x86_64.tar.gz" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		_, _ = w.Write(archive)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
 func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string, installation Installation) *Updater {
 	t.Helper()
 
@@ -47,5 +93,7 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 		currentVersion: version,
 		httpClient:     server.Client(),
 		repoURL:        server.URL,
+		goos:           "linux",
+		goarch:         "amd64",
 	}
 }

@@ -152,8 +152,6 @@ type Gui struct {
 	// for accessing the gui's state from outside this package
 	stateAccessor *StateAccessor
 
-	Updating bool
-
 	c       *helpers.HelperCommon
 	helpers *helpers.Helpers
 
@@ -172,14 +170,6 @@ var _ types.IStateAccessor = new(StateAccessor)
 
 func (self *StateAccessor) GetRepoPathStack() *utils.Stack[types.RepoLocation] {
 	return self.gui.RepoPathStack
-}
-
-func (self *StateAccessor) GetUpdating() bool {
-	return self.gui.Updating
-}
-
-func (self *StateAccessor) SetUpdating(value bool) {
-	self.gui.Updating = value
 }
 
 func (self *StateAccessor) GetRepoState() types.IRepoStateAccessor {
@@ -1047,6 +1037,10 @@ func (gui *Gui) RunAndHandleError(startArgs appTypes.StartArgs) error {
 			// process exits; reap their process trees synchronously instead
 			// so that they don't outlive lazygit.
 			oscommands.TerminateLivePtys()
+
+			// Don't exit in the middle of replacing the executable with an
+			// update, or the user might be left without a lazygit binary
+			gui.Updater.WaitForInstallToFinish()
 
 			close(gui.stopChan)
 

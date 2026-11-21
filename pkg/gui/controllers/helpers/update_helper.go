@@ -21,6 +21,13 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	}
 }
 
+func (self *UpdateHelper) OnStartup() {
+	self.c.OnWorkerBackground(func(gocui.Task) error {
+		self.updater.CleanUpAfterUpdate()
+		return nil
+	})
+}
+
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
 	if self.updater.Installation().Kind == updates.InstallKindDevBuild {
 		return &types.DisabledReason{
@@ -32,6 +39,10 @@ func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
 			// doesn't happen
 			ShowErrorInPanel: true,
 		}
+	}
+
+	if self.updater.IsInstalling() {
+		return &types.DisabledReason{Text: self.c.Tr.UpdateAlreadyInProgress}
 	}
 
 	return nil
@@ -57,41 +68,14 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		return self.showUpdatePrompt(newVersion.String())
+		return self.showUpdatePrompt(newVersion)
 	})
 }
 
-func (self *UpdateHelper) startUpdating(newVersion string) {
-	_ = self.c.WithWaitingStatus(self.c.Tr.UpdateInProgressWaitingStatus, func(gocui.Task) error {
-		self.c.State().SetUpdating(true)
-		err := self.updater.Update(newVersion)
-		return self.onUpdateFinish(err)
-	})
-}
-
-func (self *UpdateHelper) onUpdateFinish(err error) error {
-	self.c.State().SetUpdating(false)
-	self.c.OnUIThread(func() error {
-		self.c.SetViewContent(self.c.Views().AppStatus, "")
-		if err != nil {
-			errMessage := utils.ResolvePlaceholderString(
-				self.c.Tr.UpdateFailedErr, map[string]string{
-					"errMessage": err.Error(),
-				},
-			)
-			return errors.New(errMessage)
-		}
-		self.c.Alert(self.c.Tr.UpdateCompletedTitle, self.c.Tr.UpdateCompleted)
-		return nil
-	})
-
-	return nil
-}
-
-func (self *UpdateHelper) showUpdatePrompt(newVersion string) error {
+func (self *UpdateHelper) showUpdatePrompt(newVersion *types.VersionNumber) error {
 	message := utils.ResolvePlaceholderString(
 		self.c.Tr.UpdateAvailable, map[string]string{
-			"newVersion": newVersion,
+			"newVersion": newVersion.String(),
 		},
 	)
 
@@ -99,10 +83,36 @@ func (self *UpdateHelper) showUpdatePrompt(newVersion string) error {
 		Title:  self.c.Tr.UpdateAvailableTitle,
 		Prompt: message,
 		HandleConfirm: func() error {
-			self.startUpdating(newVersion)
-			return nil
+			return self.install(newVersion)
 		},
 	})
 
 	return nil
+}
+
+func (self *UpdateHelper) install(newVersion *types.VersionNumber) error {
+	status := utils.ResolvePlaceholderString(
+		self.c.Tr.InstallingUpdateStatus, map[string]string{"newVersion": newVersion.String()},
+	)
+	return self.c.WithWaitingStatus(status, func(gocui.Task) error {
+		err := self.updater.Install(newVersion)
+		self.c.OnUIThread(func() error {
+			if err != nil {
+				return errors.New(utils.ResolvePlaceholderString(
+					self.c.Tr.UpdateInstallFailed,
+					map[string]string{"newVersion": newVersion.String(), "error": err.Error()},
+				))
+			}
+
+			self.c.Toast(self.updateInstalledMessage(newVersion))
+			return nil
+		})
+		return nil
+	})
+}
+
+func (self *UpdateHelper) updateInstalledMessage(version *types.VersionNumber) string {
+	return utils.ResolvePlaceholderString(
+		self.c.Tr.UpdateInstalled, map[string]string{"newVersion": version.String()},
+	)
 }

@@ -270,16 +270,14 @@ type TranslationSet struct {
 	CheckingForUpdates                    string
 	UpdateCheckFailed                     string
 	UpdateCheckNotPossibleForDevBuild     string
+	UpdateAlreadyInProgress               string
 	NoUpdateAvailableTitle                string
 	NoUpdateAvailable                     string
 	UpdateAvailableTitle                  string
+	InstallingUpdateStatus                string
+	UpdateInstalled                       string
+	UpdateInstallFailed                   string
 	UpdateAvailable                       string
-	UpdateInProgressWaitingStatus         string
-	UpdateCompletedTitle                  string
-	UpdateCompleted                       string
-	UpdateFailedErr                       string
-	ConfirmQuitDuringUpdateTitle          string
-	ConfirmQuitDuringUpdate               string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1497,16 +1495,14 @@ func EnglishTranslationSet() *TranslationSet {
 		CheckingForUpdates:                   "Checking for updates...",
 		UpdateCheckFailed:                    "Couldn't check for updates: {{.error}}",
 		UpdateCheckNotPossibleForDevBuild:    "This is a development build ({{.version}}), so lazygit can't check for updates.",
+		UpdateAlreadyInProgress:              "An update is already in progress.",
 		NoUpdateAvailableTitle:               "No update available",
 		NoUpdateAvailable:                    "You have the latest version ({{.currentVersion}}).",
 		UpdateAvailableTitle:                 "Update available!",
+		InstallingUpdateStatus:               "Installing {{.newVersion}}",
+		UpdateInstalled:                      "lazygit {{.newVersion}} is installed. It takes effect the next time you start lazygit.",
+		UpdateInstallFailed:                  "Couldn't install lazygit {{.newVersion}}: {{.error}}",
 		UpdateAvailable:                      "Download and install version {{.newVersion}}?",
-		UpdateInProgressWaitingStatus:        "Updating",
-		UpdateCompletedTitle:                 "Update completed!",
-		UpdateCompleted:                      "Update has been installed successfully. Restart lazygit for it to take effect.",
-		UpdateFailedErr:                      "Update failed: {{.errMessage}}",
-		ConfirmQuitDuringUpdateTitle:         "Currently updating",
-		ConfirmQuitDuringUpdate:              "An update is in progress. Are you sure you want to quit?",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,
