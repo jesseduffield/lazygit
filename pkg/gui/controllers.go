@@ -111,7 +111,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 		DiffLine:        diffLineHelper,
 		Repos:           reposHelper,
 		RecordDirectory: recordDirectoryHelper,
-		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater, appStatusHelper),
+		Update:          helpers.NewUpdateHelper(helperCommon, gui.Updater, appStatusHelper, gui.waitForIntro.Wait),
 		Window:          windowHelper,
 		View:            viewHelper,
 		Refresh:         refreshHelper,

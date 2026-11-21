@@ -213,6 +213,59 @@ func TestRefreshStatus(t *testing.T) {
 	assert.Equal(t, Status{AvailableVersion: v0680, InstalledVersion: v0670}, updater.RefreshStatus())
 }
 
+func TestDueReminder(t *testing.T) {
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	scenarios := []struct {
+		name            string
+		kind            InstallKind
+		state           config.UpdatesState
+		updateInstalled bool
+		expected        *types.VersionNumber
+	}{
+		{
+			name:     "no update",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.66.2"},
+			expected: nil,
+		},
+		{
+			name:     "update available",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: v0670,
+		},
+		{
+			name:            "update installed already",
+			kind:            InstallKindRelease,
+			state:           config.UpdatesState{LatestVersion: "v0.67.0"},
+			updateInstalled: true,
+			expected:        nil,
+		},
+		{
+			name:     "dev build",
+			kind:     InstallKindDevBuild,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: nil,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			executablePath := filepath.Join(t.TempDir(), "lazygit")
+			writeOldExecutable(t, executablePath)
+
+			updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: s.kind, ExecutablePath: executablePath})
+			updater.appState.(*fakeAppStateStore).state.Updates = s.state
+			if s.updateInstalled {
+				assert.NoError(t, os.WriteFile(executablePath, []byte("new"), 0o755))
+			}
+
+			assert.Equal(t, s.expected, updater.DueReminder())
+		})
+	}
+}
+
 func TestInstall(t *testing.T) {
 	server := newReleaseServer(t)
 

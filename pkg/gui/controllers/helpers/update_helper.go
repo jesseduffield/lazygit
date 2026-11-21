@@ -17,24 +17,62 @@ type UpdateHelper struct {
 	c               *HelperCommon
 	updater         *updates.Updater
 	appStatusHelper *AppStatusHelper
+	// Blocks until the user has closed the intro or breaking-changes popup
+	// that lazygit shows at startup. The update menu waits for this, so that
+	// it doesn't replace them.
+	waitForStartupPopups func()
 }
 
-func NewUpdateHelper(c *HelperCommon, updater *updates.Updater, appStatusHelper *AppStatusHelper) *UpdateHelper {
+func NewUpdateHelper(
+	c *HelperCommon,
+	updater *updates.Updater,
+	appStatusHelper *AppStatusHelper,
+	waitForStartupPopups func(),
+) *UpdateHelper {
 	return &UpdateHelper{
-		c:               c,
-		updater:         updater,
-		appStatusHelper: appStatusHelper,
+		c:                    c,
+		updater:              updater,
+		appStatusHelper:      appStatusHelper,
+		waitForStartupPopups: waitForStartupPopups,
 	}
 }
 
 // The link of the note that tells the user about an update
 const UpdateNoteLink = "lazygit-update:"
 
+// OnStartup checks for an update if a check is due, and shows the update menu
+// if a reminder is due, once the user has closed the intro or breaking-changes
+// popup. If the recent repos menu is open, the update menu replaces it.
+//
+// The check runs at the same time, so the menu is for an update that an
+// earlier check found, unless the check finishes while a startup popup is
+// open.
 func (self *UpdateHelper) OnStartup() {
 	self.c.OnWorkerBackground(func(gocui.Task) error {
 		self.updater.CleanUpAfterUpdate()
 		self.CheckForUpdateInBackground()
 		return nil
+	})
+
+	go utils.Safe(func() {
+		self.waitForStartupPopups()
+		self.remindIfDue()
+	})
+}
+
+// remindIfDue shows the update menu if a reminder is due. We only do this at
+// startup, before the user starts working; a menu that appears later could
+// catch a key that the user meant for something else. Call it on a worker,
+// because it accesses the file system.
+func (self *UpdateHelper) remindIfDue() {
+	version := self.updater.DueReminder()
+	if version == nil {
+		return
+	}
+
+	menuOpts := self.updateMenuOptions(version)
+	self.c.OnUIThread(func() error {
+		return self.c.Menu(menuOpts)
 	})
 }
 

@@ -286,6 +286,22 @@ func fileModTime(path string) time.Time {
 	return info.ModTime()
 }
 
+// DueReminder returns the version to remind the user of with the update menu,
+// or nil if no reminder is due. Don't call it on the UI thread, because it
+// accesses the file system.
+func (u *Updater) DueReminder() *types.VersionNumber {
+	if !u.ChecksEnabled() {
+		return nil
+	}
+
+	state := u.readAppState()
+	version := u.newerVersion(state.Updates.LatestVersion)
+	if version == nil || u.IsUpdateInstalled() {
+		return nil
+	}
+	return version
+}
+
 // RefreshStatus reads the status from the app state, where other lazygit
 // instances can have changed it, and returns it. Don't call it on the UI
 // thread, because it accesses the file system.
