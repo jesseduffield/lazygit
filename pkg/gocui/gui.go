@@ -258,6 +258,11 @@ type Gui struct {
 	blockInputCount     int
 	bufferedInputEvents []GocuiEvent
 	replayPending       bool
+
+	// When the user last pressed a key, clicked or scrolled with the mouse, or
+	// pasted (Unix nanoseconds), or 0 if they haven't done any of this yet;
+	// see LastInputTime
+	lastInputTime atomic.Int64
 }
 
 type NewGuiOpts struct {
@@ -1266,6 +1271,10 @@ func (g *Gui) processRemainingEvents() (bool, error) {
 // handleEvent handles an event, based on its type (key-press, error,
 // etc.)
 func (g *Gui) handleEvent(ev *GocuiEvent) error {
+	if isUserInput(ev) {
+		g.lastInputTime.Store(time.Now().UnixNano())
+	}
+
 	if g.withholdingInput() && eventWithheldWhileBlocking(ev) {
 		if ev.Type == eventKey || ev.Type == eventPaste {
 			// Buffer keys so they replay against fresh state on unblock. Buffer
@@ -1298,6 +1307,24 @@ func (g *Gui) handleEvent(ev *GocuiEvent) error {
 	default:
 		return nil
 	}
+}
+
+// isUserInput reports whether the event is something that the user did on
+// purpose. Moving the mouse without pressing a button doesn't count.
+func isUserInput(ev *GocuiEvent) bool {
+	return ev.Type == eventKey || ev.Type == eventMouse || ev.Type == eventPaste
+}
+
+// LastInputTime returns when the user last pressed a key, clicked or scrolled
+// with the mouse, or pasted, or the zero time if they haven't done any of this
+// since lazygit started. Moving the mouse doesn't count. It can be called from
+// any goroutine.
+func (g *Gui) LastInputTime() time.Time {
+	nanos := g.lastInputTime.Load()
+	if nanos == 0 {
+		return time.Time{}
+	}
+	return time.Unix(0, nanos)
 }
 
 // withholdingInput reports whether events are being kept from the handlers. They
