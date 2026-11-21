@@ -1,6 +1,8 @@
 package updates
 
 import (
+	"strings"
+
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
@@ -14,6 +16,10 @@ const (
 	InstallKindDevBuild InstallKind = iota
 	// Installed from one of our release archives. We can update it in place.
 	InstallKindRelease
+	InstallKindHomebrew
+	InstallKindScoop
+	InstallKindWinget
+	InstallKindChocolatey
 	// Anything else with a release version, e.g. a package of a Linux
 	// distribution. We can only tell the user that there's an update.
 	InstallKindOther
@@ -36,9 +42,23 @@ func detectInstallKind(buildSource string, version string, executablePath string
 		return InstallKindDevBuild
 	}
 
+	// Normalize the path so that we can match Windows paths on any platform,
+	// and regardless of how they are capitalized.
+	path := strings.ToLower(strings.ReplaceAll(executablePath, `\`, "/"))
+
+	switch {
+	case strings.EqualFold(buildSource, BuildSourceHomebrew) || strings.Contains(path, "/cellar/lazygit/"):
+		return InstallKindHomebrew
+	case strings.Contains(path, "/scoop/apps/lazygit/"):
+		return InstallKindScoop
+	case strings.Contains(path, "/microsoft/winget/packages/jesseduffield.lazygit"):
+		return InstallKindWinget
+	case strings.Contains(path, "/chocolatey/lib/lazygit/"):
+		return InstallKindChocolatey
 	// We can't update the executable in place if we don't know where it is
-	if buildSource == BuildSourceRelease && executablePath != "" {
+	case buildSource == BuildSourceRelease && executablePath != "":
 		return InstallKindRelease
+	default:
+		return InstallKindOther
 	}
-	return InstallKindOther
 }

@@ -5,4 +5,7 @@ package updates
 const (
 	// Set by .goreleaser.yml for our release archives
 	BuildSourceRelease = "binaryRelease"
+
+	// Set by the Homebrew formula (to the name of the tap's owner)
+	BuildSourceHomebrew = "Homebrew"
 )
