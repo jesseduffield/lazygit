@@ -39,7 +39,7 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Status.CheckForUpdate),
-			Handler:         self.handleCheckForUpdate,
+			Handler:         self.c.Helpers().Update.CheckForUpdateInForeground,
 			Description:     self.c.Tr.CheckForUpdate,
 			DisplayOnScreen: true,
 		},
@@ -212,8 +212,4 @@ func (self *StatusController) showDashboard() {
 			Task:  types.NewRenderStringTask(dashboardString),
 		},
 	})
-}
-
-func (self *StatusController) handleCheckForUpdate() error {
-	return self.c.Helpers().Update.CheckForUpdateInForeground()
 }
