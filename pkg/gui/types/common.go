@@ -223,6 +223,10 @@ type CreateMenuOptions struct {
 	// menus whose items don't have keybindings of their own, because those keys
 	// would clash with typing.
 	FilterAsYouType bool
+	// Called on the UI thread right before the menu is created; if it returns
+	// true, the menu isn't created. For menus that lazygit opens on its own,
+	// to check whether they would get in the user's way by then.
+	Skip func() bool
 }
 
 type CreatePopupPanelOpts struct {
