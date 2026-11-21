@@ -28,6 +28,9 @@ type Updater struct {
 	*common.Common
 	installation   Installation
 	currentVersion *types.VersionNumber
+	// The modification time of the executable when lazygit started. Installing
+	// an update writes a new file, so the time changes; see IsUpdateInstalled.
+	executableModTime time.Time
 
 	httpClient *http.Client
 	repoURL    string
@@ -43,15 +46,17 @@ type Updater struct {
 
 func NewUpdater(cmn *common.Common, config config.AppConfigurer) *Updater {
 	currentVersion, _ := types.ParseVersionNumber(config.GetVersion())
+	installation := DetectInstallation(config.GetBuildSource(), config.GetVersion(), executablePath())
 
 	return &Updater{
-		Common:         cmn,
-		installation:   DetectInstallation(config.GetBuildSource(), config.GetVersion(), executablePath()),
-		currentVersion: currentVersion,
-		httpClient:     &http.Client{},
-		repoURL:        constants.Links.RepoUrl,
-		goos:           runtime.GOOS,
-		goarch:         runtime.GOARCH,
+		Common:            cmn,
+		installation:      installation,
+		currentVersion:    currentVersion,
+		executableModTime: fileModTime(installation.ExecutablePath),
+		httpClient:        &http.Client{},
+		repoURL:           constants.Links.RepoUrl,
+		goos:              runtime.GOOS,
+		goarch:            runtime.GOARCH,
 	}
 }
 
@@ -101,12 +106,17 @@ func (u *Updater) CheckCanInstall() error {
 }
 
 // Install downloads the given release and installs it in place of the running
-// lazygit. Only call it for InstallKindRelease.
+// lazygit. If an update is installed already, it does nothing. Only call it for
+// InstallKindRelease.
 func (u *Updater) Install(version *types.VersionNumber) error {
 	if !u.installing.CompareAndSwap(false, true) {
 		return errors.New("an update is already in progress")
 	}
 	defer u.installing.Store(false)
+
+	if u.IsUpdateInstalled() {
+		return nil
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), installTimeout)
 	defer cancel()
@@ -130,6 +140,29 @@ func (u *Updater) installNewExecutable(newPath string) error {
 	u.replaceMutex.Lock()
 	defer u.replaceMutex.Unlock()
 	return replaceExecutable(u.installation.ExecutablePath, newPath, u.goos)
+}
+
+// IsUpdateInstalled returns whether an update was installed in place of the
+// running lazygit since it started. This lazygit, or another one running from
+// the same executable, can have installed it. The new version takes effect when
+// lazygit is restarted. Don't call it on the UI thread, because it accesses the
+// file system.
+func (u *Updater) IsUpdateInstalled() bool {
+	if u.installation.Kind != InstallKindRelease || u.executableModTime.IsZero() {
+		return false
+	}
+	modTime := fileModTime(u.installation.ExecutablePath)
+	return !modTime.IsZero() && !modTime.Equal(u.executableModTime)
+}
+
+// fileModTime returns the modification time of the file at path, or the zero
+// time if it can't be determined
+func fileModTime(path string) time.Time {
+	info, err := os.Stat(path)
+	if err != nil {
+		return time.Time{}
+	}
+	return info.ModTime()
 }
 
 func (u *Updater) IsInstalling() bool {

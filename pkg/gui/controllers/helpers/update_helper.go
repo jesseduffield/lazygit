@@ -72,6 +72,14 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
+		if self.updater.IsUpdateInstalled() {
+			self.c.OnUIThread(func() error {
+				self.c.Toast(self.updateInstalledMessage(newVersion))
+				return nil
+			})
+			return nil
+		}
+
 		menuOpts := self.updateMenuOptions(newVersion)
 		self.c.OnUIThread(func() error {
 			return self.c.Menu(menuOpts)
