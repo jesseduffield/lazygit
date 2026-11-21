@@ -30,8 +30,17 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater, appStatusHelper 
 func (self *UpdateHelper) OnStartup() {
 	self.c.OnWorkerBackground(func(gocui.Task) error {
 		self.updater.CleanUpAfterUpdate()
+		self.CheckForUpdateInBackground()
 		return nil
 	})
+}
+
+// CheckForUpdateInBackground checks for an update if one is due. Call it on a
+// worker.
+func (self *UpdateHelper) CheckForUpdateInBackground() {
+	if err := self.updater.CheckForUpdateIfDue(); err != nil {
+		self.c.Log.Errorf("Error checking for an update: %v", err)
+	}
 }
 
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {

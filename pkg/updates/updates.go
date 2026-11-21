@@ -24,6 +24,7 @@ const (
 
 // The part of config.AppConfigurer that the updater needs
 type appStateStore interface {
+	ReadAppState() (*config.AppState, error)
 	UpdateAppState(update func(state *config.AppState)) error
 }
 
@@ -45,6 +46,9 @@ type Updater struct {
 
 	installing atomic.Bool
 
+	// Replaced in tests
+	now func() time.Time
+
 	// Held while we replace the executable, so that lazygit doesn't exit in
 	// the middle of it
 	replaceMutex sync.Mutex
@@ -64,6 +68,7 @@ func NewUpdater(cmn *common.Common, config config.AppConfigurer) *Updater {
 		repoURL:           constants.Links.RepoUrl,
 		goos:              runtime.GOOS,
 		goarch:            runtime.GOARCH,
+		now:               time.Now,
 	}
 }
 
@@ -87,6 +92,38 @@ func (u *Updater) CurrentVersion() *types.VersionNumber {
 	return u.currentVersion
 }
 
+// ChecksEnabled returns whether lazygit checks for updates regularly. It
+// doesn't for dev builds.
+func (u *Updater) ChecksEnabled() bool {
+	return u.installation.Kind != InstallKindDevBuild
+}
+
+// CheckForUpdateIfDue checks for an update if lazygit checks regularly, and
+// the last successful check is long enough ago. update.days counts calendar
+// days, so that with update.days set to 1, the check happens at the first start
+// of each day, even if that is a bit earlier than on the day before.
+func (u *Updater) CheckForUpdateIfDue() error {
+	if !u.ChecksEnabled() {
+		return nil
+	}
+
+	state := u.readAppState()
+	nextCheck := startOfDayAfter(time.Unix(state.Updates.LastCheck, 0), int(u.UserConfig().Update.Days))
+	if u.now().Before(nextCheck) {
+		return nil
+	}
+
+	_, err := u.CheckForUpdate()
+	return err
+}
+
+// startOfDayAfter returns the start of the day that is the given number of
+// days after the day of t, in the time zone of t
+func startOfDayAfter(t time.Time, days int) time.Time {
+	year, month, day := t.Date()
+	return time.Date(year, month, day+days, 0, 0, 0, 0, t.Location())
+}
+
 // CheckForUpdate returns the latest version if it is newer than the current
 // one, or nil if it isn't. Don't call it for dev builds.
 func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
@@ -99,6 +136,11 @@ func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
 	}
 
 	u.Log.Infof("Current version is %s, latest version is %s", u.currentVersion, latestVersion)
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.LastCheck = u.now().Unix()
+		state.Updates.LatestVersion = latestVersion.String()
+	})
+
 	if !u.currentVersion.IsOlderThan(latestVersion) {
 		return nil, nil
 	}
@@ -190,6 +232,22 @@ func fileModTime(path string) time.Time {
 		return time.Time{}
 	}
 	return info.ModTime()
+}
+
+func (u *Updater) readAppState() *config.AppState {
+	state, err := u.appState.ReadAppState()
+	if err != nil {
+		u.Log.Errorf("Error reading the app state: %v", err)
+	}
+	return state
+}
+
+// Errors from saving the update state aren't worth bothering the user with; at
+// worst, we check again.
+func (u *Updater) updateAppState(update func(state *config.AppState)) {
+	if err := u.appState.UpdateAppState(update); err != nil {
+		u.Log.Errorf("Error saving the app state: %v", err)
+	}
 }
 
 func (u *Updater) IsInstalling() bool {

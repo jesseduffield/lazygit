@@ -4145,7 +4145,7 @@
           "type": "integer",
           "minimum": 0,
           "description": "Period in days between update checks",
-          "default": 14
+          "default": 1
         }
       },
       "additionalProperties": false,

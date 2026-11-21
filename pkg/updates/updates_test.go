@@ -35,7 +35,132 @@ func TestCheckForUpdate(t *testing.T) {
 			newVersion, err := updater.CheckForUpdate()
 			assert.NoError(t, err)
 			assert.Equal(t, s.expected, newVersion)
+
+			state := updater.readAppState()
+			assert.Equal(t, "v0.67.0", state.Updates.LatestVersion)
+			assert.WithinDuration(t, time.Now(), time.Unix(state.Updates.LastCheck, 0), time.Minute)
 		})
+	}
+}
+
+func TestCheckForUpdateIfDue(t *testing.T) {
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		_, _ = w.Write([]byte(`{"tag_name":"v0.67.0"}`))
+	}))
+	defer server.Close()
+
+	now := time.Date(2026, 11, 3, 9, 0, 0, 0, time.Local)
+	scenarios := []struct {
+		name          string
+		version       string
+		method        string
+		days          int64
+		lastCheck     time.Time
+		latestVersion string
+		expectCheck   bool
+	}{
+		{
+			name:        "never checked",
+			version:     "0.66.2",
+			method:      "prompt",
+			days:        1,
+			expectCheck: true,
+		},
+		{
+			name:          "checked earlier today",
+			version:       "0.66.2",
+			method:        "prompt",
+			days:          1,
+			lastCheck:     time.Date(2026, 11, 3, 0, 1, 0, 0, time.Local),
+			latestVersion: "v0.66.3",
+			expectCheck:   false,
+		},
+		{
+			name:        "checked yesterday, less than 24 hours ago",
+			version:     "0.66.2",
+			method:      "prompt",
+			days:        1,
+			lastCheck:   time.Date(2026, 11, 2, 10, 0, 0, 0, time.Local),
+			expectCheck: true,
+		},
+		{
+			name:          "checked six days ago, checking once a week",
+			version:       "0.66.2",
+			method:        "prompt",
+			days:          7,
+			lastCheck:     time.Date(2026, 10, 28, 9, 0, 0, 0, time.Local),
+			latestVersion: "v0.66.2",
+			expectCheck:   false,
+		},
+		{
+			name:        "checked seven days ago, checking once a week",
+			version:     "0.66.2",
+			method:      "prompt",
+			days:        7,
+			lastCheck:   time.Date(2026, 10, 27, 23, 0, 0, 0, time.Local),
+			expectCheck: true,
+		},
+		{
+			name:        "checked earlier today, checking at every start",
+			version:     "0.66.2",
+			method:      "prompt",
+			days:        0,
+			lastCheck:   time.Date(2026, 11, 3, 8, 59, 0, 0, time.Local),
+			expectCheck: true,
+		},
+		{
+			name:        "update.method never",
+			version:     "0.66.2",
+			method:      "never",
+			days:        1,
+			expectCheck: true,
+		},
+		{
+			name:        "dev build",
+			version:     "0123abcd",
+			method:      "prompt",
+			days:        1,
+			expectCheck: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			requests = 0
+			updater := newTestUpdater(t, server, "0.66.2", Installation{Kind: InstallKindRelease})
+			updater.installation = DetectInstallation(BuildSourceRelease, s.version, "/home/user/.local/bin/lazygit")
+			updater.UserConfig().Update.Method = s.method
+			updater.UserConfig().Update.Days = s.days
+			updater.now = func() time.Time { return now }
+			if !s.lastCheck.IsZero() {
+				updater.appState.(*fakeAppStateStore).state.Updates.LastCheck = s.lastCheck.Unix()
+			}
+			updater.appState.(*fakeAppStateStore).state.Updates.LatestVersion = s.latestVersion
+
+			assert.NoError(t, updater.CheckForUpdateIfDue())
+			assert.Equal(t, s.expectCheck, requests == 1)
+		})
+	}
+}
+
+func TestStartOfDayAfter(t *testing.T) {
+	scenarios := []struct {
+		time     time.Time
+		days     int
+		expected time.Time
+	}{
+		{time.Date(2026, 11, 3, 9, 5, 0, 0, time.UTC), 0, time.Date(2026, 11, 3, 0, 0, 0, 0, time.UTC)},
+		{time.Date(2026, 11, 3, 9, 5, 0, 0, time.UTC), 1, time.Date(2026, 11, 4, 0, 0, 0, 0, time.UTC)},
+		{time.Date(2026, 11, 3, 0, 0, 0, 0, time.UTC), 1, time.Date(2026, 11, 4, 0, 0, 0, 0, time.UTC)},
+		{time.Date(2026, 11, 3, 23, 59, 0, 0, time.UTC), 7, time.Date(2026, 11, 10, 0, 0, 0, 0, time.UTC)},
+		{time.Date(2026, 11, 30, 23, 59, 0, 0, time.UTC), 1, time.Date(2026, 12, 1, 0, 0, 0, 0, time.UTC)},
+		{time.Date(2026, 12, 31, 12, 0, 0, 0, time.UTC), 1, time.Date(2027, 1, 1, 0, 0, 0, 0, time.UTC)},
+	}
+
+	for _, s := range scenarios {
+		assert.Equal(t, s.expected, startOfDayAfter(s.time, s.days))
 	}
 }
 
@@ -144,15 +269,21 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 		installation:      installation,
 		currentVersion:    version,
 		executableModTime: fileModTime(installation.ExecutablePath),
-		httpClient:        server.Client(),
-		repoURL:           server.URL,
 		goos:              "linux",
 		goarch:            "amd64",
+		httpClient:        server.Client(),
+		repoURL:           server.URL,
+		now:               time.Now,
 	}
 }
 
 type fakeAppStateStore struct {
 	state *config.AppState
+}
+
+func (self *fakeAppStateStore) ReadAppState() (*config.AppState, error) {
+	state := *self.state
+	return &state, nil
 }
 
 func (self *fakeAppStateStore) UpdateAppState(update func(state *config.AppState)) error {
