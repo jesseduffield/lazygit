@@ -27,6 +27,9 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater, appStatusHelper 
 	}
 }
 
+// The link of the note that tells the user about an update
+const UpdateNoteLink = "lazygit-update:"
+
 func (self *UpdateHelper) OnStartup() {
 	self.c.OnWorkerBackground(func(gocui.Task) error {
 		self.updater.CleanUpAfterUpdate()
@@ -61,7 +64,25 @@ func (self *UpdateHelper) Note() string {
 	if status.AvailableVersion == nil {
 		return ""
 	}
-	return style.FgGreen.Sprint(self.c.Tr.UpdateAvailableNote)
+	return style.FgGreen.Sprint(style.PrintHyperlink(self.c.Tr.UpdateAvailableNote, UpdateNoteLink))
+}
+
+// ShowUpdateMenu shows the menu for the update that the note in the
+// bottom-right corner tells the user about
+func (self *UpdateHelper) ShowUpdateMenu() error {
+	status := self.updater.Status()
+	if status.AvailableVersion == nil {
+		return nil
+	}
+
+	self.c.OnWorker(func(gocui.Task) error {
+		menuOpts := self.updateMenuOptions(status.AvailableVersion)
+		self.c.OnUIThread(func() error {
+			return self.c.Menu(menuOpts)
+		})
+		return nil
+	})
+	return nil
 }
 
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {

@@ -412,6 +412,10 @@ func (gui *Gui) onNewRepo(startArgs appTypes.StartArgs, contextKey types.Context
 			return gui.helpers.Diff.EditFilesOfDiff([]string{filepath})
 		}
 
+		if url == helpers.UpdateNoteLink {
+			return gui.helpers.Update.ShowUpdateMenu()
+		}
+
 		if entry, ok := strings.CutPrefix(url, helpers.DiffStatLinkScheme); ok {
 			view, err := gui.g.View(viewname)
 			if err != nil {
