@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/stretchr/testify/assert"
@@ -123,6 +124,20 @@ func TestCheckCanReplaceExecutable(t *testing.T) {
 	_, err := writeNewExecutable(executablePath, []byte("new"))
 	assert.ErrorIs(t, err, os.ErrPermission)
 	assertFileContent(t, executablePath, "old")
+}
+
+func TestCleanUpAfterUpdate(t *testing.T) {
+	dir := t.TempDir()
+	executablePath := filepath.Join(dir, "lazygit")
+	for _, name := range []string{"lazygit", "lazygit.old", ".lazygit-old-123", ".lazygit-update-old", ".lazygit-update-new"} {
+		assert.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(name), 0o755))
+	}
+	twoHoursAgo := time.Now().Add(-2 * time.Hour)
+	assert.NoError(t, os.Chtimes(filepath.Join(dir, ".lazygit-update-old"), twoHoursAgo, twoHoursAgo))
+
+	cleanUpAfterUpdate(executablePath)
+
+	assertDirContains(t, dir, ".lazygit-update-new", "lazygit", "lazygit.old")
 }
 
 func TestDownloadBinary(t *testing.T) {

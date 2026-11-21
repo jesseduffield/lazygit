@@ -235,3 +235,28 @@ func replaceRunningExecutable(executablePath string, newPath string) error {
 	_ = os.Remove(oldPath)
 	return nil
 }
+
+// cleanUpAfterUpdate removes files that an earlier update left behind: old
+// executables that we couldn't delete while they were running (on Windows),
+// and temporary files of updates that didn't finish, e.g. because lazygit was
+// killed. We leave recent temporary files alone, because another lazygit might
+// be in the middle of an update.
+func cleanUpAfterUpdate(executablePath string) {
+	dir := filepath.Dir(executablePath)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		path := filepath.Join(dir, entry.Name())
+		switch {
+		case strings.HasPrefix(entry.Name(), oldFilePrefix):
+			_ = os.Remove(path)
+		case strings.HasPrefix(entry.Name(), tempFilePrefix):
+			if info, err := entry.Info(); err == nil && time.Since(info.ModTime()) > time.Hour {
+				_ = os.Remove(path)
+			}
+		}
+	}
+}
