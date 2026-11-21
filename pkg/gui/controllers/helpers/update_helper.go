@@ -70,7 +70,7 @@ func (self *UpdateHelper) remindIfDue() {
 		return
 	}
 
-	self.showUpdateMenu(version)
+	self.showUpdateMenu(version, true)
 }
 
 // CheckForUpdateInBackground checks for an update if one is due, and shows the
@@ -116,7 +116,7 @@ func (self *UpdateHelper) ShowUpdateMenu() error {
 	}
 
 	self.c.OnWorker(func(gocui.Task) error {
-		self.showUpdateMenu(status.AvailableVersion)
+		self.showUpdateMenu(status.AvailableVersion, false)
 		return nil
 	})
 	return nil
@@ -170,24 +170,27 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		self.showUpdateMenu(newVersion)
+		self.showUpdateMenu(newVersion, false)
 		return nil
 	})
 	return nil
 }
 
-// showUpdateMenu shows the menu that tells the user about a new version. Call
-// it on a worker, because building the menu accesses the file system.
-func (self *UpdateHelper) showUpdateMenu(newVersion *types.VersionNumber) {
-	menuOpts := self.updateMenuOptions(newVersion)
+// showUpdateMenu shows the menu that tells the user about a new version; see
+// updateMenuOptions for what reminder means. Call it on a worker, because
+// building the menu accesses the file system.
+func (self *UpdateHelper) showUpdateMenu(newVersion *types.VersionNumber, reminder bool) {
+	menuOpts := self.updateMenuOptions(newVersion, reminder)
 	self.c.OnUIThread(func() error {
 		return self.c.Menu(menuOpts)
 	})
 }
 
 // updateMenuOptions returns the options for the menu that tells the user about
-// a new version. Call it on a worker, because it accesses the file system.
-func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) types.CreateMenuOptions {
+// a new version. reminder says whether lazygit shows the menu on its own; the
+// menu then tells the user how to turn reminders off. Call it on a worker,
+// because it accesses the file system.
+func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber, reminder bool) types.CreateMenuOptions {
 	installation := self.updater.Installation()
 	paragraphs := []string{utils.ResolvePlaceholderString(
 		self.c.Tr.NewVersionAvailable,
@@ -241,6 +244,10 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 	default:
 		paragraphs = append(paragraphs, self.c.Tr.UpdateFromPackageManagerOrRelease)
 		items = append(items, self.openInstallationInstructionsMenuItem())
+	}
+
+	if reminder {
+		paragraphs = append(paragraphs, self.c.Tr.TurnOffUpdateReminders)
 	}
 
 	return types.CreateMenuOptions{
