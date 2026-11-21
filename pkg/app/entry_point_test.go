@@ -63,10 +63,7 @@ func TestMergeBuildInfo(t *testing.T) {
 			goBuildInfo: &debug.BuildInfo{
 				Main: debug.Module{Version: "v0.66.3-0.20261103120000-0123456789ab"},
 			},
-			/* EXPECTED:
 			expected: BuildInfo{Commit: "0123456789ab", Version: "v0.66.2+01234567", BuildSource: "unknown"},
-			ACTUAL: */
-			expected: BuildInfo{Version: "unversioned", BuildSource: "unknown"},
 		},
 		{
 			name:      "built with go install from a branch without tags",
@@ -74,10 +71,7 @@ func TestMergeBuildInfo(t *testing.T) {
 			goBuildInfo: &debug.BuildInfo{
 				Main: debug.Module{Version: "v0.0.0-20261103120000-0123456789ab"},
 			},
-			/* EXPECTED:
 			expected: BuildInfo{Commit: "0123456789ab", Version: "01234567", BuildSource: "unknown"},
-			ACTUAL: */
-			expected: BuildInfo{Version: "unversioned", BuildSource: "unknown"},
 		},
 		{
 			name:        "no build info",
