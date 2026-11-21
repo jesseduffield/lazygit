@@ -283,6 +283,7 @@ type TranslationSet struct {
 	CopyUpdateCommand                     string
 	UpdateCommandCopiedToClipboard        string
 	OpenInstallationInstructions          string
+	ReleaseNotes                          string
 	InstallingUpdateStatus                string
 	UpdateInstalled                       string
 	UpdateInstallFailed                   string
@@ -1507,7 +1508,7 @@ func EnglishTranslationSet() *TranslationSet {
 		NoUpdateAvailableTitle:               "No update available",
 		NoUpdateAvailable:                    "You have the latest version ({{.currentVersion}}).",
 		UpdateAvailableTitle:                 "Update available",
-		NewVersionAvailable:                  "lazygit {{.newVersion}} is available. You have {{.currentVersion}}.",
+		NewVersionAvailable:                  "lazygit {{.newVersion}} is available ({{.releaseNotes}}). You have {{.currentVersion}}.",
 		UpdateFolderNotWritable:              "lazygit can't update itself because you don't have write access to {{.folder}}. If you install lazygit in a folder that you can write to, it will keep itself up to date from then on.",
 		UpdateWithPackageManager:             "You installed lazygit with {{.packageManager}}. To update it, run:\n\n{{.command}}",
 		PackageManagersCanBeSlow:             "Package managers sometimes take a few days to get a new version.",
@@ -1516,6 +1517,7 @@ func EnglishTranslationSet() *TranslationSet {
 		CopyUpdateCommand:                    "Copy command",
 		UpdateCommandCopiedToClipboard:       "Command copied to clipboard",
 		OpenInstallationInstructions:         "Open installation instructions",
+		ReleaseNotes:                         "Release notes",
 		InstallingUpdateStatus:               "Installing {{.newVersion}}",
 		UpdateInstalled:                      "lazygit {{.newVersion}} is installed. It takes effect the next time you start lazygit.",
 		UpdateInstallFailed:                  "Couldn't install lazygit {{.newVersion}}: {{.error}}",

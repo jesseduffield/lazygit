@@ -7,6 +7,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -88,6 +89,7 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 		map[string]string{
 			"newVersion":     newVersion.String(),
 			"currentVersion": self.updater.CurrentVersion().String(),
+			"releaseNotes":   style.PrintHyperlink(self.c.Tr.ReleaseNotes, constants.Links.Releases),
 		},
 	)}
 	items := []*types.MenuItem{}
