@@ -93,8 +93,15 @@ func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
 	return latestVersion, nil
 }
 
+// CheckCanInstall returns an error if we can't install an update in place
+// because we don't have write access to the folder of the executable. Only call
+// it for InstallKindRelease.
+func (u *Updater) CheckCanInstall() error {
+	return checkCanReplaceExecutable(u.installation.ExecutablePath)
+}
+
 // Install downloads the given release and installs it in place of the running
-// lazygit.
+// lazygit. Only call it for InstallKindRelease.
 func (u *Updater) Install(version *types.VersionNumber) error {
 	if !u.installing.CompareAndSwap(false, true) {
 		return errors.New("an update is already in progress")

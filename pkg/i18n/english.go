@@ -274,10 +274,14 @@ type TranslationSet struct {
 	NoUpdateAvailableTitle                string
 	NoUpdateAvailable                     string
 	UpdateAvailableTitle                  string
+	NewVersionAvailable                   string
+	UpdateFolderNotWritable               string
+	UpdateFromPackageManagerOrRelease     string
+	InstallUpdateNow                      string
+	OpenInstallationInstructions          string
 	InstallingUpdateStatus                string
 	UpdateInstalled                       string
 	UpdateInstallFailed                   string
-	UpdateAvailable                       string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1498,11 +1502,15 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateAlreadyInProgress:              "An update is already in progress.",
 		NoUpdateAvailableTitle:               "No update available",
 		NoUpdateAvailable:                    "You have the latest version ({{.currentVersion}}).",
-		UpdateAvailableTitle:                 "Update available!",
+		UpdateAvailableTitle:                 "Update available",
+		NewVersionAvailable:                  "lazygit {{.newVersion}} is available. You have {{.currentVersion}}.",
+		UpdateFolderNotWritable:              "lazygit can't update itself because you don't have write access to {{.folder}}. If you install lazygit in a folder that you can write to, it will keep itself up to date from then on.",
+		UpdateFromPackageManagerOrRelease:    "If you installed lazygit with a package manager, check whether it has the new version yet. If it doesn't, you can install lazygit from our releases instead, and it will keep itself up to date from then on.",
+		InstallUpdateNow:                     "Install now",
+		OpenInstallationInstructions:         "Open installation instructions",
 		InstallingUpdateStatus:               "Installing {{.newVersion}}",
 		UpdateInstalled:                      "lazygit {{.newVersion}} is installed. It takes effect the next time you start lazygit.",
 		UpdateInstallFailed:                  "Couldn't install lazygit {{.newVersion}}: {{.error}}",
-		UpdateAvailable:                      "Download and install version {{.newVersion}}?",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,

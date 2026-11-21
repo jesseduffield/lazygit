@@ -2,7 +2,10 @@ package helpers
 
 import (
 	"errors"
+	"path/filepath"
+	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/constants"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/updates"
@@ -68,26 +71,60 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		return self.showUpdatePrompt(newVersion)
+		menuOpts := self.updateMenuOptions(newVersion)
+		self.c.OnUIThread(func() error {
+			return self.c.Menu(menuOpts)
+		})
+		return nil
 	})
 }
 
-func (self *UpdateHelper) showUpdatePrompt(newVersion *types.VersionNumber) error {
-	message := utils.ResolvePlaceholderString(
-		self.c.Tr.UpdateAvailable, map[string]string{
-			"newVersion": newVersion.String(),
+// updateMenuOptions returns the options for the menu that tells the user about
+// a new version. Call it on a worker, because it accesses the file system.
+func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) types.CreateMenuOptions {
+	installation := self.updater.Installation()
+	paragraphs := []string{utils.ResolvePlaceholderString(
+		self.c.Tr.NewVersionAvailable,
+		map[string]string{
+			"newVersion":     newVersion.String(),
+			"currentVersion": self.updater.CurrentVersion().String(),
 		},
-	)
+	)}
+	items := []*types.MenuItem{}
 
-	self.c.Confirm(types.ConfirmOpts{
+	switch installation.Kind {
+	case updates.InstallKindRelease:
+		if err := self.updater.CheckCanInstall(); err != nil {
+			self.c.Log.Infof("Can't install the update: %v", err)
+			paragraphs = append(paragraphs, utils.ResolvePlaceholderString(
+				self.c.Tr.UpdateFolderNotWritable,
+				map[string]string{"folder": filepath.Dir(installation.ExecutablePath)},
+			))
+			items = append(items, self.openInstallationInstructionsMenuItem())
+		} else {
+			items = append(items, &types.MenuItem{
+				Label:   self.c.Tr.InstallUpdateNow,
+				OnPress: func() error { return self.install(newVersion) },
+			})
+		}
+
+	default:
+		paragraphs = append(paragraphs, self.c.Tr.UpdateFromPackageManagerOrRelease)
+		items = append(items, self.openInstallationInstructionsMenuItem())
+	}
+
+	return types.CreateMenuOptions{
 		Title:  self.c.Tr.UpdateAvailableTitle,
-		Prompt: message,
-		HandleConfirm: func() error {
-			return self.install(newVersion)
-		},
-	})
+		Prompt: strings.Join(paragraphs, "\n\n"),
+		Items:  items,
+	}
+}
 
-	return nil
+func (self *UpdateHelper) openInstallationInstructionsMenuItem() *types.MenuItem {
+	return &types.MenuItem{
+		Label:   self.c.Tr.OpenInstallationInstructions,
+		OnPress: func() error { return self.c.OS().OpenLink(constants.Links.InstallationInstructions) },
+	}
 }
 
 func (self *UpdateHelper) install(newVersion *types.VersionNumber) error {
