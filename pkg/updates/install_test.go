@@ -8,6 +8,9 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -77,6 +80,47 @@ func TestExtractBinary(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestReplaceExecutable(t *testing.T) {
+	dir := t.TempDir()
+	executablePath := filepath.Join(dir, "lazygit")
+	assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
+
+	newPath, err := writeNewExecutable(executablePath, []byte("new"))
+	assert.NoError(t, err)
+	assert.NoError(t, replaceExecutable(executablePath, newPath))
+
+	assertFileContent(t, executablePath, "new")
+	if runtime.GOOS != "windows" {
+		info, err := os.Stat(executablePath)
+		assert.NoError(t, err)
+		assert.Equal(t, os.FileMode(0o755), info.Mode().Perm())
+	}
+	assertDirContains(t, dir, "lazygit")
+}
+
+func TestCheckCanReplaceExecutable(t *testing.T) {
+	dir := t.TempDir()
+	executablePath := filepath.Join(dir, "lazygit")
+	assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
+
+	assert.NoError(t, checkCanReplaceExecutable(executablePath))
+	assertDirContains(t, dir, "lazygit")
+
+	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
+		// Windows ignores the permissions of folders, and root can write
+		// anywhere
+		return
+	}
+
+	assert.NoError(t, os.Chmod(dir, 0o555))
+	defer func() { _ = os.Chmod(dir, 0o755) }()
+
+	assert.ErrorIs(t, checkCanReplaceExecutable(executablePath), os.ErrPermission)
+	_, err := writeNewExecutable(executablePath, []byte("new"))
+	assert.ErrorIs(t, err, os.ErrPermission)
+	assertFileContent(t, executablePath, "old")
+}
+
 func TestDownloadBinary(t *testing.T) {
 	archive := makeTarGz(t, map[string]string{"LICENSE": "license", "lazygit": "new"})
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -129,4 +173,24 @@ func makeZip(t *testing.T, files map[string]string) []byte {
 	}
 	assert.NoError(t, zipWriter.Close())
 	return buffer.Bytes()
+}
+
+func assertFileContent(t *testing.T, path string, expected string) {
+	t.Helper()
+
+	content, err := os.ReadFile(path)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, string(content))
+}
+
+func assertDirContains(t *testing.T, dir string, expected ...string) {
+	t.Helper()
+
+	entries, err := os.ReadDir(dir)
+	assert.NoError(t, err)
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		names = append(names, entry.Name())
+	}
+	assert.ElementsMatch(t, expected, names)
 }
