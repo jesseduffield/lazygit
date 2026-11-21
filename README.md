@@ -374,8 +374,10 @@ LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/re
 LAZYGIT_ARCH=$(uname -m | sed -e 's/aarch64/arm64/')
 curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz"
 tar xf lazygit.tar.gz lazygit
-sudo install lazygit -D -t /usr/local/bin/
+install lazygit -D -t ~/.local/bin/
 ```
+
+This installs lazygit into `~/.local/bin`, so that it can keep itself up to date. On Debian and Ubuntu, the default `~/.profile` adds this folder to your PATH if it exists when you log in.
 
 Verify the correct installation of lazygit:
 
