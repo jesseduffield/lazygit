@@ -44,9 +44,8 @@ const UpdateNoteLink = "lazygit-update:"
 // if a reminder is due, once the user has closed the intro or breaking-changes
 // popup. If the recent repos menu is open, the update menu replaces it.
 //
-// The check runs at the same time, so the menu is for an update that an
-// earlier check found, unless the check finishes while a startup popup is
-// open.
+// The check runs at the same time. If it finds an update before the user has
+// done anything, CheckForUpdateInBackground shows the menu then.
 func (self *UpdateHelper) OnStartup() {
 	self.c.OnWorkerBackground(func(gocui.Task) error {
 		self.updater.CleanUpAfterUpdate()
@@ -56,26 +55,27 @@ func (self *UpdateHelper) OnStartup() {
 
 	go utils.Safe(func() {
 		self.waitForStartupPopups()
-		self.remindIfDue()
+		self.remindIfDue(nil)
 	})
 }
 
-// remindIfDue shows the update menu if a reminder is due. We only do this at
-// startup, before the user starts working; a menu that appears later could
-// catch a key that the user meant for something else. Call it on a worker,
-// because it accesses the file system.
-func (self *UpdateHelper) remindIfDue() {
+// remindIfDue shows the update menu if a reminder is due. If skip isn't nil,
+// it is called on the UI thread right before the menu would appear, and the
+// menu doesn't appear if it returns true. Call it on a worker, because it
+// accesses the file system.
+func (self *UpdateHelper) remindIfDue(skip func() bool) {
 	version := self.updater.DueReminder()
 	if version == nil {
 		return
 	}
 
-	self.showUpdateMenu(version, true)
+	self.showUpdateMenu(version, true, skip)
 }
 
 // CheckForUpdateInBackground checks for an update if one is due, and shows the
 // result in the note in the bottom-right corner. If the user config asks for it,
-// it also installs the update. Call it on a worker.
+// it also installs the update. If the user hasn't done anything since lazygit
+// started, it shows the update menu if a reminder is due. Call it on a worker.
 func (self *UpdateHelper) CheckForUpdateInBackground() {
 	if err := self.updater.CheckForUpdateIfDue(); err != nil {
 		self.c.Log.Errorf("Error checking for an update: %v", err)
@@ -94,6 +94,20 @@ func (self *UpdateHelper) CheckForUpdateInBackground() {
 	}
 
 	self.rerenderNote()
+
+	// Once the user has started working, a menu that appears could catch a key
+	// that they meant for something else, so the menu waits for the next start
+	// of lazygit then
+	self.waitForStartupPopups()
+	if self.noInputSinceStartup() {
+		self.remindIfDue(func() bool { return !self.noInputSinceStartup() })
+	}
+}
+
+// noInputSinceStartup returns whether the user hasn't pressed a key, clicked or
+// scrolled with the mouse, or pasted since lazygit started
+func (self *UpdateHelper) noInputSinceStartup() bool {
+	return self.c.GocuiGui().LastInputTime().IsZero()
 }
 
 func (self *UpdateHelper) rerenderNote() {
@@ -130,7 +144,7 @@ func (self *UpdateHelper) ShowUpdateMenu() error {
 	}
 
 	self.c.OnWorker(func(gocui.Task) error {
-		self.showUpdateMenu(status.AvailableVersion, false)
+		self.showUpdateMenu(status.AvailableVersion, false, nil)
 		return nil
 	})
 	return nil
@@ -184,17 +198,19 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		self.showUpdateMenu(newVersion, false)
+		self.showUpdateMenu(newVersion, false, nil)
 		return nil
 	})
 	return nil
 }
 
 // showUpdateMenu shows the menu that tells the user about a new version; see
-// updateMenuOptions for what reminder means. Call it on a worker, because
-// building the menu accesses the file system.
-func (self *UpdateHelper) showUpdateMenu(newVersion *types.VersionNumber, reminder bool) {
+// updateMenuOptions for what reminder means, and CreateMenuOptions.Skip for
+// skip, which can be nil. Call it on a worker, because building the menu
+// accesses the file system.
+func (self *UpdateHelper) showUpdateMenu(newVersion *types.VersionNumber, reminder bool, skip func() bool) {
 	menuOpts := self.updateMenuOptions(newVersion, reminder)
+	menuOpts.Skip = skip
 	self.c.OnUIThread(func() error {
 		return self.c.Menu(menuOpts)
 	})
