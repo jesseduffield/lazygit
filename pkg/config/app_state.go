@@ -261,9 +261,11 @@ type UpdatesState struct {
 	InstalledVersion string
 	InstalledModTime int64
 
-	// When the user responds to the update menu, lazygit doesn't show it at
-	// startup again until the next day. This is the start of that day (Unix
-	// time).
+	// The version that the user doesn't want to be reminded of
+	SkippedVersion string
+	// When the user responds to the update menu in any way other than skipping
+	// the version, lazygit doesn't show it at startup again until the next
+	// day. This is the start of that day (Unix time).
 	RemindAfter int64
 }
 

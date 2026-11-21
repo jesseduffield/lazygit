@@ -251,7 +251,7 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber, rem
 	}
 
 	// Whatever the user chooses, including closing the menu, postpones the next
-	// reminder until tomorrow
+	// reminder until tomorrow, unless they skip the version
 	remindTomorrow := func() {
 		self.c.OnWorkerBackground(func(gocui.Task) error {
 			self.updater.RemindTomorrow()
@@ -265,13 +265,25 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber, rem
 			return onPress()
 		}
 	}
-	items = append(items, &types.MenuItem{
-		Label: self.c.Tr.RemindMeTomorrow,
-		OnPress: func() error {
-			remindTomorrow()
-			return nil
+	items = append(items,
+		&types.MenuItem{
+			Label: self.c.Tr.RemindMeTomorrow,
+			OnPress: func() error {
+				remindTomorrow()
+				return nil
+			},
 		},
-	})
+		&types.MenuItem{
+			Label: self.c.Tr.SkipThisVersion,
+			OnPress: func() error {
+				self.c.OnWorkerBackground(func(gocui.Task) error {
+					self.updater.SkipVersion(newVersion)
+					return nil
+				})
+				return nil
+			},
+		},
+	)
 
 	return types.CreateMenuOptions{
 		Title:      self.c.Tr.UpdateAvailableTitle,

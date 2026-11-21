@@ -256,6 +256,18 @@ func TestDueReminder(t *testing.T) {
 			expected: v0670,
 		},
 		{
+			name:     "version skipped",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", SkippedVersion: "v0.67.0"},
+			expected: nil,
+		},
+		{
+			name:     "older version skipped",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", SkippedVersion: "v0.66.3"},
+			expected: v0670,
+		},
+		{
 			name:            "update installed already",
 			kind:            InstallKindRelease,
 			state:           config.UpdatesState{LatestVersion: "v0.67.0"},
@@ -311,6 +323,17 @@ func TestResponsesToTheUpdateMenu(t *testing.T) {
 	now = time.Date(2026, 11, 3, 23, 59, 0, 0, time.Local)
 	assert.Nil(t, updater.DueReminder())
 	now = time.Date(2026, 11, 4, 0, 0, 0, 0, time.Local)
+	assert.Equal(t, v0670, updater.DueReminder())
+
+	// The user responds in two lazygit instances; the last response counts
+	updater.RemindTomorrow()
+	updater.SkipVersion(v0670)
+	now = time.Date(2026, 11, 5, 9, 0, 0, 0, time.Local)
+	assert.Nil(t, updater.DueReminder())
+
+	updater.RemindTomorrow()
+	assert.Nil(t, updater.DueReminder())
+	now = time.Date(2026, 11, 6, 9, 0, 0, 0, time.Local)
 	assert.Equal(t, v0670, updater.DueReminder())
 }
 

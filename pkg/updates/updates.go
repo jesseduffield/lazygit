@@ -304,6 +304,7 @@ func (u *Updater) DueReminder() *types.VersionNumber {
 	state := u.readAppState()
 	version := u.newerVersion(state.Updates.LatestVersion)
 	if version == nil || u.IsUpdateInstalled() ||
+		state.Updates.SkippedVersion == state.Updates.LatestVersion ||
 		u.reminderPostponed(state) {
 		return nil
 	}
@@ -321,11 +322,20 @@ func (u *Updater) reminderPostponed(state *config.AppState) bool {
 }
 
 // RemindTomorrow keeps lazygit from showing the update menu at startup until
-// the next day
+// the next day. It also undoes skipping a version; if the user responded to the
+// menu in several lazygit instances, the last response counts.
 func (u *Updater) RemindTomorrow() {
 	remindAfter := startOfDayAfter(u.now(), 1).Unix()
 	u.updateAppState(func(state *config.AppState) {
 		state.Updates.RemindAfter = remindAfter
+		state.Updates.SkippedVersion = ""
+	})
+}
+
+// SkipVersion keeps lazygit from reminding the user of the given version
+func (u *Updater) SkipVersion(version *types.VersionNumber) {
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.SkippedVersion = version.String()
 	})
 }
 
