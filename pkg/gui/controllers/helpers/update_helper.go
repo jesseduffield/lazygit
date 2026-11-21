@@ -64,6 +64,11 @@ func (self *UpdateHelper) Note() string {
 	if status.AvailableVersion == nil {
 		return ""
 	}
+	if status.UpdateInstalled {
+		return style.FgGreen.Sprint(utils.ResolvePlaceholderString(
+			self.c.Tr.RestartToUseNewVersion, map[string]string{"newVersion": status.AvailableVersion.String()},
+		))
+	}
 	return style.FgGreen.Sprint(style.PrintHyperlink(self.c.Tr.UpdateAvailableNote, UpdateNoteLink))
 }
 
@@ -71,7 +76,7 @@ func (self *UpdateHelper) Note() string {
 // bottom-right corner tells the user about
 func (self *UpdateHelper) ShowUpdateMenu() error {
 	status := self.updater.Status()
-	if status.AvailableVersion == nil {
+	if status.AvailableVersion == nil || status.UpdateInstalled {
 		return nil
 	}
 

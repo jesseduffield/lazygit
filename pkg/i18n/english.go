@@ -288,6 +288,7 @@ type TranslationSet struct {
 	UpdateInstalled                       string
 	UpdateInstallFailed                   string
 	UpdateAvailableNote                   string
+	RestartToUseNewVersion                string
 	IntroPopupMessage                     string
 	NonReloadableConfigWarningTitle       string
 	NonReloadableConfigWarning            string
@@ -1523,6 +1524,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateInstalled:                      "lazygit {{.newVersion}} is installed. It takes effect the next time you start lazygit.",
 		UpdateInstallFailed:                  "Couldn't install lazygit {{.newVersion}}: {{.error}}",
 		UpdateAvailableNote:                  "Update available",
+		RestartToUseNewVersion:               "Restart to use {{.newVersion}}",
 		IntroPopupMessage:                    englishIntroPopupMessage,
 		NonReloadableConfigWarningTitle:      "Config changed",
 		NonReloadableConfigWarning:           englishNonReloadableConfigWarning,

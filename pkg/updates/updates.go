@@ -100,6 +100,9 @@ type Status struct {
 	// The latest release that a check found, if it is newer than the running
 	// lazygit
 	AvailableVersion *types.VersionNumber
+	// Whether an update was installed in place of the running lazygit since it
+	// started; see IsUpdateInstalled
+	UpdateInstalled bool
 }
 
 // ChecksEnabled returns whether lazygit checks for updates regularly. It
@@ -180,6 +183,7 @@ func (u *Updater) Install(version *types.VersionNumber) error {
 	defer u.installing.Store(false)
 
 	if u.IsUpdateInstalled() {
+		u.RefreshStatus()
 		return nil
 	}
 
@@ -198,7 +202,12 @@ func (u *Updater) Install(version *types.VersionNumber) error {
 	if err != nil {
 		return err
 	}
-	return u.installNewExecutable(newPath)
+	if err := u.installNewExecutable(newPath); err != nil {
+		return err
+	}
+
+	u.RefreshStatus()
+	return nil
 }
 
 func (u *Updater) installNewExecutable(newPath string) error {
@@ -258,6 +267,7 @@ func (u *Updater) RefreshStatus() Status {
 
 	status := Status{
 		AvailableVersion: u.newerVersion(state.Updates.LatestVersion),
+		UpdateInstalled:  u.IsUpdateInstalled(),
 	}
 
 	u.statusMutex.Lock()
