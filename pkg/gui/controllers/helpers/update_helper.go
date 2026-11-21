@@ -39,17 +39,25 @@ func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
 
 func (self *UpdateHelper) CheckForUpdateInForeground() error {
 	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
-		self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
-			if err != nil {
-				return err
-			}
-			if newVersion == "" {
-				return errors.New(self.c.Tr.FailedToRetrieveLatestVersionErr)
-			}
-			return self.showUpdatePrompt(newVersion)
-		})
+		newVersion, err := self.updater.CheckForUpdate()
+		if err != nil {
+			return errors.New(utils.ResolvePlaceholderString(
+				self.c.Tr.UpdateCheckFailed, map[string]string{"error": err.Error()},
+			))
+		}
 
-		return nil
+		if newVersion == nil {
+			self.c.OnUIThread(func() error {
+				self.c.Alert(self.c.Tr.NoUpdateAvailableTitle, utils.ResolvePlaceholderString(
+					self.c.Tr.NoUpdateAvailable,
+					map[string]string{"currentVersion": self.updater.CurrentVersion().String()},
+				))
+				return nil
+			})
+			return nil
+		}
+
+		return self.showUpdatePrompt(newVersion.String())
 	})
 }
 

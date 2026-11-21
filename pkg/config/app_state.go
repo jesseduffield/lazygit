@@ -235,7 +235,6 @@ func writeAndClose(file *os.File, content []byte) error {
 // AppState stores data between runs of the app like when the last update check
 // was performed and which other repos have been checked out
 type AppState struct {
-	LastUpdateCheck     int64
 	RecentRepos         []string
 	StartupPopupVersion int
 	LastVersion         string // this is the last version the user was using, for the purpose of showing release notes

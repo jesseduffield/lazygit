@@ -268,16 +268,15 @@ type TranslationSet struct {
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
 	CheckingForUpdates                    string
+	UpdateCheckFailed                     string
 	UpdateCheckNotPossibleForDevBuild     string
+	NoUpdateAvailableTitle                string
+	NoUpdateAvailable                     string
 	UpdateAvailableTitle                  string
 	UpdateAvailable                       string
 	UpdateInProgressWaitingStatus         string
 	UpdateCompletedTitle                  string
 	UpdateCompleted                       string
-	FailedToRetrieveLatestVersionErr      string
-	OnLatestVersionErr                    string
-	MajorVersionErr                       string
-	CouldNotFindBinaryErr                 string
 	UpdateFailedErr                       string
 	ConfirmQuitDuringUpdateTitle          string
 	ConfirmQuitDuringUpdate               string
@@ -1496,16 +1495,15 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
 		CheckingForUpdates:                   "Checking for updates...",
+		UpdateCheckFailed:                    "Couldn't check for updates: {{.error}}",
 		UpdateCheckNotPossibleForDevBuild:    "This is a development build ({{.version}}), so lazygit can't check for updates.",
+		NoUpdateAvailableTitle:               "No update available",
+		NoUpdateAvailable:                    "You have the latest version ({{.currentVersion}}).",
 		UpdateAvailableTitle:                 "Update available!",
 		UpdateAvailable:                      "Download and install version {{.newVersion}}?",
 		UpdateInProgressWaitingStatus:        "Updating",
 		UpdateCompletedTitle:                 "Update completed!",
 		UpdateCompleted:                      "Update has been installed successfully. Restart lazygit for it to take effect.",
-		FailedToRetrieveLatestVersionErr:     "Failed to retrieve version information",
-		OnLatestVersionErr:                   "You already have the latest version",
-		MajorVersionErr:                      "New version ({{.newVersion}}) has non-backwards compatible changes compared to the current version ({{.currentVersion}})",
-		CouldNotFindBinaryErr:                "Could not find any binary at {{.url}}",
 		UpdateFailedErr:                      "Update failed: {{.errMessage}}",
 		ConfirmQuitDuringUpdateTitle:         "Currently updating",
 		ConfirmQuitDuringUpdate:              "An update is in progress. Are you sure you want to quit?",

@@ -1,46 +1,48 @@
 package updates
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
-
-	"github.com/go-errors/errors"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/constants"
-	"github.com/jesseduffield/lazygit/pkg/utils"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
 
 // Updater checks for updates and does updates
 type Updater struct {
 	*common.Common
-	Config       config.AppConfigurer
-	OSCommand    *oscommands.OSCommand
-	installation Installation
+	Config         config.AppConfigurer
+	OSCommand      *oscommands.OSCommand
+	installation   Installation
+	currentVersion *types.VersionNumber
+
+	httpClient *http.Client
+	repoURL    string
 }
 
-// Updaterer implements the check and update methods
-type Updaterer interface {
-	CheckForNewUpdate()
-	Update()
-}
+const checkTimeout = 30 * time.Second
 
 // NewUpdater creates a new updater
 func NewUpdater(cmn *common.Common, config config.AppConfigurer, osCommand *oscommands.OSCommand) (*Updater, error) {
+	currentVersion, _ := types.ParseVersionNumber(config.GetVersion())
+
 	return &Updater{
-		Common:       cmn,
-		Config:       config,
-		OSCommand:    osCommand,
-		installation: DetectInstallation(config.GetBuildSource(), config.GetVersion(), executablePath()),
+		Common:         cmn,
+		Config:         config,
+		OSCommand:      osCommand,
+		installation:   DetectInstallation(config.GetBuildSource(), config.GetVersion(), executablePath()),
+		currentVersion: currentVersion,
+		httpClient:     &http.Client{},
+		repoURL:        constants.Links.RepoUrl,
 	}, nil
 }
 
@@ -59,107 +61,27 @@ func (u *Updater) Installation() Installation {
 	return u.installation
 }
 
-func (u *Updater) getLatestVersionNumber() (string, error) {
-	req, err := http.NewRequest("GET", constants.Links.RepoUrl+"/releases/latest", nil)
+// CurrentVersion returns nil for dev builds
+func (u *Updater) CurrentVersion() *types.VersionNumber {
+	return u.currentVersion
+}
+
+// CheckForUpdate returns the latest version if it is newer than the current
+// one, or nil if it isn't. Don't call it for dev builds.
+func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), checkTimeout)
+	defer cancel()
+
+	latestVersion, err := fetchLatestVersion(ctx, u.httpClient, u.repoURL)
 	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	dec := json.NewDecoder(resp.Body)
-	data := struct {
-		TagName string `json:"tag_name"`
-	}{}
-	if err := dec.Decode(&data); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return data.TagName, nil
-}
-
-// RecordLastUpdateCheck records last time an update check was performed
-func (u *Updater) RecordLastUpdateCheck() error {
-	return u.Config.UpdateAppState(func(state *config.AppState) {
-		state.LastUpdateCheck = time.Now().Unix()
-	})
-}
-
-// expecting version to be of the form `v12.34.56`
-func (u *Updater) majorVersionDiffers(oldVersion, newVersion string) bool {
-	if oldVersion == "unversioned" {
-		return false
+	u.Log.Infof("Current version is %s, latest version is %s", u.currentVersion, latestVersion)
+	if !u.currentVersion.IsOlderThan(latestVersion) {
+		return nil, nil
 	}
-	oldVersion = strings.TrimPrefix(oldVersion, "v")
-	newVersion = strings.TrimPrefix(newVersion, "v")
-	return strings.Split(oldVersion, ".")[0] != strings.Split(newVersion, ".")[0]
-}
-
-func (u *Updater) currentVersion() string {
-	versionNumber := u.Config.GetVersion()
-	if versionNumber == "unversioned" {
-		return versionNumber
-	}
-
-	return fmt.Sprintf("v%s", u.Config.GetVersion())
-}
-
-func (u *Updater) checkForNewUpdate() (string, error) {
-	u.Log.Info("Checking for an updated version")
-	currentVersion := u.currentVersion()
-	if err := u.RecordLastUpdateCheck(); err != nil {
-		return "", err
-	}
-
-	newVersion, err := u.getLatestVersionNumber()
-	if err != nil {
-		return "", err
-	}
-	u.Log.Info("Current version is " + currentVersion)
-	u.Log.Info("New version is " + newVersion)
-
-	if newVersion == currentVersion {
-		return "", errors.New(u.Tr.OnLatestVersionErr)
-	}
-
-	if u.majorVersionDiffers(currentVersion, newVersion) {
-		errMessage := utils.ResolvePlaceholderString(
-			u.Tr.MajorVersionErr, map[string]string{
-				"newVersion":     newVersion,
-				"currentVersion": currentVersion,
-			},
-		)
-		return "", errors.New(errMessage)
-	}
-
-	rawUrl := u.getBinaryUrl(newVersion)
-
-	u.Log.Info("Checking for resource at url " + rawUrl)
-	if !u.verifyResourceFound(rawUrl) {
-		errMessage := utils.ResolvePlaceholderString(
-			u.Tr.CouldNotFindBinaryErr, map[string]string{
-				"url": rawUrl,
-			},
-		)
-
-		return "", errors.New(errMessage)
-	}
-	u.Log.Info("Verified resource is available, ready to update")
-
-	return newVersion, nil
-}
-
-// CheckForNewUpdate checks if there is an available update
-func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error) {
-	newVersion, err := u.checkForNewUpdate()
-	if err = onFinish(newVersion, err); err != nil {
-		u.Log.Error(err)
-	}
+	return latestVersion, nil
 }
 
 func (u *Updater) mappedOs(os string) string {
@@ -291,15 +213,4 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	u.Log.Info("Update complete!")
 
 	return nil
-}
-
-func (u *Updater) verifyResourceFound(rawUrl string) bool {
-	resp, err := http.Head(rawUrl)
-	if err != nil {
-		return false
-	}
-	defer resp.Body.Close()
-	u.Log.Info("Received status code ", resp.StatusCode)
-	// OK (200) indicates that the resource is present.
-	return resp.StatusCode == http.StatusOK
 }
