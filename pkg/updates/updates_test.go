@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/common"
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -85,8 +86,16 @@ func TestInstallFromTwoInstances(t *testing.T) {
 	updater := newTestUpdater(t, server, "0.66.2", installation)
 	otherUpdater := newTestUpdater(t, server, "0.66.2", installation)
 
+	// The other lazygit has downloaded the update and is about to replace the
+	// executable when this one finishes installing it
+	newPath, err := writeNewExecutable(executablePath, []byte("from the other lazygit"))
+	assert.NoError(t, err)
 	assert.NoError(t, updater.Install(&types.VersionNumber{Major: 0, Minor: 67, Patch: 0}))
+
 	assert.True(t, otherUpdater.IsUpdateInstalled())
+	assert.NoError(t, otherUpdater.replaceExecutable(newPath))
+	assertFileContent(t, executablePath, "new")
+	assertDirContains(t, dir, "lazygit")
 
 	// Installing again doesn't download anything; the server doesn't have this
 	// version
@@ -131,6 +140,7 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 
 	return &Updater{
 		Common:            common.NewDummyCommon(),
+		appState:          &fakeAppStateStore{state: &config.AppState{}},
 		installation:      installation,
 		currentVersion:    version,
 		executableModTime: fileModTime(installation.ExecutablePath),
@@ -139,4 +149,13 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 		goos:              "linux",
 		goarch:            "amd64",
 	}
+}
+
+type fakeAppStateStore struct {
+	state *config.AppState
+}
+
+func (self *fakeAppStateStore) UpdateAppState(update func(state *config.AppState)) error {
+	update(self.state)
+	return nil
 }

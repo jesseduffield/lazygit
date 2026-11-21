@@ -22,10 +22,16 @@ const (
 	installTimeout = 10 * time.Minute
 )
 
+// The part of config.AppConfigurer that the updater needs
+type appStateStore interface {
+	UpdateAppState(update func(state *config.AppState)) error
+}
+
 // Updater checks for new lazygit releases, and installs them if lazygit was
 // installed from one of our release archives.
 type Updater struct {
 	*common.Common
+	appState       appStateStore
 	installation   Installation
 	currentVersion *types.VersionNumber
 	// The modification time of the executable when lazygit started. Installing
@@ -50,6 +56,7 @@ func NewUpdater(cmn *common.Common, config config.AppConfigurer) *Updater {
 
 	return &Updater{
 		Common:            cmn,
+		appState:          config,
 		installation:      installation,
 		currentVersion:    currentVersion,
 		executableModTime: fileModTime(installation.ExecutablePath),
@@ -139,7 +146,27 @@ func (u *Updater) Install(version *types.VersionNumber) error {
 func (u *Updater) installNewExecutable(newPath string) error {
 	u.replaceMutex.Lock()
 	defer u.replaceMutex.Unlock()
-	return replaceExecutable(u.installation.ExecutablePath, newPath, u.goos)
+
+	// Another lazygit running from the same executable may be installing the
+	// update at the same time. We replace the executable while holding the
+	// lock of state.yml, so that only one of them does it; the other one finds
+	// it replaced already. On Windows, where replacing takes two renames, two
+	// lazygit instances could get in each other's way otherwise.
+	locked := false
+	var err error
+	lockErr := u.appState.UpdateAppState(func(*config.AppState) {
+		locked = true
+		if u.IsUpdateInstalled() {
+			_ = os.Remove(newPath)
+			return
+		}
+		err = replaceExecutable(u.installation.ExecutablePath, newPath, u.goos)
+	})
+	if !locked {
+		_ = os.Remove(newPath)
+		return lockErr
+	}
+	return err
 }
 
 // IsUpdateInstalled returns whether an update was installed in place of the
