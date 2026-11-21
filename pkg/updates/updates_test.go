@@ -35,6 +35,7 @@ func TestCheckForUpdate(t *testing.T) {
 			newVersion, err := updater.CheckForUpdate()
 			assert.NoError(t, err)
 			assert.Equal(t, s.expected, newVersion)
+			assert.Equal(t, s.expected, updater.Status().AvailableVersion)
 
 			state := updater.readAppState()
 			assert.Equal(t, "v0.67.0", state.Updates.LatestVersion)
@@ -60,13 +61,15 @@ func TestCheckForUpdateIfDue(t *testing.T) {
 		lastCheck     time.Time
 		latestVersion string
 		expectCheck   bool
+		expectStatus  *types.VersionNumber
 	}{
 		{
-			name:        "never checked",
-			version:     "0.66.2",
-			method:      "prompt",
-			days:        1,
-			expectCheck: true,
+			name:         "never checked",
+			version:      "0.66.2",
+			method:       "prompt",
+			days:         1,
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
 			name:          "checked earlier today",
@@ -76,14 +79,16 @@ func TestCheckForUpdateIfDue(t *testing.T) {
 			lastCheck:     time.Date(2026, 11, 3, 0, 1, 0, 0, time.Local),
 			latestVersion: "v0.66.3",
 			expectCheck:   false,
+			expectStatus:  &types.VersionNumber{Major: 0, Minor: 66, Patch: 3},
 		},
 		{
-			name:        "checked yesterday, less than 24 hours ago",
-			version:     "0.66.2",
-			method:      "prompt",
-			days:        1,
-			lastCheck:   time.Date(2026, 11, 2, 10, 0, 0, 0, time.Local),
-			expectCheck: true,
+			name:         "checked yesterday, less than 24 hours ago",
+			version:      "0.66.2",
+			method:       "prompt",
+			days:         1,
+			lastCheck:    time.Date(2026, 11, 2, 10, 0, 0, 0, time.Local),
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
 			name:          "checked six days ago, checking once a week",
@@ -93,37 +98,42 @@ func TestCheckForUpdateIfDue(t *testing.T) {
 			lastCheck:     time.Date(2026, 10, 28, 9, 0, 0, 0, time.Local),
 			latestVersion: "v0.66.2",
 			expectCheck:   false,
+			expectStatus:  nil,
 		},
 		{
-			name:        "checked seven days ago, checking once a week",
-			version:     "0.66.2",
-			method:      "prompt",
-			days:        7,
-			lastCheck:   time.Date(2026, 10, 27, 23, 0, 0, 0, time.Local),
-			expectCheck: true,
+			name:         "checked seven days ago, checking once a week",
+			version:      "0.66.2",
+			method:       "prompt",
+			days:         7,
+			lastCheck:    time.Date(2026, 10, 27, 23, 0, 0, 0, time.Local),
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
-			name:        "checked earlier today, checking at every start",
-			version:     "0.66.2",
-			method:      "prompt",
-			days:        0,
-			lastCheck:   time.Date(2026, 11, 3, 8, 59, 0, 0, time.Local),
-			expectCheck: true,
+			name:         "checked earlier today, checking at every start",
+			version:      "0.66.2",
+			method:       "prompt",
+			days:         0,
+			lastCheck:    time.Date(2026, 11, 3, 8, 59, 0, 0, time.Local),
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
-			name:        "checked in the future, when the clock was wrong",
-			version:     "0.66.2",
-			method:      "prompt",
-			days:        1,
-			lastCheck:   time.Date(2027, 5, 1, 9, 0, 0, 0, time.Local),
-			expectCheck: true,
+			name:         "checked in the future, when the clock was wrong",
+			version:      "0.66.2",
+			method:       "prompt",
+			days:         1,
+			lastCheck:    time.Date(2027, 5, 1, 9, 0, 0, 0, time.Local),
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
-			name:        "update.method never",
-			version:     "0.66.2",
-			method:      "never",
-			days:        1,
-			expectCheck: true,
+			name:         "update.method never",
+			version:      "0.66.2",
+			method:       "never",
+			days:         1,
+			expectCheck:  true,
+			expectStatus: &types.VersionNumber{Major: 0, Minor: 67, Patch: 0},
 		},
 		{
 			name:        "dev build",
@@ -149,6 +159,7 @@ func TestCheckForUpdateIfDue(t *testing.T) {
 
 			assert.NoError(t, updater.CheckForUpdateIfDue())
 			assert.Equal(t, s.expectCheck, requests == 1)
+			assert.Equal(t, s.expectStatus, updater.Status().AvailableVersion)
 		})
 	}
 }
@@ -170,6 +181,23 @@ func TestStartOfDayAfter(t *testing.T) {
 	for _, s := range scenarios {
 		assert.Equal(t, s.expected, startOfDayAfter(s.time, s.days))
 	}
+}
+
+func TestRefreshStatus(t *testing.T) {
+	executablePath := filepath.Join(t.TempDir(), "lazygit")
+	writeOldExecutable(t, executablePath)
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: executablePath})
+	state := updater.appState.(*fakeAppStateStore).state
+
+	assert.Equal(t, Status{}, updater.RefreshStatus())
+
+	state.Updates.LatestVersion = "v0.66.2"
+	assert.Equal(t, Status{}, updater.RefreshStatus())
+
+	state.Updates.LatestVersion = "v0.67.0"
+	assert.Equal(t, Status{AvailableVersion: v0670}, updater.RefreshStatus())
 }
 
 func TestInstall(t *testing.T) {
@@ -271,7 +299,7 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 	version, err := types.ParseVersionNumber(currentVersion)
 	assert.NoError(t, err)
 
-	return &Updater{
+	updater := &Updater{
 		Common:            common.NewDummyCommon(),
 		appState:          &fakeAppStateStore{state: &config.AppState{}},
 		installation:      installation,
@@ -279,10 +307,13 @@ func newTestUpdater(t *testing.T, server *httptest.Server, currentVersion string
 		executableModTime: fileModTime(installation.ExecutablePath),
 		goos:              "linux",
 		goarch:            "amd64",
-		httpClient:        server.Client(),
-		repoURL:           server.URL,
 		now:               time.Now,
 	}
+	if server != nil {
+		updater.httpClient = server.Client()
+		updater.repoURL = server.URL
+	}
+	return updater
 }
 
 type fakeAppStateStore struct {

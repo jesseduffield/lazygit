@@ -46,6 +46,9 @@ type Updater struct {
 
 	installing atomic.Bool
 
+	statusMutex sync.Mutex
+	status      Status
+
 	// Replaced in tests
 	now func() time.Time
 
@@ -92,6 +95,13 @@ func (u *Updater) CurrentVersion() *types.VersionNumber {
 	return u.currentVersion
 }
 
+// Status is what lazygit knows about updates
+type Status struct {
+	// The latest release that a check found, if it is newer than the running
+	// lazygit
+	AvailableVersion *types.VersionNumber
+}
+
 // ChecksEnabled returns whether lazygit checks for updates regularly. It
 // doesn't for dev builds.
 func (u *Updater) ChecksEnabled() bool {
@@ -114,6 +124,7 @@ func (u *Updater) CheckForUpdateIfDue() error {
 	// A last check in the future means that the clock was wrong at the time.
 	// Check now, so that this can't keep lazygit from checking until then.
 	if now.Before(nextCheck) && !lastCheck.After(now) {
+		u.RefreshStatus()
 		return nil
 	}
 
@@ -144,6 +155,7 @@ func (u *Updater) CheckForUpdate() (*types.VersionNumber, error) {
 		state.Updates.LastCheck = u.now().Unix()
 		state.Updates.LatestVersion = latestVersion.String()
 	})
+	u.RefreshStatus()
 
 	if !u.currentVersion.IsOlderThan(latestVersion) {
 		return nil, nil
@@ -236,6 +248,42 @@ func fileModTime(path string) time.Time {
 		return time.Time{}
 	}
 	return info.ModTime()
+}
+
+// RefreshStatus reads the status from the app state, where other lazygit
+// instances can have changed it, and returns it. Don't call it on the UI
+// thread, because it accesses the file system.
+func (u *Updater) RefreshStatus() Status {
+	state := u.readAppState()
+
+	status := Status{
+		AvailableVersion: u.newerVersion(state.Updates.LatestVersion),
+	}
+
+	u.statusMutex.Lock()
+	defer u.statusMutex.Unlock()
+	u.status = status
+	return status
+}
+
+// Status returns the status as of the last refresh
+func (u *Updater) Status() Status {
+	u.statusMutex.Lock()
+	defer u.statusMutex.Unlock()
+	return u.status
+}
+
+// newerVersion parses the given version and returns it if it is newer than the
+// running lazygit, or nil otherwise
+func (u *Updater) newerVersion(versionStr string) *types.VersionNumber {
+	if u.currentVersion == nil {
+		return nil
+	}
+	version, err := types.ParseVersionNumber(versionStr)
+	if err != nil || !u.currentVersion.IsOlderThan(version) {
+		return nil
+	}
+	return version
 }
 
 func (u *Updater) readAppState() *config.AppState {

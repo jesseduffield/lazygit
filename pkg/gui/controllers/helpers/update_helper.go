@@ -35,12 +35,33 @@ func (self *UpdateHelper) OnStartup() {
 	})
 }
 
-// CheckForUpdateInBackground checks for an update if one is due. Call it on a
-// worker.
+// CheckForUpdateInBackground checks for an update if one is due, and shows the
+// result in the note in the bottom-right corner. Call it on a worker.
 func (self *UpdateHelper) CheckForUpdateInBackground() {
 	if err := self.updater.CheckForUpdateIfDue(); err != nil {
 		self.c.Log.Errorf("Error checking for an update: %v", err)
 	}
+	self.rerenderNote()
+}
+
+func (self *UpdateHelper) rerenderNote() {
+	// The information view is rendered in every layout, so we only need to
+	// trigger one
+	self.c.OnUIThreadBackground(func() error { return nil })
+}
+
+// Note returns the note that tells the user about an update, for the bottom-right
+// corner, or "" if there's nothing to tell
+func (self *UpdateHelper) Note() string {
+	if !self.updater.ChecksEnabled() {
+		return ""
+	}
+
+	status := self.updater.Status()
+	if status.AvailableVersion == nil {
+		return ""
+	}
+	return style.FgGreen.Sprint(self.c.Tr.UpdateAvailableNote)
 }
 
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
