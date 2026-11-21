@@ -18,6 +18,7 @@ const (
 	// Installed from one of our release archives. We can update it in place.
 	InstallKindRelease
 	InstallKindHomebrew
+	InstallKindGoInstall
 	InstallKindScoop
 	InstallKindWinget
 	InstallKindChocolatey
@@ -61,6 +62,8 @@ func detectInstallKind(buildSource string, version string, executablePath string
 	switch {
 	case strings.EqualFold(buildSource, BuildSourceHomebrew) || strings.Contains(path, "/cellar/lazygit/"):
 		return InstallKindHomebrew
+	case buildSource == BuildSourceGoInstall:
+		return InstallKindGoInstall
 	case strings.Contains(path, "/scoop/apps/lazygit/"):
 		return InstallKindScoop
 	// For a single user, winget installs into %LOCALAPPDATA%\Microsoft\WinGet,

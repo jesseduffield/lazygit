@@ -108,6 +108,13 @@ func TestDetectInstallKind(t *testing.T) {
 			expected:       InstallKindHomebrew,
 		},
 		{
+			name:           "go install",
+			buildSource:    "goInstall",
+			version:        "0.66.2",
+			executablePath: "/home/user/go/bin/lazygit",
+			expected:       InstallKindGoInstall,
+		},
+		{
 			name:           "Scoop",
 			buildSource:    "binaryRelease",
 			version:        "0.66.2",

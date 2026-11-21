@@ -22,6 +22,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	integrationTypes "github.com/jesseduffield/lazygit/pkg/integration/types"
 	"github.com/jesseduffield/lazygit/pkg/logs/tail"
+	"github.com/jesseduffield/lazygit/pkg/updates"
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/mod/module"
@@ -307,6 +308,7 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 		// Go doesn't record any VCS information in this case, but it does
 		// record the version of the module.
 		buildInfo.Version = strings.TrimPrefix(goBuildInfo.Main.Version, "v")
+		buildInfo.BuildSource = updates.BuildSourceGoInstall
 	} else if rev, err := module.PseudoVersionRev(goBuildInfo.Main.Version); err == nil {
 		// Built with `go install github.com/jesseduffield/lazygit@<branch>`.
 		// The module version is a pseudo-version, which contains the commit

@@ -8,4 +8,8 @@ const (
 
 	// Set by the Homebrew formula (to the name of the tap's owner)
 	BuildSourceHomebrew = "Homebrew"
+
+	// Set by mergeBuildInfo for builds made with
+	// `go install github.com/jesseduffield/lazygit@<version>`
+	BuildSourceGoInstall = "goInstall"
 )
