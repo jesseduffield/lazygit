@@ -73,6 +73,20 @@ func TestDetectInstallKind(t *testing.T) {
 			expected:       InstallKindOther,
 		},
 		{
+			name:           "release archive in /usr/bin",
+			buildSource:    "binaryRelease",
+			version:        "0.66.2",
+			executablePath: "/usr/bin/lazygit",
+			expected:       InstallKindOther,
+		},
+		{
+			name:           "release archive installed by mise",
+			buildSource:    "binaryRelease",
+			version:        "0.66.2",
+			executablePath: "/home/user/.local/share/mise/installs/lazygit/0.66.2/lazygit",
+			expected:       InstallKindOther,
+		},
+		{
 			name:           "Homebrew",
 			buildSource:    "Homebrew",
 			version:        "0.66.2",

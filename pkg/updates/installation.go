@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/samber/lo"
 )
 
 // InstallKind says how lazygit was installed. This decides what we can offer
@@ -32,6 +33,17 @@ type Installation struct {
 	ExecutablePath string
 }
 
+// Folders of package managers that install our release archives unchanged.
+// The build source of these is BuildSourceRelease, but we must not update them
+// in place, or the package manager would report the wrong version.
+var packageManagerFolders = []string{
+	"/mise/installs/",
+	"/.asdf/installs/",
+	"/aquaproj-aqua/",
+	"/nix/store/",
+	"/snap/",
+}
+
 func DetectInstallation(buildSource string, version string, executablePath string) Installation {
 	kind := detectInstallKind(buildSource, version, executablePath)
 	return Installation{Kind: kind, ExecutablePath: executablePath}
@@ -58,9 +70,20 @@ func detectInstallKind(buildSource string, version string, executablePath string
 	case strings.Contains(path, "/chocolatey/lib/lazygit/"):
 		return InstallKindChocolatey
 	// We can't update the executable in place if we don't know where it is
-	case buildSource == BuildSourceRelease && executablePath != "":
+	case buildSource == BuildSourceRelease && executablePath != "" && !isInPackageManagerFolder(path):
 		return InstallKindRelease
 	default:
 		return InstallKindOther
 	}
+}
+
+func isInPackageManagerFolder(path string) bool {
+	// On Linux, /usr/bin belongs to the distribution's package manager
+	if strings.HasPrefix(path, "/usr/bin/") {
+		return true
+	}
+
+	return lo.SomeBy(packageManagerFolders, func(folder string) bool {
+		return strings.Contains(path, folder)
+	})
 }
