@@ -108,6 +108,29 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 			})
 		}
 
+	case updates.InstallKindHomebrew, updates.InstallKindGoInstall, updates.InstallKindScoop,
+		updates.InstallKindWinget, updates.InstallKindChocolatey:
+		paragraphs = append(paragraphs, utils.ResolvePlaceholderString(
+			self.c.Tr.UpdateWithPackageManager,
+			map[string]string{
+				"packageManager": installation.PackageManagerName(),
+				"command":        installation.UpdateCommand(),
+			},
+		))
+		if installation.Kind != updates.InstallKindGoInstall {
+			paragraphs = append(paragraphs, self.c.Tr.PackageManagersCanBeSlow)
+		}
+		items = append(items, &types.MenuItem{
+			Label: self.c.Tr.CopyUpdateCommand,
+			OnPress: func() error {
+				if err := self.c.OS().CopyToClipboard(installation.UpdateCommand()); err != nil {
+					return err
+				}
+				self.c.Toast(self.c.Tr.UpdateCommandCopiedToClipboard)
+				return nil
+			},
+		})
+
 	default:
 		paragraphs = append(paragraphs, self.c.Tr.UpdateFromPackageManagerOrRelease)
 		items = append(items, self.openInstallationInstructionsMenuItem())

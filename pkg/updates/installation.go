@@ -90,3 +90,41 @@ func isInPackageManagerFolder(path string) bool {
 		return strings.Contains(path, folder)
 	})
 }
+
+// PackageManagerName returns the name of the package manager that lazygit was
+// installed with, or "" if we don't know it.
+func (self Installation) PackageManagerName() string {
+	switch self.Kind {
+	case InstallKindHomebrew:
+		return "Homebrew"
+	case InstallKindGoInstall:
+		return "go install"
+	case InstallKindScoop:
+		return "Scoop"
+	case InstallKindWinget:
+		return "winget"
+	case InstallKindChocolatey:
+		return "Chocolatey"
+	default:
+		return ""
+	}
+}
+
+// UpdateCommand returns the command that updates lazygit with the package
+// manager that it was installed with, or "" if we don't know it.
+func (self Installation) UpdateCommand() string {
+	switch self.Kind {
+	case InstallKindHomebrew:
+		return "brew upgrade lazygit"
+	case InstallKindGoInstall:
+		return "go install github.com/jesseduffield/lazygit@latest"
+	case InstallKindScoop:
+		return "scoop update lazygit"
+	case InstallKindWinget:
+		return "winget upgrade JesseDuffield.lazygit"
+	case InstallKindChocolatey:
+		return "choco upgrade lazygit"
+	default:
+		return ""
+	}
+}
