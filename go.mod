@@ -22,7 +22,6 @@ require (
 	github.com/integrii/flaggy v1.8.0
 	github.com/jesseduffield/generics v0.0.0-20250517122708-b0b4a53a6f5c
 	github.com/jesseduffield/lazycore v0.0.0-20221012050358-03d2e40243c5
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
 	github.com/karimkhaleel/jsonschema v0.0.0-20231001195015-d933f0d94ea3
 	github.com/kyokomi/emoji/v2 v2.2.14
 	github.com/lucasb-eyer/go-colorful v1.4.1

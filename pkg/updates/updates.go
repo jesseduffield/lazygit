@@ -13,8 +13,6 @@ import (
 
 	"github.com/go-errors/errors"
 
-	"github.com/kardianos/osext"
-
 	"github.com/jesseduffield/lazygit/pkg/commands/oscommands"
 	"github.com/jesseduffield/lazygit/pkg/common"
 	"github.com/jesseduffield/lazygit/pkg/config"
@@ -301,7 +299,7 @@ func (u *Updater) downloadAndInstall(rawUrl string) error {
 	u.Log.Infof("Path to temp binary is %s", tempLazygitFilePath)
 
 	// get the path of the current binary
-	binaryPath, err := osext.Executable()
+	binaryPath, err := os.Executable()
 	if err != nil {
 		return err
 	}
