@@ -4138,7 +4138,7 @@
             "background",
             "never"
           ],
-          "description": "One of: 'prompt' (default) | 'background' | 'never'",
+          "description": "One of: 'prompt' (default) | 'background' | 'never'\n'prompt': check for updates regularly, and remind you when there is one.\n'background': like 'prompt', but if lazygit was installed from one of our release archives, install updates without asking.\n'never': check for updates, and show a note in the bottom-right corner when there is one, but don't remind you of it.",
           "default": "prompt"
         },
         "days": {

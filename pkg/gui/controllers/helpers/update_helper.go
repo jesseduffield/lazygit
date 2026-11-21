@@ -74,11 +74,25 @@ func (self *UpdateHelper) remindIfDue() {
 }
 
 // CheckForUpdateInBackground checks for an update if one is due, and shows the
-// result in the note in the bottom-right corner. Call it on a worker.
+// result in the note in the bottom-right corner. If the user config asks for it,
+// it also installs the update. Call it on a worker.
 func (self *UpdateHelper) CheckForUpdateInBackground() {
 	if err := self.updater.CheckForUpdateIfDue(); err != nil {
 		self.c.Log.Errorf("Error checking for an update: %v", err)
 	}
+
+	if version := self.updater.VersionToInstallInBackground(); version != nil {
+		if err := self.updater.Install(version); err != nil {
+			// We try again in an hour, and at the next start
+			self.c.Log.Errorf("Error installing %s: %v", version, err)
+		} else {
+			self.c.OnUIThreadBackground(func() error {
+				self.c.Toast(self.updateInstalledMessage(version))
+				return nil
+			})
+		}
+	}
+
 	self.rerenderNote()
 }
 

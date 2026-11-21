@@ -282,6 +282,20 @@ func TestDueReminder(t *testing.T) {
 			expected: nil,
 		},
 		{
+			name:     "update.method background",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: nil,
+		},
+		{
+			name:     "update.method background, but lazygit can't update itself",
+			kind:     InstallKindHomebrew,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: v0670,
+		},
+		{
 			name:     "dev build",
 			kind:     InstallKindDevBuild,
 			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
@@ -335,6 +349,79 @@ func TestResponsesToTheUpdateMenu(t *testing.T) {
 	assert.Nil(t, updater.DueReminder())
 	now = time.Date(2026, 11, 6, 9, 0, 0, 0, time.Local)
 	assert.Equal(t, v0670, updater.DueReminder())
+}
+
+func TestVersionToInstallInBackground(t *testing.T) {
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	scenarios := []struct {
+		name            string
+		kind            InstallKind
+		method          string
+		state           config.UpdatesState
+		updateInstalled bool
+		expected        *types.VersionNumber
+	}{
+		{
+			name:     "update available",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: v0670,
+		},
+		{
+			name:     "prompt",
+			kind:     InstallKindRelease,
+			method:   "prompt",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: nil,
+		},
+		{
+			name:     "installed with Homebrew",
+			kind:     InstallKindHomebrew,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: nil,
+		},
+		{
+			name:     "no update",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.66.2"},
+			expected: nil,
+		},
+		{
+			name:            "installed already",
+			kind:            InstallKindRelease,
+			method:          "background",
+			state:           config.UpdatesState{LatestVersion: "v0.67.0"},
+			updateInstalled: true,
+			expected:        nil,
+		},
+		{
+			name:     "skipped",
+			kind:     InstallKindRelease,
+			method:   "background",
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", SkippedVersion: "v0.67.0"},
+			expected: nil,
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.name, func(t *testing.T) {
+			executablePath := filepath.Join(t.TempDir(), "lazygit")
+			writeOldExecutable(t, executablePath)
+
+			updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: s.kind, ExecutablePath: executablePath})
+			updater.UserConfig().Update.Method = s.method
+			updater.appState.(*fakeAppStateStore).state.Updates = s.state
+			if s.updateInstalled {
+				assert.NoError(t, os.WriteFile(executablePath, []byte("new"), 0o755))
+			}
+
+			assert.Equal(t, s.expected, updater.VersionToInstallInBackground())
+		})
+	}
 }
 
 func TestInstall(t *testing.T) {

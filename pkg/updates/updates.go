@@ -301,6 +301,11 @@ func (u *Updater) DueReminder() *types.VersionNumber {
 		return nil
 	}
 
+	// lazygit installs the update itself, without asking
+	if u.installsInBackground() {
+		return nil
+	}
+
 	state := u.readAppState()
 	version := u.newerVersion(state.Updates.LatestVersion)
 	if version == nil || u.IsUpdateInstalled() ||
@@ -319,6 +324,32 @@ func (u *Updater) reminderPostponed(state *config.AppState) bool {
 	now := u.now()
 	remindAfter := state.Updates.RemindAfter
 	return now.Unix() < remindAfter && remindAfter <= startOfDayAfter(now, 1).Unix()
+}
+
+// VersionToInstallInBackground returns the version that lazygit should install
+// without asking the user, or nil if there's none. Don't call it on the UI
+// thread, because it accesses the file system.
+func (u *Updater) VersionToInstallInBackground() *types.VersionNumber {
+	if !u.installsInBackground() {
+		return nil
+	}
+
+	state := u.readAppState()
+	version := u.newerVersion(state.Updates.LatestVersion)
+	if version == nil || u.IsUpdateInstalled() ||
+		state.Updates.SkippedVersion == state.Updates.LatestVersion {
+		return nil
+	}
+	return version
+}
+
+// installsInBackground returns whether lazygit installs updates without asking
+// the user. This is the case if the user config asks for it, and lazygit can
+// update itself.
+func (u *Updater) installsInBackground() bool {
+	return u.installation.Kind == InstallKindRelease &&
+		u.UserConfig().Update.Method == "background" &&
+		u.CheckCanInstall() == nil
 }
 
 // RemindTomorrow keeps lazygit from showing the update menu at startup until
