@@ -55,10 +55,7 @@ func TestMergeBuildInfo(t *testing.T) {
 			goBuildInfo: &debug.BuildInfo{
 				Main: debug.Module{Version: "v0.66.2"},
 			},
-			/* EXPECTED:
 			expected: BuildInfo{Version: "0.66.2", BuildSource: "unknown"},
-			ACTUAL: */
-			expected: BuildInfo{Version: "unversioned", BuildSource: "unknown"},
 		},
 		{
 			name:      "built with go install from a branch",
