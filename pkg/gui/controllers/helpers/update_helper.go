@@ -21,24 +21,6 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	}
 }
 
-func (self *UpdateHelper) CheckForUpdateInBackground() {
-	self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
-		if err != nil {
-			// ignoring the error for now so that I'm not annoying users
-			self.c.Log.Error(err.Error())
-			return nil
-		}
-		if newVersion == "" {
-			return nil
-		}
-		if self.c.UserConfig().Update.Method == "background" {
-			self.startUpdating(newVersion)
-			return nil
-		}
-		return self.showUpdatePrompt(newVersion)
-	}, false)
-}
-
 func (self *UpdateHelper) CheckForUpdateInForeground() error {
 	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
 		self.updater.CheckForNewUpdate(func(newVersion string, err error) error {
@@ -49,7 +31,7 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 				return errors.New(self.c.Tr.FailedToRetrieveLatestVersionErr)
 			}
 			return self.showUpdatePrompt(newVersion)
-		}, true)
+		})
 
 		return nil
 	})

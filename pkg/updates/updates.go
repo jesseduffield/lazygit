@@ -138,55 +138,11 @@ func (u *Updater) checkForNewUpdate() (string, error) {
 }
 
 // CheckForNewUpdate checks if there is an available update
-func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error, userRequested bool) {
-	if !userRequested && u.skipUpdateCheck() {
-		return
-	}
-
+func (u *Updater) CheckForNewUpdate(onFinish func(string, error) error) {
 	newVersion, err := u.checkForNewUpdate()
 	if err = onFinish(newVersion, err); err != nil {
 		u.Log.Error(err)
 	}
-}
-
-func (u *Updater) skipUpdateCheck() bool {
-	// will remove the check for windows after adding a manifest file asking for
-	// the required permissions
-	if runtime.GOOS == "windows" {
-		u.Log.Info("Updating is currently not supported for windows until we can fix permission issues")
-		return true
-	}
-
-	if u.Config.GetVersion() == "unversioned" {
-		u.Log.Info("Current version is not built from an official release so we won't check for an update")
-		return true
-	}
-
-	if u.Config.GetBuildSource() != "buildBinary" {
-		u.Log.Info("Binary is not built with the buildBinary flag so we won't check for an update")
-		return true
-	}
-
-	userConfig := u.UserConfig()
-	if userConfig.Update.Method == "never" {
-		u.Log.Info("Update method is set to never so we won't check for an update")
-		return true
-	}
-
-	currentTimestamp := time.Now().Unix()
-	appState, err := u.Config.ReadAppState()
-	if err != nil {
-		u.Log.Errorf("error when reading app state: %v", err)
-	}
-	lastUpdateCheck := appState.LastUpdateCheck
-	days := userConfig.Update.Days
-
-	if (currentTimestamp-lastUpdateCheck)/(60*60*24) < days {
-		u.Log.Info("Last update was too recent so we won't check for an update")
-		return true
-	}
-
-	return false
 }
 
 func (u *Updater) mappedOs(os string) string {
