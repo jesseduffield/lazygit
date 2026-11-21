@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 )
@@ -25,6 +26,10 @@ const maxArchiveSize = 200 * 1024 * 1024
 // The prefix of the temporary file that we write the new binary to. It is in
 // the folder of the executable, so that we can rename it over the executable.
 const tempFilePrefix = ".lazygit-update-"
+
+// The prefix of the name that the old executable gets on Windows, where we
+// can't delete it while it is running
+const oldFilePrefix = ".lazygit-old-"
 
 // assetName returns the name of the release archive for the given platform,
 // following the name_template in .goreleaser.yml.
@@ -177,8 +182,13 @@ func writeNewExecutable(executablePath string, binary []byte) (string, error) {
 // executable. Renaming makes the change atomic, and gives the new binary a new
 // inode. The latter matters on macOS, where the system kills a signed binary if
 // it was overwritten in place. If renaming fails, it removes the new file.
-func replaceExecutable(executablePath string, newPath string) error {
-	err := os.Rename(newPath, executablePath)
+func replaceExecutable(executablePath string, newPath string, goos string) error {
+	var err error
+	if goos == "windows" {
+		err = replaceRunningExecutable(executablePath, newPath)
+	} else {
+		err = os.Rename(newPath, executablePath)
+	}
 	if err != nil {
 		_ = os.Remove(newPath)
 	}
@@ -206,4 +216,22 @@ func writeTempFile(dir string, content []byte, mode os.FileMode) (string, error)
 		return "", err
 	}
 	return file.Name(), nil
+}
+
+// Windows doesn't let us replace or delete the executable of a running
+// process, but it does let us rename it. So we move it out of the way first.
+// We can't delete it until lazygit exits; cleanUpAfterUpdate does this the
+// next time lazygit runs.
+func replaceRunningExecutable(executablePath string, newPath string) error {
+	oldPath := filepath.Join(filepath.Dir(executablePath), fmt.Sprintf("%s%d", oldFilePrefix, time.Now().UnixNano()))
+	if err := os.Rename(executablePath, oldPath); err != nil {
+		return err
+	}
+	if err := os.Rename(newPath, executablePath); err != nil {
+		_ = os.Rename(oldPath, executablePath)
+		return err
+	}
+
+	_ = os.Remove(oldPath)
+	return nil
 }

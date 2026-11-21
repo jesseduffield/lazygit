@@ -81,21 +81,25 @@ func TestExtractBinary(t *testing.T) {
 }
 
 func TestReplaceExecutable(t *testing.T) {
-	dir := t.TempDir()
-	executablePath := filepath.Join(dir, "lazygit")
-	assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
+	for _, goos := range []string{"linux", "windows"} {
+		t.Run(goos, func(t *testing.T) {
+			dir := t.TempDir()
+			executablePath := filepath.Join(dir, "lazygit")
+			assert.NoError(t, os.WriteFile(executablePath, []byte("old"), 0o755))
 
-	newPath, err := writeNewExecutable(executablePath, []byte("new"))
-	assert.NoError(t, err)
-	assert.NoError(t, replaceExecutable(executablePath, newPath))
+			newPath, err := writeNewExecutable(executablePath, []byte("new"))
+			assert.NoError(t, err)
+			assert.NoError(t, replaceExecutable(executablePath, newPath, goos))
 
-	assertFileContent(t, executablePath, "new")
-	if runtime.GOOS != "windows" {
-		info, err := os.Stat(executablePath)
-		assert.NoError(t, err)
-		assert.Equal(t, os.FileMode(0o755), info.Mode().Perm())
+			assertFileContent(t, executablePath, "new")
+			if runtime.GOOS != "windows" {
+				info, err := os.Stat(executablePath)
+				assert.NoError(t, err)
+				assert.Equal(t, os.FileMode(0o755), info.Mode().Perm())
+			}
+			assertDirContains(t, dir, "lazygit")
+		})
 	}
-	assertDirContains(t, dir, "lazygit")
 }
 
 func TestCheckCanReplaceExecutable(t *testing.T) {
