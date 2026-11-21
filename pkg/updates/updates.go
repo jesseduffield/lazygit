@@ -23,8 +23,9 @@ import (
 // Updater checks for updates and does updates
 type Updater struct {
 	*common.Common
-	Config    config.AppConfigurer
-	OSCommand *oscommands.OSCommand
+	Config       config.AppConfigurer
+	OSCommand    *oscommands.OSCommand
+	installation Installation
 }
 
 // Updaterer implements the check and update methods
@@ -36,10 +37,26 @@ type Updaterer interface {
 // NewUpdater creates a new updater
 func NewUpdater(cmn *common.Common, config config.AppConfigurer, osCommand *oscommands.OSCommand) (*Updater, error) {
 	return &Updater{
-		Common:    cmn,
-		Config:    config,
-		OSCommand: osCommand,
+		Common:       cmn,
+		Config:       config,
+		OSCommand:    osCommand,
+		installation: DetectInstallation(config.GetBuildSource(), config.GetVersion(), executablePath()),
 	}, nil
+}
+
+func executablePath() string {
+	path, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	if resolvedPath, err := filepath.EvalSymlinks(path); err == nil {
+		return resolvedPath
+	}
+	return path
+}
+
+func (u *Updater) Installation() Installation {
+	return u.installation
 }
 
 func (u *Updater) getLatestVersionNumber() (string, error) {

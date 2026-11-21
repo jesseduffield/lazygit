@@ -21,6 +21,22 @@ func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
 	}
 }
 
+func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
+	if self.updater.Installation().Kind == updates.InstallKindDevBuild {
+		return &types.DisabledReason{
+			Text: utils.ResolvePlaceholderString(
+				self.c.Tr.UpdateCheckNotPossibleForDevBuild,
+				map[string]string{"version": self.c.GetConfig().GetVersion()},
+			),
+			// The user asked for the check, so make sure they see why it
+			// doesn't happen
+			ShowErrorInPanel: true,
+		}
+	}
+
+	return nil
+}
+
 func (self *UpdateHelper) CheckForUpdateInForeground() error {
 	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
 		self.updater.CheckForNewUpdate(func(newVersion string, err error) error {

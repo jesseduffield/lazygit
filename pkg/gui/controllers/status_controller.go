@@ -38,10 +38,11 @@ func (self *StatusController) GetKeybindings(opts types.KeybindingsOpts) []*type
 			DisplayOnScreen: true,
 		},
 		{
-			Keys:            opts.GetKeys(opts.Config.Status.CheckForUpdate),
-			Handler:         self.c.Helpers().Update.CheckForUpdateInForeground,
-			Description:     self.c.Tr.CheckForUpdate,
-			DisplayOnScreen: true,
+			Keys:              opts.GetKeys(opts.Config.Status.CheckForUpdate),
+			Handler:           self.c.Helpers().Update.CheckForUpdateInForeground,
+			GetDisabledReason: self.c.Helpers().Update.CheckForUpdateDisabledReason,
+			Description:       self.c.Tr.CheckForUpdate,
+			DisplayOnScreen:   true,
 		},
 		{
 			Keys:            opts.GetKeys(opts.Config.Status.RecentRepos),

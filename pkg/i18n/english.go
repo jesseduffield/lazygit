@@ -268,6 +268,7 @@ type TranslationSet struct {
 	UpdatesRejectedAndForcePushDisabled   string
 	CheckForUpdate                        string
 	CheckingForUpdates                    string
+	UpdateCheckNotPossibleForDevBuild     string
 	UpdateAvailableTitle                  string
 	UpdateAvailable                       string
 	UpdateInProgressWaitingStatus         string
@@ -1495,6 +1496,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdatesRejectedAndForcePushDisabled:  "Updates were rejected and you have disabled force pushing",
 		CheckForUpdate:                       "Check for update",
 		CheckingForUpdates:                   "Checking for updates...",
+		UpdateCheckNotPossibleForDevBuild:    "This is a development build ({{.version}}), so lazygit can't check for updates.",
 		UpdateAvailableTitle:                 "Update available!",
 		UpdateAvailable:                      "Download and install version {{.newVersion}}?",
 		UpdateInProgressWaitingStatus:        "Updating",
