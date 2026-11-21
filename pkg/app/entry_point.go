@@ -25,6 +25,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 	"golang.org/x/mod/module"
+	"golang.org/x/mod/semver"
 	"gopkg.in/yaml.v3"
 )
 
@@ -298,10 +299,9 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 		return setting.Key == "vcs.revision"
 	})
 	if ok {
+		// Built from a git checkout
 		buildInfo.Commit = revision.Value
-		// if lazygit was built from source we'll show the version as the
-		// abbreviated commit hash
-		buildInfo.Version = utils.ShortHash(revision.Value)
+		buildInfo.Version = devBuildVersion(goBuildInfo.Main.Version, revision.Value)
 	} else if _, err := types.ParseVersionNumber(goBuildInfo.Main.Version); err == nil {
 		// Built with `go install github.com/jesseduffield/lazygit@<version>`.
 		// Go doesn't record any VCS information in this case, but it does
@@ -324,15 +324,32 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 	}
 }
 
-// devBuildVersion returns the version that we show for a build from a commit
-// that isn't a release: the release that it is based on, and the commit, e.g.
-// "v0.66.3+d0d00783"
-func devBuildVersion(pseudoVersion string, commit string) string {
+// devBuildVersion returns the version that we show for a build that isn't a
+// release: the release that it is based on, and the commit, e.g.
+// "v0.66.3+d0d00783".
+// moduleVersion is the version that Go recorded for the main module: a
+// pseudo-version, or the tag of the commit, followed by "+dirty" if there were
+// uncommitted changes.
+func devBuildVersion(moduleVersion string, commit string) string {
+	moduleVersion, _, _ = strings.Cut(moduleVersion, "+")
 	version := utils.ShortHash(commit)
-	if base, _ := module.PseudoVersionBase(pseudoVersion); base != "" {
+	if base := releaseBaseVersion(moduleVersion); base != "" {
 		version = base + "+" + version
 	}
 	return version
+}
+
+// releaseBaseVersion returns the release that a module version is, or is based
+// on, or "" if there is none
+func releaseBaseVersion(moduleVersion string) string {
+	if module.IsPseudoVersion(moduleVersion) {
+		base, _ := module.PseudoVersionBase(moduleVersion)
+		return base
+	}
+	if semver.IsValid(moduleVersion) {
+		return moduleVersion
+	}
+	return ""
 }
 
 func getGitVersionInfo() string {

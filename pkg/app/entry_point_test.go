@@ -36,9 +36,18 @@ func TestMergeBuildInfo(t *testing.T) {
 			expected: BuildInfo{
 				Commit:      "0123456789abcdef",
 				Date:        "2026-11-03T12:00:00Z",
-				Version:     "01234567",
+				Version:     "v0.66.2+01234567",
 				BuildSource: "unknown",
 			},
+		},
+		{
+			name:      "built from a git checkout at a tag",
+			buildInfo: BuildInfo{BuildSource: "unknown"},
+			goBuildInfo: &debug.BuildInfo{
+				Main:     debug.Module{Version: "v0.66.2"},
+				Settings: []debug.BuildSetting{{Key: "vcs.revision", Value: "0123456789abcdef"}},
+			},
+			expected: BuildInfo{Commit: "0123456789abcdef", Version: "v0.66.2+01234567", BuildSource: "unknown"},
 		},
 		{
 			name:      "built from a git checkout without module version",
