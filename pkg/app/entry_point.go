@@ -326,15 +326,18 @@ func mergeBuildInfo(buildInfo *BuildInfo, goBuildInfo *debug.BuildInfo) {
 
 // devBuildVersion returns the version that we show for a build that isn't a
 // release: the release that it is based on, and the commit, e.g.
-// "v0.66.3+d0d00783".
+// "v0.66.3+d0d00783", plus "-dirty" if it has uncommitted changes.
 // moduleVersion is the version that Go recorded for the main module: a
 // pseudo-version, or the tag of the commit, followed by "+dirty" if there were
 // uncommitted changes.
 func devBuildVersion(moduleVersion string, commit string) string {
-	moduleVersion, _, _ = strings.Cut(moduleVersion, "+")
+	moduleVersion, buildMetadata, _ := strings.Cut(moduleVersion, "+")
 	version := utils.ShortHash(commit)
 	if base := releaseBaseVersion(moduleVersion); base != "" {
 		version = base + "+" + version
+	}
+	if buildMetadata == "dirty" {
+		version += "-dirty"
 	}
 	return version
 }

@@ -36,7 +36,7 @@ func TestMergeBuildInfo(t *testing.T) {
 			expected: BuildInfo{
 				Commit:      "0123456789abcdef",
 				Date:        "2026-11-03T12:00:00Z",
-				Version:     "v0.66.2+01234567",
+				Version:     "v0.66.2+01234567-dirty",
 				BuildSource: "unknown",
 			},
 		},
