@@ -303,10 +303,20 @@ func (u *Updater) DueReminder() *types.VersionNumber {
 
 	state := u.readAppState()
 	version := u.newerVersion(state.Updates.LatestVersion)
-	if version == nil || u.IsUpdateInstalled() {
+	if version == nil || u.IsUpdateInstalled() ||
+		u.now().Unix() < state.Updates.RemindAfter {
 		return nil
 	}
 	return version
+}
+
+// RemindTomorrow keeps lazygit from showing the update menu at startup until
+// the next day
+func (u *Updater) RemindTomorrow() {
+	remindAfter := startOfDayAfter(u.now(), 1).Unix()
+	u.updateAppState(func(state *config.AppState) {
+		state.Updates.RemindAfter = remindAfter
+	})
 }
 
 // RefreshStatus reads the status from the app state, where other lazygit
@@ -355,7 +365,7 @@ func (u *Updater) readAppState() *config.AppState {
 }
 
 // Errors from saving the update state aren't worth bothering the user with; at
-// worst, we check again.
+// worst, we check or remind again.
 func (u *Updater) updateAppState(update func(state *config.AppState)) {
 	if err := u.appState.UpdateAppState(update); err != nil {
 		u.Log.Errorf("Error saving the app state: %v", err)

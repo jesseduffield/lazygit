@@ -250,10 +250,38 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber, rem
 		paragraphs = append(paragraphs, self.c.Tr.TurnOffUpdateReminders)
 	}
 
+	// Whatever the user chooses, including closing the menu, postpones the next
+	// reminder until tomorrow
+	remindTomorrow := func() {
+		self.c.OnWorkerBackground(func(gocui.Task) error {
+			self.updater.RemindTomorrow()
+			return nil
+		})
+	}
+	for _, item := range items {
+		onPress := item.OnPress
+		item.OnPress = func() error {
+			remindTomorrow()
+			return onPress()
+		}
+	}
+	items = append(items, &types.MenuItem{
+		Label: self.c.Tr.RemindMeTomorrow,
+		OnPress: func() error {
+			remindTomorrow()
+			return nil
+		},
+	})
+
 	return types.CreateMenuOptions{
-		Title:  self.c.Tr.UpdateAvailableTitle,
-		Prompt: strings.Join(paragraphs, "\n\n"),
-		Items:  items,
+		Title:      self.c.Tr.UpdateAvailableTitle,
+		Prompt:     strings.Join(paragraphs, "\n\n"),
+		Items:      items,
+		HideCancel: true,
+		OnCancel: func() error {
+			remindTomorrow()
+			return nil
+		},
 	}
 }
 

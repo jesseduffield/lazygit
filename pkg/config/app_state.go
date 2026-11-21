@@ -260,6 +260,11 @@ type UpdatesState struct {
 	// the executable is still that file, this tells which version it is.
 	InstalledVersion string
 	InstalledModTime int64
+
+	// When the user responds to the update menu, lazygit doesn't show it at
+	// startup again until the next day. This is the start of that day (Unix
+	// time).
+	RemindAfter int64
 }
 
 func getDefaultAppState() *AppState {

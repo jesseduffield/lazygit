@@ -214,6 +214,7 @@ func TestRefreshStatus(t *testing.T) {
 }
 
 func TestDueReminder(t *testing.T) {
+	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.Local)
 	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
 
 	scenarios := []struct {
@@ -234,6 +235,18 @@ func TestDueReminder(t *testing.T) {
 			name:     "update available",
 			kind:     InstallKindRelease,
 			state:    config.UpdatesState{LatestVersion: "v0.67.0"},
+			expected: v0670,
+		},
+		{
+			name:     "postponed until tomorrow",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", RemindAfter: time.Date(2026, 11, 4, 0, 0, 0, 0, time.Local).Unix()},
+			expected: nil,
+		},
+		{
+			name:     "postponed until today",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", RemindAfter: time.Date(2026, 11, 3, 0, 0, 0, 0, time.Local).Unix()},
 			expected: v0670,
 		},
 		{
@@ -267,6 +280,7 @@ func TestDueReminder(t *testing.T) {
 			if s.method != "" {
 				updater.UserConfig().Update.Method = s.method
 			}
+			updater.now = func() time.Time { return now }
 			updater.appState.(*fakeAppStateStore).state.Updates = s.state
 			if s.updateInstalled {
 				assert.NoError(t, os.WriteFile(executablePath, []byte("new"), 0o755))
@@ -275,6 +289,23 @@ func TestDueReminder(t *testing.T) {
 			assert.Equal(t, s.expected, updater.DueReminder())
 		})
 	}
+}
+
+func TestResponsesToTheUpdateMenu(t *testing.T) {
+	now := time.Date(2026, 11, 3, 9, 5, 0, 0, time.Local)
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+
+	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease})
+	updater.now = func() time.Time { return now }
+	updater.appState.(*fakeAppStateStore).state.Updates = config.UpdatesState{LatestVersion: "v0.67.0"}
+	assert.Equal(t, v0670, updater.DueReminder())
+
+	updater.RemindTomorrow()
+	assert.Nil(t, updater.DueReminder())
+	now = time.Date(2026, 11, 3, 23, 59, 0, 0, time.Local)
+	assert.Nil(t, updater.DueReminder())
+	now = time.Date(2026, 11, 4, 0, 0, 0, 0, time.Local)
+	assert.Equal(t, v0670, updater.DueReminder())
 }
 
 func TestInstall(t *testing.T) {
