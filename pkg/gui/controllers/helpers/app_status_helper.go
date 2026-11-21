@@ -82,6 +82,19 @@ func (self *AppStatusHelper) WithWaitingStatusImpl(message string, f func(gocui.
 	})
 }
 
+// WithBackgroundWaitingStatus shows a waiting status while f runs on a worker.
+// Unlike WithWaitingStatus, it doesn't count as lazygit being busy, and it
+// doesn't pause the background routines. Use it for work that has nothing to
+// do with the repo, e.g. downloading an update, so that the user can keep
+// working and even switch repos in the meantime.
+func (self *AppStatusHelper) WithBackgroundWaitingStatus(message string, f func() error) {
+	self.c.OnWorkerBackground(func(gocui.Task) error {
+		return self.statusMgr().WithWaitingStatus(message, self.renderAppStatus, func(*status.WaitingStatusHandle) error {
+			return f()
+		})
+	})
+}
+
 // WithWaitingStatusBlockingInput is like WithWaitingStatus, but it also blocks
 // keyboard input for the whole duration of the operation: keys the user presses
 // while it runs are buffered and replayed against the post-operation state (see

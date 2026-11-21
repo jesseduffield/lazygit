@@ -14,14 +14,16 @@ import (
 )
 
 type UpdateHelper struct {
-	c       *HelperCommon
-	updater *updates.Updater
+	c               *HelperCommon
+	updater         *updates.Updater
+	appStatusHelper *AppStatusHelper
 }
 
-func NewUpdateHelper(c *HelperCommon, updater *updates.Updater) *UpdateHelper {
+func NewUpdateHelper(c *HelperCommon, updater *updates.Updater, appStatusHelper *AppStatusHelper) *UpdateHelper {
 	return &UpdateHelper{
-		c:       c,
-		updater: updater,
+		c:               c,
+		updater:         updater,
+		appStatusHelper: appStatusHelper,
 	}
 }
 
@@ -53,7 +55,7 @@ func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
 }
 
 func (self *UpdateHelper) CheckForUpdateInForeground() error {
-	return self.c.WithWaitingStatus(self.c.Tr.CheckingForUpdates, func(gocui.Task) error {
+	self.appStatusHelper.WithBackgroundWaitingStatus(self.c.Tr.CheckingForUpdates, func() error {
 		newVersion, err := self.updater.CheckForUpdate()
 		if err != nil {
 			return errors.New(utils.ResolvePlaceholderString(
@@ -86,6 +88,7 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 		})
 		return nil
 	})
+	return nil
 }
 
 // updateMenuOptions returns the options for the menu that tells the user about
@@ -164,7 +167,7 @@ func (self *UpdateHelper) install(newVersion *types.VersionNumber) error {
 	status := utils.ResolvePlaceholderString(
 		self.c.Tr.InstallingUpdateStatus, map[string]string{"newVersion": newVersion.String()},
 	)
-	return self.c.WithWaitingStatus(status, func(gocui.Task) error {
+	self.appStatusHelper.WithBackgroundWaitingStatus(status, func() error {
 		err := self.updater.Install(newVersion)
 		self.c.OnUIThread(func() error {
 			if err != nil {
@@ -179,6 +182,7 @@ func (self *UpdateHelper) install(newVersion *types.VersionNumber) error {
 		})
 		return nil
 	})
+	return nil
 }
 
 func (self *UpdateHelper) updateInstalledMessage(version *types.VersionNumber) string {
