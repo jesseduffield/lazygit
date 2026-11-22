@@ -103,30 +103,36 @@ func (self *SwitchToDiffFilesController) GetFocusedMainViewDiffSource() types.Fo
 func (self *SwitchToDiffFilesController) enter() error {
 	ref := self.context.GetSelectedRef()
 	refsRange := self.context.GetSelectedRefRangeForDiffFiles()
-	commitFilesContext := self.c.Contexts().CommitFiles
+	return viewCommitFiles(self.c, ref, refsRange, self.canRebase(ref, refsRange), self.context)
+}
 
-	canRebase := self.canRebase(ref, refsRange)
+// viewCommitFiles opens the commit files panel on top of parent, listing the files of
+// the diff of ref, or of refRange where that isn't nil.
+func viewCommitFiles(
+	c *ControllerCommon, ref models.Ref, refRange *types.RefRange, canRebase bool, parent types.Context,
+) error {
+	commitFilesContext := c.Contexts().CommitFiles
 
 	commitFilesContext.ClearFilter()
-	commitFilesContext.ReInit(ref, refsRange)
+	commitFilesContext.ReInit(ref, refRange)
 	commitFilesContext.SetSelection(0)
 	commitFilesContext.SetCanRebase(canRebase)
-	commitFilesContext.SetParentContext(self.context)
-	commitFilesContext.SetWindowName(self.context.GetWindowName())
-	commitFilesContext.GetView().TitlePrefix = self.context.GetView().TitlePrefix
+	commitFilesContext.SetParentContext(parent)
+	commitFilesContext.SetWindowName(parent.GetWindowName())
+	commitFilesContext.GetView().TitlePrefix = parent.GetView().TitlePrefix
 
-	self.c.Refresh(types.RefreshOptions{
+	c.Refresh(types.RefreshOptions{
 		Scope: []types.RefreshableView{types.COMMIT_FILES},
 		Then: func() error {
-			if filterPath := self.c.Modes().Filtering.GetPath(); filterPath != "" {
-				path, err := filepath.Rel(self.c.Git().RepoPaths.RepoPath(), filterPath)
+			if filterPath := c.Modes().Filtering.GetPath(); filterPath != "" {
+				path, err := filepath.Rel(c.Git().RepoPaths.RepoPath(), filterPath)
 				if err != nil {
 					path = filterPath
 				}
 				commitFilesContext.CommitFileTreeViewModel.SelectPath(
-					filepath.ToSlash(path), self.c.UserConfig().Gui.ShowRootItemInFileTree)
+					filepath.ToSlash(path), c.UserConfig().Gui.ShowRootItemInFileTree)
 			}
-			self.c.Context().Push(commitFilesContext, types.OnFocusOpts{})
+			c.Context().Push(commitFilesContext, types.OnFocusOpts{})
 			return nil
 		},
 	})

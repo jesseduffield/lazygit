@@ -775,6 +775,9 @@ type capturedCommitState struct {
 	mainBranches         *git_commands.MainBranches
 	hashPool             *utils.StringPool
 	parentIsLocalCommits bool
+	// A branch diff entered from the local commits panel stays as it is, rather than
+	// following the commits selected there.
+	commitFilesAreBranchDiff bool
 }
 
 // captureCommitsState reads the commits refresh's model/context/mode inputs
@@ -783,21 +786,23 @@ type capturedCommitState struct {
 // received while the git work is in flight is not overwritten.
 func (self *RefreshHelper) captureCommitsState() capturedCommitState {
 	parentCtx := self.c.Contexts().CommitFiles.GetParentContext()
+	_, commitFilesAreBranchDiff := self.c.Contexts().CommitFiles.GetRef().(*models.BranchDiff)
 
 	return capturedCommitState{
-		limitCommits:         self.c.Contexts().LocalCommits.GetLimitCommits(),
-		showWholeGitGraph:    self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
-		filterPath:           self.c.Modes().Filtering.GetPath(),
-		filterAuthor:         self.c.Modes().Filtering.GetAuthor(),
-		mainBranches:         self.c.Model().MainBranches,
-		hashPool:             self.c.Model().HashPool,
-		parentIsLocalCommits: parentCtx != nil && parentCtx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY,
+		limitCommits:             self.c.Contexts().LocalCommits.GetLimitCommits(),
+		showWholeGitGraph:        self.c.Contexts().LocalCommits.GetShowWholeGitGraph(),
+		filterPath:               self.c.Modes().Filtering.GetPath(),
+		filterAuthor:             self.c.Modes().Filtering.GetAuthor(),
+		mainBranches:             self.c.Model().MainBranches,
+		hashPool:                 self.c.Model().HashPool,
+		parentIsLocalCommits:     parentCtx != nil && parentCtx.GetKey() == context.LOCAL_COMMITS_CONTEXT_KEY,
+		commitFilesAreBranchDiff: commitFilesAreBranchDiff,
 	}
 }
 
 func (self *RefreshHelper) refreshCommitsAndCommitFiles(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, env refreshEnv) {
 	_ = self.refreshCommitsWithLimit(captured, commitSelection, env)
-	if captured.parentIsLocalCommits {
+	if captured.parentIsLocalCommits && !captured.commitFilesAreBranchDiff {
 		// This makes sense when we've e.g. just amended a commit, meaning we get a new commit hash at the same position.
 		// However if we've just added a brand new commit, it pushes the list down by one and so we would end up
 		// showing the contents of a different commit than the one we initially entered.

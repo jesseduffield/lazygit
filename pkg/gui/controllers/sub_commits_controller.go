@@ -29,6 +29,35 @@ func NewSubCommitsController(
 	}
 }
 
+func (self *SubCommitsController) GetKeybindings(opts types.KeybindingsOpts) []*types.Binding {
+	return []*types.Binding{
+		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ViewBranchDiff),
+			Handler:           self.viewBranchDiff,
+			GetDisabledReason: self.require(self.commitsOfABranch),
+			Description:       self.c.Tr.ViewBranchDiff,
+			Tooltip:           self.c.Tr.ViewBranchDiffTooltip,
+		},
+	}
+}
+
+// viewBranchDiff lists the files of the diff of the branch whose commits this panel
+// shows.
+func (self *SubCommitsController) viewBranchDiff() error {
+	return (&BranchDiffAction{c: self.c}).View(self.context().GetRef(), self.context())
+}
+
+// commitsOfABranch disables the branch diff where this panel was entered from
+// something other than a local or remote branch, such as a tag or the reflog.
+func (self *SubCommitsController) commitsOfABranch() *types.DisabledReason {
+	switch self.context().GetRef().(type) {
+	case *models.Branch, *models.RemoteBranch:
+		return nil
+	default:
+		return &types.DisabledReason{Text: self.c.Tr.NotCommitsOfABranch}
+	}
+}
+
 func (self *SubCommitsController) Context() types.Context {
 	return self.context()
 }

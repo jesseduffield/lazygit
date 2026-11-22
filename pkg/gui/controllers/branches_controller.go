@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
@@ -185,6 +186,13 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			DisplayOnScreen:   true,
 		},
 		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ViewBranchDiff),
+			Handler:           self.withItem(self.viewBranchDiff),
+			GetDisabledReason: self.require(self.singleItemSelected()),
+			Description:       self.c.Tr.ViewBranchDiff,
+			Tooltip:           self.c.Tr.ViewBranchDiffTooltip,
+		},
+		{
 			Keys: opts.GetKeys(opts.Config.Universal.OpenDiffTool),
 			Handler: self.withItem(func(selectedBranch *models.Branch) error {
 				return self.c.Helpers().Diff.OpenDiffToolForRef(selectedBranch)
@@ -228,6 +236,10 @@ func (self *BranchesController) GetOnRenderToMain() func() {
 	}
 }
 
+func (self *BranchesController) viewBranchDiff(branch *models.Branch) error {
+	return (&BranchDiffAction{c: self.c}).View(branch, self.context())
+}
+
 func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branch) error {
 	upstream := lo.Ternary(selectedBranch.RemoteBranchStoredLocally(),
 		selectedBranch.ShortUpstreamRefName(),
@@ -252,7 +264,7 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 	}
 
 	var disabledReason *types.DisabledReason
-	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(selectedBranch, self.c.Model().MainBranches)
+	baseBranch, err := self.c.Git().Loaders.BranchLoader.GetBaseBranch(selectedBranch.FullRefName(), self.c.Model().MainBranches)
 	if err != nil {
 		return err
 	}
@@ -382,14 +394,21 @@ func (self *BranchesController) viewUpstreamOptions(selectedBranch *models.Branc
 		upstreamRebaseItem.DisabledReason = &types.DisabledReason{Text: self.c.Tr.UpstreamNotSetError}
 	}
 
-	options := []*types.MenuItem{
-		viewDivergenceItem,
-		viewDivergenceFromBaseBranchItem,
-		unsetUpstreamItem,
-		setUpstreamItem,
-		upstreamResetItem,
-		upstreamRebaseItem,
+	viewBranchDiffItems, err := (&BranchDiffAction{c: self.c}).MenuItems(selectedBranch, self.context())
+	if err != nil {
+		return err
 	}
+
+	options := slices.Concat(
+		[]*types.MenuItem{viewDivergenceItem, viewDivergenceFromBaseBranchItem},
+		viewBranchDiffItems,
+		[]*types.MenuItem{
+			unsetUpstreamItem,
+			setUpstreamItem,
+			upstreamResetItem,
+			upstreamRebaseItem,
+		},
+	)
 
 	return self.c.Menu(types.CreateMenuOptions{
 		Title: self.c.Tr.BranchUpstreamOptionsTitle,

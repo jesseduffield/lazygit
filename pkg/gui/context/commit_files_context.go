@@ -41,9 +41,14 @@ func (self *CommitFilesContext) PullRequestDiff() types.PullRequestDiff {
 	return types.PullRequestDiff{}
 }
 
-// BranchOfDiff asks the panel this one was entered from, since the files listed here
+// BranchOfDiff is the branch of a branch diff, or nil where that is a remote branch.
+// Otherwise it asks the panel this one was entered from, since the files listed here
 // are those of the commits selected there.
 func (self *CommitFilesContext) BranchOfDiff() *models.Branch {
+	if branchDiff, ok := self.GetRef().(*models.BranchDiff); ok {
+		branch, _ := branchDiff.Branch.(*models.Branch)
+		return branch
+	}
 	if parent, ok := self.GetParentContext().(types.BranchDiffContext); ok {
 		return parent.BranchOfDiff()
 	}
