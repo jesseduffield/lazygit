@@ -301,16 +301,14 @@ func (u *Updater) DueReminder() *types.VersionNumber {
 		return nil
 	}
 
-	// lazygit installs the update itself, without asking
-	if u.installsInBackground() {
+	state := u.readAppState()
+	version := u.pendingVersion(state)
+	if version == nil || u.reminderPostponed(state) {
 		return nil
 	}
 
-	state := u.readAppState()
-	version := u.newerVersion(state.Updates.LatestVersion)
-	if version == nil || u.IsUpdateInstalled() ||
-		state.Updates.SkippedVersion == state.Updates.LatestVersion ||
-		u.reminderPostponed(state) {
+	// lazygit installs the update itself, without asking
+	if u.installsInBackground() {
 		return nil
 	}
 	return version
@@ -330,11 +328,17 @@ func (u *Updater) reminderPostponed(state *config.AppState) bool {
 // without asking the user, or nil if there's none. Don't call it on the UI
 // thread, because it accesses the file system.
 func (u *Updater) VersionToInstallInBackground() *types.VersionNumber {
-	if !u.installsInBackground() {
+	version := u.pendingVersion(u.readAppState())
+	if version == nil || !u.installsInBackground() {
 		return nil
 	}
+	return version
+}
 
-	state := u.readAppState()
+// pendingVersion returns the latest version that a check found, if it is newer
+// than the running lazygit, isn't installed yet, and the user hasn't skipped it;
+// otherwise nil
+func (u *Updater) pendingVersion(state *config.AppState) *types.VersionNumber {
 	version := u.newerVersion(state.Updates.LatestVersion)
 	if version == nil || u.IsUpdateInstalled() ||
 		state.Updates.SkippedVersion == state.Updates.LatestVersion {
@@ -345,7 +349,8 @@ func (u *Updater) VersionToInstallInBackground() *types.VersionNumber {
 
 // installsInBackground returns whether lazygit installs updates without asking
 // the user. This is the case if the user config asks for it, and lazygit can
-// update itself.
+// update itself. To find out the latter, it creates a file in the folder of the
+// executable, so call it only when there is an update to install.
 func (u *Updater) installsInBackground() bool {
 	return u.installation.Kind == InstallKindRelease &&
 		u.UserConfig().Update.Method == "background" &&
