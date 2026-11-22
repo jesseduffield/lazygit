@@ -304,10 +304,20 @@ func (u *Updater) DueReminder() *types.VersionNumber {
 	state := u.readAppState()
 	version := u.newerVersion(state.Updates.LatestVersion)
 	if version == nil || u.IsUpdateInstalled() ||
-		u.now().Unix() < state.Updates.RemindAfter {
+		u.reminderPostponed(state) {
 		return nil
 	}
 	return version
+}
+
+// reminderPostponed returns whether the user asked to be reminded tomorrow.
+// RemindTomorrow postpones the reminder to the start of the next day; a later
+// time means that the clock was wrong when the user responded. We ignore it, so
+// that it can't keep lazygit from reminding the user until then.
+func (u *Updater) reminderPostponed(state *config.AppState) bool {
+	now := u.now()
+	remindAfter := state.Updates.RemindAfter
+	return now.Unix() < remindAfter && remindAfter <= startOfDayAfter(now, 1).Unix()
 }
 
 // RemindTomorrow keeps lazygit from showing the update menu at startup until

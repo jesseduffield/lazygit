@@ -250,6 +250,12 @@ func TestDueReminder(t *testing.T) {
 			expected: v0670,
 		},
 		{
+			name:     "postponed further than tomorrow, when the clock was wrong",
+			kind:     InstallKindRelease,
+			state:    config.UpdatesState{LatestVersion: "v0.67.0", RemindAfter: time.Date(2027, 5, 1, 0, 0, 0, 0, time.Local).Unix()},
+			expected: v0670,
+		},
+		{
 			name:            "update installed already",
 			kind:            InstallKindRelease,
 			state:           config.UpdatesState{LatestVersion: "v0.67.0"},
