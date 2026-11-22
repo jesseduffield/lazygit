@@ -47,6 +47,10 @@ type viewBuffer struct {
 	// set pendingNewline to true. If more text is written, we write the newline
 	// then. This avoids an extra blank line at the end of the view.
 	pendingNewline bool
+
+	// the backing array of the slices that parseInput returns, reused for every
+	// character
+	parsedCells []cell
 }
 
 // A View is a window. It maintains its own internal buffer and cursor
@@ -1409,7 +1413,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 					advanceToNextLine()
 				}
 			}
-			if cells == nil {
+			if len(cells) == 0 && !truncateLine {
 				continue
 			}
 			b.writeCells(cells)
@@ -1505,11 +1509,12 @@ func (b *viewBuffer) autoRenderHyperlinksInCurrentLine(v *View) {
 	}
 }
 
-// parseInput parses char by char the input written to the View. It returns nil
-// while processing ESC sequences. Otherwise, it returns a cell slice that
-// contains the processed data.
+// parseInput parses char by char the input written to the View. It returns no
+// cells while processing ESC sequences. Otherwise, it returns a cell slice that
+// contains the processed data. The slice is only valid until the next call.
 func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bool, []cell) {
-	cells := []cell{}
+	cells := b.parsedCells[:0]
+	defer func() { b.parsedCells = cells }()
 	truncateLine := false
 
 	isEscape, err := b.ei.parseOne(ch)
