@@ -76,10 +76,7 @@ func (self *UpdateHelper) ShowUpdateMenu() error {
 	}
 
 	self.c.OnWorker(func(gocui.Task) error {
-		menuOpts := self.updateMenuOptions(status.AvailableVersion)
-		self.c.OnUIThread(func() error {
-			return self.c.Menu(menuOpts)
-		})
+		self.showUpdateMenu(status.AvailableVersion)
 		return nil
 	})
 	return nil
@@ -133,13 +130,19 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		menuOpts := self.updateMenuOptions(newVersion)
-		self.c.OnUIThread(func() error {
-			return self.c.Menu(menuOpts)
-		})
+		self.showUpdateMenu(newVersion)
 		return nil
 	})
 	return nil
+}
+
+// showUpdateMenu shows the menu that tells the user about a new version. Call
+// it on a worker, because building the menu accesses the file system.
+func (self *UpdateHelper) showUpdateMenu(newVersion *types.VersionNumber) {
+	menuOpts := self.updateMenuOptions(newVersion)
+	self.c.OnUIThread(func() error {
+		return self.c.Menu(menuOpts)
+	})
 }
 
 // updateMenuOptions returns the options for the menu that tells the user about
