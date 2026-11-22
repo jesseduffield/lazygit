@@ -169,7 +169,7 @@ func (ei *escapeInterpreter) reset() {
 	ei.state = stateNone
 	ei.curFgColor = ColorDefault
 	ei.curBgColor = ColorDefault
-	ei.csiParam = nil
+	ei.csiParam = ei.csiParam[:0]
 }
 
 // resetScreenCursor returns the screen-cursor tracking to the top of the
@@ -259,7 +259,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 	// much better than leaking the accumulated garbage into the view.
 	if len(ei.csiParam) > 20 || (len(ei.csiParam) > 0 && len(ei.csiParam[len(ei.csiParam)-1]) > 255) {
 		ei.state = stateCSIDiscard
-		ei.csiParam = nil
+		ei.csiParam = ei.csiParam[:0]
 		return true, nil
 	}
 
@@ -330,12 +330,12 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// one we don't implement; consume the rest until the final
 			// byte.
 			ei.state = stateCSIDiscard
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case len(ch) == 1 && ch[0] >= 0x40 && ch[0] <= 0x7E:
 			// Valid CSI final byte we don't implement — swallow.
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		default:
 			return false, errCSIParseError
@@ -362,7 +362,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.curFgColor, ei.curBgColor = savedFg, savedBg
 			}
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'K'):
 			p := 0
@@ -381,7 +381,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			}
 
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'H'), characterEquals(ch, 'f'),
 			characterEquals(ch, 'd'):
@@ -402,7 +402,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.emitCursorAdvance(targetRow - ei.screenRow)
 			}
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'B'), characterEquals(ch, 'E'):
 			// CUD / CNL — relative row advance by N. CNL also resets
@@ -410,7 +410,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// equivalent for our purposes.
 			ei.emitCursorAdvance(ei.firstParamOrDefault(1))
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'C'):
 			// CUF — cursor forward N. Emit space cells so the gap
@@ -418,20 +418,20 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// notifyCellsWritten as those spaces are emitted.)
 			ei.instruction = cursorForward{n: ei.firstParamOrDefault(1)}
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case len(ch) == 1 && ch[0] >= 0x20 && ch[0] <= 0x2F:
 			// CSI intermediate byte after params. The final byte will
 			// have a semantic we don't implement (e.g. `[0 q` =
 			// DECSCUSR); consume everything until it arrives.
 			ei.state = stateCSIDiscard
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case len(ch) == 1 && ch[0] >= 0x40 && ch[0] <= 0x7E:
 			// Valid CSI final byte we don't implement — swallow the
 			// whole sequence rather than printing it as text.
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		default:
 			return false, errCSIParseError
