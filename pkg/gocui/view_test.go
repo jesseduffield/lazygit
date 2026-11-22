@@ -1086,6 +1086,18 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 	}
 }
 
+func TestEraseInLineInCopiedContent(t *testing.T) {
+	from := NewView("from", 0, 0, 10, 10, OutputTrue)
+	from.SetContent("hello")
+	v := NewView("name", 0, 0, 10, 10, OutputTrue)
+	v.CopyContent(from)
+
+	v.SetWritePos(2, 0)
+	_, _ = v.Write([]byte("\x1b[K"))
+
+	assert.Equal(t, []string{"he"}, v.BufferLines())
+}
+
 func TestApplySelTextColor(t *testing.T) {
 	scenarios := []struct {
 		name         string
