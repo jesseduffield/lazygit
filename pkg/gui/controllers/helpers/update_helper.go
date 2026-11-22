@@ -61,13 +61,13 @@ func (self *UpdateHelper) Note() string {
 	}
 
 	status := self.updater.Status()
+	if status.InstalledVersion != nil {
+		return style.FgGreen.Sprint(utils.ResolvePlaceholderString(
+			self.c.Tr.RestartToUseNewVersion, map[string]string{"newVersion": status.InstalledVersion.String()},
+		))
+	}
 	if status.AvailableVersion == nil {
 		return ""
-	}
-	if status.UpdateInstalled {
-		return style.FgGreen.Sprint(utils.ResolvePlaceholderString(
-			self.c.Tr.RestartToUseNewVersion, map[string]string{"newVersion": status.AvailableVersion.String()},
-		))
 	}
 	return style.FgGreen.Sprint(style.PrintHyperlink(self.c.Tr.UpdateAvailableNote, UpdateNoteLink))
 }
@@ -76,7 +76,7 @@ func (self *UpdateHelper) Note() string {
 // bottom-right corner tells the user about
 func (self *UpdateHelper) ShowUpdateMenu() error {
 	status := self.updater.Status()
-	if status.AvailableVersion == nil || status.UpdateInstalled {
+	if status.AvailableVersion == nil || status.InstalledVersion != nil {
 		return nil
 	}
 
@@ -127,9 +127,9 @@ func (self *UpdateHelper) CheckForUpdateInForeground() error {
 			return nil
 		}
 
-		if self.updater.IsUpdateInstalled() {
+		if installedVersion := self.updater.InstalledVersion(); installedVersion != nil {
 			self.c.OnUIThread(func() error {
-				self.c.Toast(self.updateInstalledMessage(newVersion))
+				self.c.Toast(self.updateInstalledMessage(installedVersion))
 				return nil
 			})
 			return nil

@@ -187,6 +187,7 @@ func TestRefreshStatus(t *testing.T) {
 	executablePath := filepath.Join(t.TempDir(), "lazygit")
 	writeOldExecutable(t, executablePath)
 	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+	v0680 := &types.VersionNumber{Major: 0, Minor: 68, Patch: 0}
 
 	updater := newTestUpdater(t, nil, "0.66.2", Installation{Kind: InstallKindRelease, ExecutablePath: executablePath})
 	state := updater.appState.(*fakeAppStateStore).state
@@ -199,9 +200,17 @@ func TestRefreshStatus(t *testing.T) {
 	state.Updates.LatestVersion = "v0.67.0"
 	assert.Equal(t, Status{AvailableVersion: v0670}, updater.RefreshStatus())
 
-	// Another lazygit running from the same executable installs the update
+	// Something other than lazygit replaces the executable; we assume that it's
+	// the latest version
 	assert.NoError(t, os.WriteFile(executablePath, []byte("new"), 0o755))
-	assert.Equal(t, Status{AvailableVersion: v0670, UpdateInstalled: true}, updater.RefreshStatus())
+	assert.Equal(t, Status{AvailableVersion: v0670, InstalledVersion: v0670}, updater.RefreshStatus())
+
+	// Another lazygit running from the same executable installed v0.67.0, and a
+	// later check found v0.68.0
+	state.Updates.InstalledVersion = "v0.67.0"
+	state.Updates.InstalledModTime = fileModTime(executablePath).UnixNano()
+	state.Updates.LatestVersion = "v0.68.0"
+	assert.Equal(t, Status{AvailableVersion: v0680, InstalledVersion: v0670}, updater.RefreshStatus())
 }
 
 func TestInstall(t *testing.T) {
@@ -215,11 +224,16 @@ func TestInstall(t *testing.T) {
 	assert.NoError(t, updater.CheckCanInstall())
 	assert.False(t, updater.IsUpdateInstalled())
 
-	assert.NoError(t, updater.Install(&types.VersionNumber{Major: 0, Minor: 67, Patch: 0}))
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
+	assert.NoError(t, updater.Install(v0670))
 	assertFileContent(t, executablePath, "new")
 	assertDirContains(t, dir, "lazygit")
 	assert.True(t, updater.IsUpdateInstalled())
-	assert.True(t, updater.Status().UpdateInstalled)
+	assert.Equal(t, v0670, updater.Status().InstalledVersion)
+
+	// A check finds a newer version before the user restarts lazygit
+	updater.appState.(*fakeAppStateStore).state.Updates.LatestVersion = "v0.68.0"
+	assert.Equal(t, v0670, updater.InstalledVersion())
 
 	// After a restart, the installed version is the running one
 	restartedUpdater := newTestUpdater(t, server, "0.67.0", Installation{Kind: InstallKindRelease, ExecutablePath: executablePath})
@@ -251,15 +265,18 @@ func TestInstallFromTwoInstances(t *testing.T) {
 	installation := Installation{Kind: InstallKindRelease, ExecutablePath: executablePath}
 	updater := newTestUpdater(t, server, "0.66.2", installation)
 	otherUpdater := newTestUpdater(t, server, "0.66.2", installation)
+	// They share state.yml
+	otherUpdater.appState = updater.appState
 
 	// The other lazygit has downloaded the update and is about to replace the
 	// executable when this one finishes installing it
+	v0670 := &types.VersionNumber{Major: 0, Minor: 67, Patch: 0}
 	newPath, err := writeNewExecutable(executablePath, []byte("from the other lazygit"))
 	assert.NoError(t, err)
-	assert.NoError(t, updater.Install(&types.VersionNumber{Major: 0, Minor: 67, Patch: 0}))
+	assert.NoError(t, updater.Install(v0670))
 
 	assert.True(t, otherUpdater.IsUpdateInstalled())
-	assert.NoError(t, otherUpdater.installNewExecutable(newPath))
+	assert.NoError(t, otherUpdater.installNewExecutable(newPath, v0670))
 	assertFileContent(t, executablePath, "new")
 	assertDirContains(t, dir, "lazygit")
 
@@ -267,7 +284,7 @@ func TestInstallFromTwoInstances(t *testing.T) {
 	// version
 	assert.NoError(t, otherUpdater.Install(&types.VersionNumber{Major: 0, Minor: 68, Patch: 0}))
 	assertFileContent(t, executablePath, "new")
-	assert.True(t, otherUpdater.Status().UpdateInstalled)
+	assert.Equal(t, v0670, otherUpdater.Status().InstalledVersion)
 }
 
 // newReleaseServer returns a server that has the release archive of v0.67.0

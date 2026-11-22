@@ -254,6 +254,12 @@ type UpdatesState struct {
 	// the latest version that it found
 	LastCheck     int64
 	LatestVersion string
+
+	// The version that lazygit last installed in place of its executable, and
+	// the modification time of the file that it wrote (Unix nanoseconds). While
+	// the executable is still that file, this tells which version it is.
+	InstalledVersion string
+	InstalledModTime int64
 }
 
 func getDefaultAppState() *AppState {

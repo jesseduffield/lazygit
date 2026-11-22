@@ -100,9 +100,9 @@ type Status struct {
 	// The latest release that a check found, if it is newer than the running
 	// lazygit
 	AvailableVersion *types.VersionNumber
-	// Whether an update was installed in place of the running lazygit since it
-	// started; see IsUpdateInstalled
-	UpdateInstalled bool
+	// The version that was installed in place of the running lazygit since it
+	// started, if any; see InstalledVersion
+	InstalledVersion *types.VersionNumber
 }
 
 // ChecksEnabled returns whether lazygit checks for updates regularly. It
@@ -202,7 +202,7 @@ func (u *Updater) Install(version *types.VersionNumber) error {
 	if err != nil {
 		return err
 	}
-	if err := u.installNewExecutable(newPath); err != nil {
+	if err := u.installNewExecutable(newPath, version); err != nil {
 		return err
 	}
 
@@ -210,7 +210,7 @@ func (u *Updater) Install(version *types.VersionNumber) error {
 	return nil
 }
 
-func (u *Updater) installNewExecutable(newPath string) error {
+func (u *Updater) installNewExecutable(newPath string, version *types.VersionNumber) error {
 	u.replaceMutex.Lock()
 	defer u.replaceMutex.Unlock()
 
@@ -221,13 +221,17 @@ func (u *Updater) installNewExecutable(newPath string) error {
 	// lazygit instances could get in each other's way otherwise.
 	locked := false
 	var err error
-	lockErr := u.appState.UpdateAppState(func(*config.AppState) {
+	lockErr := u.appState.UpdateAppState(func(state *config.AppState) {
 		locked = true
 		if u.IsUpdateInstalled() {
 			_ = os.Remove(newPath)
 			return
 		}
 		err = replaceExecutable(u.installation.ExecutablePath, newPath, u.goos)
+		if err == nil {
+			state.Updates.InstalledVersion = version.String()
+			state.Updates.InstalledModTime = fileModTime(u.installation.ExecutablePath).UnixNano()
+		}
 	})
 	if !locked {
 		_ = os.Remove(newPath)
@@ -249,6 +253,29 @@ func (u *Updater) IsUpdateInstalled() bool {
 	return !modTime.IsZero() && !modTime.Equal(u.executableModTime)
 }
 
+// InstalledVersion returns the version that was installed in place of the
+// running lazygit since it started, or nil if none was; see IsUpdateInstalled.
+// Don't call it on the UI thread, because it accesses the file system.
+func (u *Updater) InstalledVersion() *types.VersionNumber {
+	return u.installedVersion(u.readAppState())
+}
+
+func (u *Updater) installedVersion(state *config.AppState) *types.VersionNumber {
+	if !u.IsUpdateInstalled() {
+		return nil
+	}
+
+	if fileModTime(u.installation.ExecutablePath).UnixNano() == state.Updates.InstalledModTime {
+		if version, err := types.ParseVersionNumber(state.Updates.InstalledVersion); err == nil {
+			return version
+		}
+	}
+
+	// Something other than lazygit replaced the executable, so we don't know
+	// its version. Most likely it's the latest one.
+	return u.newerVersion(state.Updates.LatestVersion)
+}
+
 // fileModTime returns the modification time of the file at path, or the zero
 // time if it can't be determined
 func fileModTime(path string) time.Time {
@@ -267,7 +294,7 @@ func (u *Updater) RefreshStatus() Status {
 
 	status := Status{
 		AvailableVersion: u.newerVersion(state.Updates.LatestVersion),
-		UpdateInstalled:  u.IsUpdateInstalled(),
+		InstalledVersion: u.installedVersion(state),
 	}
 
 	u.statusMutex.Lock()
