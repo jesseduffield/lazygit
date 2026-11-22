@@ -108,8 +108,12 @@ func (u *Updater) CheckForUpdateIfDue() error {
 	}
 
 	state := u.readAppState()
-	nextCheck := startOfDayAfter(time.Unix(state.Updates.LastCheck, 0), int(u.UserConfig().Update.Days))
-	if u.now().Before(nextCheck) {
+	now := u.now()
+	lastCheck := time.Unix(state.Updates.LastCheck, 0)
+	nextCheck := startOfDayAfter(lastCheck, int(u.UserConfig().Update.Days))
+	// A last check in the future means that the clock was wrong at the time.
+	// Check now, so that this can't keep lazygit from checking until then.
+	if now.Before(nextCheck) && !lastCheck.After(now) {
 		return nil
 	}
 

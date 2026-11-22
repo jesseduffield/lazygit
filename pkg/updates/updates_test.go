@@ -111,6 +111,14 @@ func TestCheckForUpdateIfDue(t *testing.T) {
 			expectCheck: true,
 		},
 		{
+			name:        "checked in the future, when the clock was wrong",
+			version:     "0.66.2",
+			method:      "prompt",
+			days:        1,
+			lastCheck:   time.Date(2027, 5, 1, 9, 0, 0, 0, time.Local),
+			expectCheck: true,
+		},
+		{
 			name:        "update.method never",
 			version:     "0.66.2",
 			method:      "never",
