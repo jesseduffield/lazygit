@@ -1459,10 +1459,8 @@ func (self *FilesController) openMergeConflictMenu(nodes []*filetree.FileNode) e
 }
 
 func (self *FilesController) canOpenMergeConflictMenu(nodes []*filetree.FileNode) *types.DisabledReason {
-	normalizedNodes := flattenSelectedNodesToFiles(nodes)
-
-	hasFileNodesWithConflicts := lo.SomeBy(normalizedNodes, func(node *filetree.FileNode) bool {
-		return node.File != nil && node.File.HasInlineMergeConflicts
+	hasFileNodesWithConflicts := lo.SomeBy(nodes, func(node *filetree.FileNode) bool {
+		return node.SomeFile(func(file *models.File) bool { return file.HasInlineMergeConflicts })
 	})
 
 	if !hasFileNodesWithConflicts {
