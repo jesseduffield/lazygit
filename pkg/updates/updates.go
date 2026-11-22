@@ -286,10 +286,10 @@ func fileModTime(path string) time.Time {
 	return info.ModTime()
 }
 
-// RemindersEnabled returns whether lazygit reminds the user of available
+// remindersEnabled returns whether lazygit reminds the user of available
 // updates by showing the update menu at startup. With update.method set to
 // never, it only shows the note in the bottom-right corner.
-func (u *Updater) RemindersEnabled() bool {
+func (u *Updater) remindersEnabled() bool {
 	return u.ChecksEnabled() && u.UserConfig().Update.Method != "never"
 }
 
@@ -297,7 +297,7 @@ func (u *Updater) RemindersEnabled() bool {
 // or nil if no reminder is due. Don't call it on the UI thread, because it
 // accesses the file system.
 func (u *Updater) DueReminder() *types.VersionNumber {
-	if !u.RemindersEnabled() {
+	if !u.remindersEnabled() {
 		return nil
 	}
 
