@@ -44,7 +44,7 @@ func (self *UpdateHelper) CheckForUpdateInBackground() {
 }
 
 func (self *UpdateHelper) CheckForUpdateDisabledReason() *types.DisabledReason {
-	if self.updater.Installation().Kind == updates.InstallKindDevBuild {
+	if !self.updater.ChecksEnabled() {
 		return &types.DisabledReason{
 			Text: utils.ResolvePlaceholderString(
 				self.c.Tr.UpdateCheckNotPossibleForDevBuild,
