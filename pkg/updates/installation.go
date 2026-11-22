@@ -51,7 +51,9 @@ func detectInstallKind(buildSource string, version string, executablePath string
 		return InstallKindHomebrew
 	case strings.Contains(path, "/scoop/apps/lazygit/"):
 		return InstallKindScoop
-	case strings.Contains(path, "/microsoft/winget/packages/jesseduffield.lazygit"):
+	// For a single user, winget installs into %LOCALAPPDATA%\Microsoft\WinGet,
+	// and for all users into %ProgramFiles%\WinGet
+	case strings.Contains(path, "/winget/packages/jesseduffield.lazygit"):
 		return InstallKindWinget
 	case strings.Contains(path, "/chocolatey/lib/lazygit/"):
 		return InstallKindChocolatey

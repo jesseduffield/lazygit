@@ -108,6 +108,13 @@ func TestDetectInstallKind(t *testing.T) {
 			expected:       InstallKindWinget,
 		},
 		{
+			name:           "winget for all users",
+			buildSource:    "binaryRelease",
+			version:        "0.66.2",
+			executablePath: `C:\Program Files\WinGet\Packages\JesseDuffield.lazygit_Microsoft.Winget.Source_8wekyb3d8bbwe\lazygit.exe`,
+			expected:       InstallKindWinget,
+		},
+		{
 			name:           "Chocolatey",
 			buildSource:    "binaryRelease",
 			version:        "0.66.2",
