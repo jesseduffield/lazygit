@@ -239,19 +239,19 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink())
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink())
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink())
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink())
 }
 
 // osc1717 wraps an OSC 1717 payload in the sequence a diff renderer emits it in:

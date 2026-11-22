@@ -52,6 +52,10 @@ type viewBuffer struct {
 	// character
 	parsedCells []cell
 
+	// the annotation that currentAnnotation returned last, so that cells written in
+	// a row share it
+	lastAnnotation *cellAnnotation
+
 	// Cells that belong at the end of lines[wy]. While write appends to a line, it
 	// collects the cells here, so that the line gets them in one allocation of the
 	// right size. write moves them into the line before anything reads the line,
@@ -876,8 +880,8 @@ func (l *lineType) collectMetadata() {
 func metadataOfCells(cells []cell) []string {
 	var metadata []string
 	for _, c := range cells {
-		if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
-			metadata = append(metadata, c.metadata)
+		if m := c.metadata(); m != "" && !slices.Contains(metadata, m) {
+			metadata = append(metadata, m)
 		}
 	}
 	return metadata
@@ -896,10 +900,31 @@ type cell struct {
 	chr              string // a grapheme cluster
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
-	hyperlink        string
+	annotation       *cellAnnotation // nil for most cells
+}
+
+// cellAnnotation holds what a few cells carry besides their character and colors.
+// Few cells have one, so it lives behind a pointer to keep cells small. Cells that
+// were written in a row share it, so it must not change once a cell has it.
+type cellAnnotation struct {
+	hyperlink string
 	// the OSC 1717 payload in effect when the cell was written, i.e. what the
 	// diff renderer said about the diff line this cell is part of
 	metadata string
+}
+
+func (c *cell) hyperlink() string {
+	if c.annotation == nil {
+		return ""
+	}
+	return c.annotation.hyperlink
+}
+
+func (c *cell) metadata() string {
+	if c.annotation == nil {
+		return ""
+	}
+	return c.annotation.metadata
 }
 
 type cells []cell
@@ -1379,10 +1404,10 @@ func (b *viewBuffer) write(v *View, p []byte) {
 		// that the line is still recognizable as the diff line it renders rather
 		// than as nothing at all.
 		for _, payload := range b.ei.takeOrphanedMetadata() {
-			b.writeCells([]cell{{metadata: payload}})
+			b.writeCells([]cell{{annotation: &cellAnnotation{metadata: payload}}})
 		}
 		if b.ei.metadata.Len() > 0 && !b.ei.metadataConsumed {
-			b.writeCells([]cell{{metadata: b.ei.metadata.String()}})
+			b.writeCells([]cell{{annotation: &cellAnnotation{metadata: b.ei.metadata.String()}}})
 			b.ei.metadataConsumed = true
 		}
 	}
@@ -1550,11 +1575,32 @@ func (b *viewBuffer) autoRenderHyperlinksInCurrentLine(v *View) {
 			}
 			link.WriteString(line[linkEnd].chr)
 		}
+		// Other cells may share the annotations of the link's cells, so give the
+		// link's cells new ones.
+		var oldAnnotation, newAnnotation *cellAnnotation
 		for i := linkStart; i < linkEnd; i++ {
-			b.lines[b.wy].cells[i].hyperlink = link.String()
+			c := &b.lines[b.wy].cells[i]
+			if newAnnotation == nil || c.annotation != oldAnnotation {
+				oldAnnotation = c.annotation
+				newAnnotation = &cellAnnotation{hyperlink: link.String(), metadata: c.metadata()}
+			}
+			c.annotation = newAnnotation
 		}
 		start = linkEnd
 	}
+}
+
+// currentAnnotation returns the annotation for a cell written now: the hyperlink and
+// the OSC 1717 payload in effect, or nil if there are neither.
+func (b *viewBuffer) currentAnnotation() *cellAnnotation {
+	hyperlink, metadata := b.ei.hyperlink.String(), b.ei.metadata.String()
+	if hyperlink == "" && metadata == "" {
+		return nil
+	}
+	if a := b.lastAnnotation; a == nil || a.hyperlink != hyperlink || a.metadata != metadata {
+		b.lastAnnotation = &cellAnnotation{hyperlink: hyperlink, metadata: metadata}
+	}
+	return b.lastAnnotation
 }
 
 // parseInput parses char by char the input written to the View. It returns no
@@ -1572,7 +1618,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 	// a cell of its own, in the order they were emitted, ahead of whatever this
 	// character produces.
 	for _, payload := range b.ei.takeOrphanedMetadata() {
-		cells = append(cells, cell{metadata: payload})
+		cells = append(cells, cell{annotation: &cellAnnotation{metadata: payload}})
 	}
 
 	if err != nil {
@@ -1637,14 +1683,13 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			b.noteAsWritten(ch)
 		}
 		c := cell{
-			fgColor:   b.ei.curFgColor,
-			bgColor:   b.ei.curBgColor,
-			hyperlink: b.ei.hyperlink.String(),
-			metadata:  b.ei.metadata.String(),
-			chr:       string(ch),
-			width:     width,
+			fgColor:    b.ei.curFgColor,
+			bgColor:    b.ei.curBgColor,
+			annotation: b.currentAnnotation(),
+			chr:        string(ch),
+			width:      width,
 		}
-		if c.metadata != "" {
+		if c.metadata() != "" {
 			b.ei.metadataConsumed = true
 		}
 		for range repeatCount {
@@ -2094,7 +2139,7 @@ func (v *View) draw(isWindowFocused bool) {
 			if bgColor == ColorDefault {
 				bgColor = v.BgColor
 			}
-			if c.hyperlink != "" && !v.UnderlineHyperLinksOnlyOnHover {
+			if c.hyperlink() != "" && !v.UnderlineHyperLinksOnlyOnHover {
 				fgColor |= AttrUnderline
 			}
 
@@ -3087,21 +3132,21 @@ func (v *View) hyperlinkAt(x, y int) string {
 		return ""
 	}
 
-	return v.viewLines[y].line[x].hyperlink
+	return v.viewLines[y].line[x].hyperlink()
 }
 
 func (v *View) findHyperlinkAt(x, y int) *SearchPosition {
-	linkStr := v.viewLines[y].line[x].hyperlink
+	linkStr := v.viewLines[y].line[x].hyperlink()
 	if linkStr == "" {
 		return nil
 	}
 
 	xStart := x
-	for xStart > 0 && v.viewLines[y].line[xStart-1].hyperlink == linkStr {
+	for xStart > 0 && v.viewLines[y].line[xStart-1].hyperlink() == linkStr {
 		xStart--
 	}
 	xEnd := x + 1
-	for xEnd < len(v.viewLines[y].line) && v.viewLines[y].line[xEnd].hyperlink == linkStr {
+	for xEnd < len(v.viewLines[y].line) && v.viewLines[y].line[xEnd].hyperlink() == linkStr {
 		xEnd++
 	}
 
