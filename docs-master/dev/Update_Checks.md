@@ -50,6 +50,8 @@ instances share.
   to use vX" after an update was installed in place of the running lazygit.
   This lazygit or another one running from the same executable can have
   installed it; lazygit tells by the modification time of the executable.
+  The lazygit that installs an update records its version in `state.yml`,
+  so vX is the installed version even if a newer release has come out since.
   Clicking the note opens the update menu.
 - The update menu at startup, if an earlier check found an update. It appears
   after the user closes the intro or breaking-changes popup, and it replaces
@@ -84,8 +86,9 @@ The unit tests in `pkg/updates` cover the install kinds, the asset names (agains
 the names of a real release), the build source in `.goreleaser.yml`, fetching
 the latest version, downloading and installing against a test server,
 replacing the executable on Unix and Windows, two instances installing at the
-same time, when checks and reminders are due, and how responses to the menu
-combine. CI runs them on Windows too.
+same time, which version an installed update is, when checks and reminders are
+due (also with a clock that was wrong), and how responses to the menu combine.
+CI runs them on Windows too.
 
 The integration test `status/check_for_update_in_dev_build` checks that `u` is
 disabled for dev builds.
