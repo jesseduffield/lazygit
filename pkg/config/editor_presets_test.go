@@ -124,3 +124,24 @@ func TestGetEditTemplate(t *testing.T) {
 		})
 	}
 }
+
+func TestGetEditTemplateNvimRemoteNushell(t *testing.T) {
+	t.Setenv("FISH_VERSION", "")
+	t.Setenv("NU_VERSION", "")
+
+	osConfig := &OSConfig{EditPreset: "nvim-remote"}
+	guess := func() string { return "" }
+
+	for _, shell := range []string{"/usr/bin/nu", "nushell"} {
+		t.Run(shell, func(t *testing.T) {
+			edit, _ := GetEditTemplate(shell, osConfig, guess)
+			assert.Equal(t, `if ($env.NVIM? | is-empty) { nvim -- {{filename}} } else { nvim --server $env.NVIM --remote-send "q"; nvim --server $env.NVIM --remote-tab {{filename}} }`, edit)
+
+			editAtLine, _ := GetEditAtLineTemplate(shell, osConfig, guess)
+			assert.Equal(t, `if ($env.NVIM? | is-empty) { nvim +{{line}} -- {{filename}} } else { nvim --server $env.NVIM --remote-send "q"; nvim --server $env.NVIM --remote-tab {{filename}}; nvim --server $env.NVIM --remote-send ":{{line}}<CR>" }`, editAtLine)
+
+			openDir, _ := GetOpenDirInEditorTemplate(shell, osConfig, guess)
+			assert.Equal(t, `if ($env.NVIM? | is-empty) { nvim -- {{dir}} } else { nvim --server $env.NVIM --remote-send "q"; nvim --server $env.NVIM --remote-tab {{dir}} }`, openDir)
+		})
+	}
+}
