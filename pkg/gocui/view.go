@@ -47,6 +47,20 @@ type viewBuffer struct {
 	// set pendingNewline to true. If more text is written, we write the newline
 	// then. This avoids an extra blank line at the end of the view.
 	pendingNewline bool
+
+	// the backing array of the slices that parseInput returns, reused for every
+	// character
+	parsedCells []cell
+
+	// the annotation that currentAnnotation returned last, so that cells written in
+	// a row share it
+	lastAnnotation *cellAnnotation
+
+	// Cells that belong at the end of lines[wy]. While write appends to a line, it
+	// collects the cells here, so that the line gets them in one allocation of the
+	// right size. write moves them into the line before anything reads the line,
+	// and before it returns, so this is empty whenever write isn't running.
+	pendingCells []cell
 }
 
 // A View is a window. It maintains its own internal buffer and cursor
@@ -866,8 +880,8 @@ func (l *lineType) collectMetadata() {
 func metadataOfCells(cells []cell) []string {
 	var metadata []string
 	for _, c := range cells {
-		if c.metadata != "" && !slices.Contains(metadata, c.metadata) {
-			metadata = append(metadata, c.metadata)
+		if m := c.metadata(); m != "" && !slices.Contains(metadata, m) {
+			metadata = append(metadata, m)
 		}
 	}
 	return metadata
@@ -886,10 +900,31 @@ type cell struct {
 	chr              string // a grapheme cluster
 	width            int    // number of terminal cells occupied by chr (always 1 or 2)
 	bgColor, fgColor Attribute
-	hyperlink        string
+	annotation       *cellAnnotation // nil for most cells
+}
+
+// cellAnnotation holds what a few cells carry besides their character and colors.
+// Few cells have one, so it lives behind a pointer to keep cells small. Cells that
+// were written in a row share it, so it must not change once a cell has it.
+type cellAnnotation struct {
+	hyperlink string
 	// the OSC 1717 payload in effect when the cell was written, i.e. what the
 	// diff renderer said about the diff line this cell is part of
 	metadata string
+}
+
+func (c *cell) hyperlink() string {
+	if c.annotation == nil {
+		return ""
+	}
+	return c.annotation.hyperlink
+}
+
+func (c *cell) metadata() string {
+	if c.annotation == nil {
+		return ""
+	}
+	return c.annotation.metadata
 }
 
 type cells []cell
@@ -1248,24 +1283,45 @@ func (b *viewBuffer) makeWriteable(x, y int) {
 // writeCells copies []cell to (b.wx, b.wy), and advances b.wx accordingly.
 // !!! caller MUST ensure that specified location (x, y) is writeable by calling makeWriteable
 func (b *viewBuffer) writeCells(cells []cell) {
-	var newLen int
-	// use maximum len available
-	line := b.lines[b.wy].cells[:cap(b.lines[b.wy].cells)]
-	maxCopy := len(line) - b.wx
-	if maxCopy < len(cells) {
-		copy(line[b.wx:], cells[:maxCopy])
-		line = append(line, cells[maxCopy:]...)
-		newLen = len(line)
-	} else { // maxCopy >= len(cells)
-		copy(line[b.wx:], cells)
-		newLen = b.wx + len(cells)
-		if newLen < len(b.lines[b.wy].cells) {
-			newLen = len(b.lines[b.wy].cells)
+	if b.wx == len(b.lines[b.wy].cells)+len(b.pendingCells) {
+		b.pendingCells = append(b.pendingCells, cells...)
+	} else {
+		b.flushPendingCells()
+
+		var newLen int
+		// use maximum len available
+		line := b.lines[b.wy].cells[:cap(b.lines[b.wy].cells)]
+		maxCopy := len(line) - b.wx
+		if maxCopy < len(cells) {
+			copy(line[b.wx:], cells[:maxCopy])
+			line = append(line, cells[maxCopy:]...)
+			newLen = len(line)
+		} else { // maxCopy >= len(cells)
+			copy(line[b.wx:], cells)
+			newLen = b.wx + len(cells)
+			if newLen < len(b.lines[b.wy].cells) {
+				newLen = len(b.lines[b.wy].cells)
+			}
 		}
+		b.lines[b.wy].cells = line[:newLen]
 	}
-	b.lines[b.wy].cells = line[:newLen]
 	b.lines[b.wy].metadataCollected = false
 	b.wx += len(cells)
+}
+
+// flushPendingCells moves the pending cells into the line they belong to. write
+// must call it before it reads lines[wy] or moves the write cursor to another line.
+func (b *viewBuffer) flushPendingCells() {
+	if len(b.pendingCells) == 0 {
+		return
+	}
+	line := &b.lines[b.wy]
+	if len(line.cells) == 0 {
+		line.cells = slices.Clone(b.pendingCells)
+	} else {
+		line.cells = append(line.cells, b.pendingCells...)
+	}
+	b.pendingCells = b.pendingCells[:0]
 }
 
 // seekWrite moves the write cursor to (x, y). Writing there starts the line over,
@@ -1284,6 +1340,7 @@ func (b *viewBuffer) seekWrite(x, y int) {
 // lineType.asWritten), at the first character the cells won't spell the same way.
 // Up to here they spell it exactly, so their text is what was written so far.
 func (b *viewBuffer) startAsWritten() {
+	b.flushPendingCells()
 	if line := &b.lines[b.wy]; line.asWritten == nil {
 		line.asWritten = append([]byte{}, line.cells.String()...)
 	}
@@ -1347,15 +1404,16 @@ func (b *viewBuffer) write(v *View, p []byte) {
 		// that the line is still recognizable as the diff line it renders rather
 		// than as nothing at all.
 		for _, payload := range b.ei.takeOrphanedMetadata() {
-			b.writeCells([]cell{{metadata: payload}})
+			b.writeCells([]cell{{annotation: &cellAnnotation{metadata: payload}}})
 		}
 		if b.ei.metadata.Len() > 0 && !b.ei.metadataConsumed {
-			b.writeCells([]cell{{metadata: b.ei.metadata.String()}})
+			b.writeCells([]cell{{annotation: &cellAnnotation{metadata: b.ei.metadata.String()}}})
 			b.ei.metadataConsumed = true
 		}
 	}
 
 	advanceToNextLine := func() {
+		b.flushPendingCells()
 		b.lines[b.wy].collectMetadata()
 		b.seekWrite(0, b.wy+1)
 		if b.wy >= len(b.lines) {
@@ -1385,7 +1443,12 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	remaining := p[:until]
 
 	for len(remaining) > 0 {
-		chr, remaining, width, state = uniseg.FirstGraphemeCluster(remaining, state)
+		if startsWithPrintableASCIICluster(remaining) {
+			// A cluster boundary follows, so uniseg starts afresh after it.
+			chr, remaining, width, state = remaining[:1], remaining[1:], 1, -1
+		} else {
+			chr, remaining, width, state = uniseg.FirstGraphemeCluster(remaining, state)
+		}
 
 		switch {
 		case characterEquals(chr, '\n') || isCRLF(chr):
@@ -1409,11 +1472,12 @@ func (b *viewBuffer) write(v *View, p []byte) {
 					advanceToNextLine()
 				}
 			}
-			if cells == nil {
+			if len(cells) == 0 && !truncateLine {
 				continue
 			}
 			b.writeCells(cells)
 			if truncateLine {
+				b.flushPendingCells()
 				b.lines[b.wy].cells = b.lines[b.wy].cells[:b.wx]
 			}
 			// Soft-wrap tracking. truncateLine is true exactly when the
@@ -1435,6 +1499,18 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	} else {
 		b.autoRenderHyperlinksInCurrentLine(v)
 	}
+	b.flushPendingCells()
+}
+
+// startsWithPrintableASCIICluster reports whether p starts with a printable ASCII
+// character that is a grapheme cluster of its own, one column wide. Control
+// characters don't qualify, because uniseg gives them a width of 0, and "\r\n" is
+// a single cluster. The character is a cluster of its own if the next byte is ASCII
+// too, of any kind, because no ASCII character extends a cluster. Most text written
+// to views is ASCII, and finding this out is much cheaper than segmenting the text
+// with uniseg.
+func startsWithPrintableASCIICluster(p []byte) bool {
+	return len(p) > 0 && p[0] >= ' ' && p[0] <= '~' && (len(p) == 1 || p[1] < utf8.RuneSelf)
 }
 
 // exported functions use the mutex. Non-exported functions are for internal use
@@ -1482,6 +1558,7 @@ func (b *viewBuffer) autoRenderHyperlinksInCurrentLine(v *View) {
 		return
 	}
 
+	b.flushPendingCells()
 	line := b.lines[b.wy].cells
 	start := 0
 	for {
@@ -1498,18 +1575,40 @@ func (b *viewBuffer) autoRenderHyperlinksInCurrentLine(v *View) {
 			}
 			link.WriteString(line[linkEnd].chr)
 		}
+		// Other cells may share the annotations of the link's cells, so give the
+		// link's cells new ones.
+		var oldAnnotation, newAnnotation *cellAnnotation
 		for i := linkStart; i < linkEnd; i++ {
-			b.lines[b.wy].cells[i].hyperlink = link.String()
+			c := &b.lines[b.wy].cells[i]
+			if newAnnotation == nil || c.annotation != oldAnnotation {
+				oldAnnotation = c.annotation
+				newAnnotation = &cellAnnotation{hyperlink: link.String(), metadata: c.metadata()}
+			}
+			c.annotation = newAnnotation
 		}
 		start = linkEnd
 	}
 }
 
-// parseInput parses char by char the input written to the View. It returns nil
-// while processing ESC sequences. Otherwise, it returns a cell slice that
-// contains the processed data.
+// currentAnnotation returns the annotation for a cell written now: the hyperlink and
+// the OSC 1717 payload in effect, or nil if there are neither.
+func (b *viewBuffer) currentAnnotation() *cellAnnotation {
+	hyperlink, metadata := b.ei.hyperlink.String(), b.ei.metadata.String()
+	if hyperlink == "" && metadata == "" {
+		return nil
+	}
+	if a := b.lastAnnotation; a == nil || a.hyperlink != hyperlink || a.metadata != metadata {
+		b.lastAnnotation = &cellAnnotation{hyperlink: hyperlink, metadata: metadata}
+	}
+	return b.lastAnnotation
+}
+
+// parseInput parses char by char the input written to the View. It returns no
+// cells while processing ESC sequences. Otherwise, it returns a cell slice that
+// contains the processed data. The slice is only valid until the next call.
 func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bool, []cell) {
-	cells := []cell{}
+	cells := b.parsedCells[:0]
+	defer func() { b.parsedCells = cells }()
 	truncateLine := false
 
 	isEscape, err := b.ei.parseOne(ch)
@@ -1519,7 +1618,7 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 	// a cell of its own, in the order they were emitted, ahead of whatever this
 	// character produces.
 	for _, payload := range b.ei.takeOrphanedMetadata() {
-		cells = append(cells, cell{metadata: payload})
+		cells = append(cells, cell{annotation: &cellAnnotation{metadata: payload}})
 	}
 
 	if err != nil {
@@ -1584,14 +1683,13 @@ func (b *viewBuffer) parseInput(v *View, ch []byte, width int, x int, _ int) (bo
 			b.noteAsWritten(ch)
 		}
 		c := cell{
-			fgColor:   b.ei.curFgColor,
-			bgColor:   b.ei.curBgColor,
-			hyperlink: b.ei.hyperlink.String(),
-			metadata:  b.ei.metadata.String(),
-			chr:       string(ch),
-			width:     width,
+			fgColor:    b.ei.curFgColor,
+			bgColor:    b.ei.curBgColor,
+			annotation: b.currentAnnotation(),
+			chr:        string(ch),
+			width:      width,
 		}
-		if c.metadata != "" {
+		if c.metadata() != "" {
 			b.ei.metadataConsumed = true
 		}
 		for range repeatCount {
@@ -2041,7 +2139,7 @@ func (v *View) draw(isWindowFocused bool) {
 			if bgColor == ColorDefault {
 				bgColor = v.BgColor
 			}
-			if c.hyperlink != "" && !v.UnderlineHyperLinksOnlyOnHover {
+			if c.hyperlink() != "" && !v.UnderlineHyperLinksOnlyOnHover {
 				fgColor |= AttrUnderline
 			}
 
@@ -3034,21 +3132,21 @@ func (v *View) hyperlinkAt(x, y int) string {
 		return ""
 	}
 
-	return v.viewLines[y].line[x].hyperlink
+	return v.viewLines[y].line[x].hyperlink()
 }
 
 func (v *View) findHyperlinkAt(x, y int) *SearchPosition {
-	linkStr := v.viewLines[y].line[x].hyperlink
+	linkStr := v.viewLines[y].line[x].hyperlink()
 	if linkStr == "" {
 		return nil
 	}
 
 	xStart := x
-	for xStart > 0 && v.viewLines[y].line[xStart-1].hyperlink == linkStr {
+	for xStart > 0 && v.viewLines[y].line[xStart-1].hyperlink() == linkStr {
 		xStart--
 	}
 	xEnd := x + 1
-	for xEnd < len(v.viewLines[y].line) && v.viewLines[y].line[xEnd].hyperlink == linkStr {
+	for xEnd < len(v.viewLines[y].line) && v.viewLines[y].line[xEnd].hyperlink() == linkStr {
 		xEnd++
 	}
 
