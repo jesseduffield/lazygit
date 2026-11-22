@@ -70,10 +70,7 @@ func (self *UpdateHelper) remindIfDue() {
 		return
 	}
 
-	menuOpts := self.updateMenuOptions(version)
-	self.c.OnUIThread(func() error {
-		return self.c.Menu(menuOpts)
-	})
+	self.showUpdateMenu(version)
 }
 
 // CheckForUpdateInBackground checks for an update if one is due, and shows the
