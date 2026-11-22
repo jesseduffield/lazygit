@@ -37,16 +37,18 @@ func NormalizeLinefeeds(str string) string {
 	return str
 }
 
+var specialCharsReplacer = strings.NewReplacer(
+	"\n", "\\n",
+	"\r", "\\r",
+	"\t", "\\t",
+	"\b", "\\b",
+	"\f", "\\f",
+	"\v", "\\v",
+)
+
 // EscapeSpecialChars - Replaces all special chars like \n with \\n
 func EscapeSpecialChars(str string) string {
-	return strings.NewReplacer(
-		"\n", "\\n",
-		"\r", "\\r",
-		"\t", "\\t",
-		"\b", "\\b",
-		"\f", "\\f",
-		"\v", "\\v",
-	).Replace(str)
+	return specialCharsReplacer.Replace(str)
 }
 
 func dropCR(data []byte) []byte {
