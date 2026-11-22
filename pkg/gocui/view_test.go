@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
@@ -1553,6 +1554,31 @@ func TestShowingTheInclusionGutterKeepsThePlaceInTheContent(t *testing.T) {
 	v.SetInclusionGutter(true, []bool{false, false, true, false})
 	assert.Equal(t, 6, v.ViewLinesHeight())
 	assert.Equal(t, "three", v.SelectedLine())
+}
+
+func TestStartsWithPrintableASCIICluster(t *testing.T) {
+	// Wherever the shortcut applies, uniseg must agree with it: the character is a
+	// cluster of its own, and one column wide.
+	agreesWithUniseg := func(p []byte) {
+		if !startsWithPrintableASCIICluster(p) {
+			return
+		}
+		cluster, _, width, _ := uniseg.FirstGraphemeCluster(p, -1)
+		assert.Equal(t, p[:1], cluster, "%q", p)
+		assert.Equal(t, 1, width, "%q", p)
+	}
+	for first := range byte(utf8.RuneSelf) {
+		agreesWithUniseg([]byte{first})
+		for second := range byte(utf8.RuneSelf) {
+			agreesWithUniseg([]byte{first, second})
+		}
+	}
+
+	assert.True(t, startsWithPrintableASCIICluster([]byte("ab")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("e\u0301")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("\t")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("\r\n")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("\x1b[")))
 }
 
 // filesPanelContent returns n lines shaped like the lines of the files panel, with

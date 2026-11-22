@@ -1389,7 +1389,12 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	remaining := p[:until]
 
 	for len(remaining) > 0 {
-		chr, remaining, width, state = uniseg.FirstGraphemeCluster(remaining, state)
+		if startsWithPrintableASCIICluster(remaining) {
+			// A cluster boundary follows, so uniseg starts afresh after it.
+			chr, remaining, width, state = remaining[:1], remaining[1:], 1, -1
+		} else {
+			chr, remaining, width, state = uniseg.FirstGraphemeCluster(remaining, state)
+		}
 
 		switch {
 		case characterEquals(chr, '\n') || isCRLF(chr):
@@ -1439,6 +1444,17 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	} else {
 		b.autoRenderHyperlinksInCurrentLine(v)
 	}
+}
+
+// startsWithPrintableASCIICluster reports whether p starts with a printable ASCII
+// character that is a grapheme cluster of its own, one column wide. Control
+// characters don't qualify, because uniseg gives them a width of 0, and "\r\n" is
+// a single cluster. The character is a cluster of its own if the next byte is ASCII
+// too, of any kind, because no ASCII character extends a cluster. Most text written
+// to views is ASCII, and finding this out is much cheaper than segmenting the text
+// with uniseg.
+func startsWithPrintableASCIICluster(p []byte) bool {
+	return len(p) > 0 && p[0] >= ' ' && p[0] <= '~' && (len(p) == 1 || p[1] < utf8.RuneSelf)
 }
 
 // exported functions use the mutex. Non-exported functions are for internal use
