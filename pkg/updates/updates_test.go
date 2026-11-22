@@ -93,7 +93,7 @@ func TestInstallFromTwoInstances(t *testing.T) {
 	assert.NoError(t, updater.Install(&types.VersionNumber{Major: 0, Minor: 67, Patch: 0}))
 
 	assert.True(t, otherUpdater.IsUpdateInstalled())
-	assert.NoError(t, otherUpdater.replaceExecutable(newPath))
+	assert.NoError(t, otherUpdater.installNewExecutable(newPath))
 	assertFileContent(t, executablePath, "new")
 	assertDirContains(t, dir, "lazygit")
 
