@@ -51,6 +51,12 @@ type viewBuffer struct {
 	// the backing array of the slices that parseInput returns, reused for every
 	// character
 	parsedCells []cell
+
+	// Cells that belong at the end of lines[wy]. While write appends to a line, it
+	// collects the cells here, so that the line gets them in one allocation of the
+	// right size. write moves them into the line before anything reads the line,
+	// and before it returns, so this is empty whenever write isn't running.
+	pendingCells []cell
 }
 
 // A View is a window. It maintains its own internal buffer and cursor
@@ -1252,24 +1258,45 @@ func (b *viewBuffer) makeWriteable(x, y int) {
 // writeCells copies []cell to (b.wx, b.wy), and advances b.wx accordingly.
 // !!! caller MUST ensure that specified location (x, y) is writeable by calling makeWriteable
 func (b *viewBuffer) writeCells(cells []cell) {
-	var newLen int
-	// use maximum len available
-	line := b.lines[b.wy].cells[:cap(b.lines[b.wy].cells)]
-	maxCopy := len(line) - b.wx
-	if maxCopy < len(cells) {
-		copy(line[b.wx:], cells[:maxCopy])
-		line = append(line, cells[maxCopy:]...)
-		newLen = len(line)
-	} else { // maxCopy >= len(cells)
-		copy(line[b.wx:], cells)
-		newLen = b.wx + len(cells)
-		if newLen < len(b.lines[b.wy].cells) {
-			newLen = len(b.lines[b.wy].cells)
+	if b.wx == len(b.lines[b.wy].cells)+len(b.pendingCells) {
+		b.pendingCells = append(b.pendingCells, cells...)
+	} else {
+		b.flushPendingCells()
+
+		var newLen int
+		// use maximum len available
+		line := b.lines[b.wy].cells[:cap(b.lines[b.wy].cells)]
+		maxCopy := len(line) - b.wx
+		if maxCopy < len(cells) {
+			copy(line[b.wx:], cells[:maxCopy])
+			line = append(line, cells[maxCopy:]...)
+			newLen = len(line)
+		} else { // maxCopy >= len(cells)
+			copy(line[b.wx:], cells)
+			newLen = b.wx + len(cells)
+			if newLen < len(b.lines[b.wy].cells) {
+				newLen = len(b.lines[b.wy].cells)
+			}
 		}
+		b.lines[b.wy].cells = line[:newLen]
 	}
-	b.lines[b.wy].cells = line[:newLen]
 	b.lines[b.wy].metadataCollected = false
 	b.wx += len(cells)
+}
+
+// flushPendingCells moves the pending cells into the line they belong to. write
+// must call it before it reads lines[wy] or moves the write cursor to another line.
+func (b *viewBuffer) flushPendingCells() {
+	if len(b.pendingCells) == 0 {
+		return
+	}
+	line := &b.lines[b.wy]
+	if len(line.cells) == 0 {
+		line.cells = slices.Clone(b.pendingCells)
+	} else {
+		line.cells = append(line.cells, b.pendingCells...)
+	}
+	b.pendingCells = b.pendingCells[:0]
 }
 
 // seekWrite moves the write cursor to (x, y). Writing there starts the line over,
@@ -1288,6 +1315,7 @@ func (b *viewBuffer) seekWrite(x, y int) {
 // lineType.asWritten), at the first character the cells won't spell the same way.
 // Up to here they spell it exactly, so their text is what was written so far.
 func (b *viewBuffer) startAsWritten() {
+	b.flushPendingCells()
 	if line := &b.lines[b.wy]; line.asWritten == nil {
 		line.asWritten = append([]byte{}, line.cells.String()...)
 	}
@@ -1360,6 +1388,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	}
 
 	advanceToNextLine := func() {
+		b.flushPendingCells()
 		b.lines[b.wy].collectMetadata()
 		b.seekWrite(0, b.wy+1)
 		if b.wy >= len(b.lines) {
@@ -1423,6 +1452,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 			}
 			b.writeCells(cells)
 			if truncateLine {
+				b.flushPendingCells()
 				b.lines[b.wy].cells = b.lines[b.wy].cells[:b.wx]
 			}
 			// Soft-wrap tracking. truncateLine is true exactly when the
@@ -1444,6 +1474,7 @@ func (b *viewBuffer) write(v *View, p []byte) {
 	} else {
 		b.autoRenderHyperlinksInCurrentLine(v)
 	}
+	b.flushPendingCells()
 }
 
 // startsWithPrintableASCIICluster reports whether p starts with a printable ASCII
@@ -1502,6 +1533,7 @@ func (b *viewBuffer) autoRenderHyperlinksInCurrentLine(v *View) {
 		return
 	}
 
+	b.flushPendingCells()
 	line := b.lines[b.wy].cells
 	start := 0
 	for {
