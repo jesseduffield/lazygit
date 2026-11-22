@@ -5,6 +5,8 @@
 package gocui
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -1539,4 +1541,51 @@ func TestShowingTheInclusionGutterKeepsThePlaceInTheContent(t *testing.T) {
 	v.SetInclusionGutter(true, []bool{false, false, true, false})
 	assert.Equal(t, 6, v.ViewLinesHeight())
 	assert.Equal(t, "three", v.SelectedLine())
+}
+
+// filesPanelContent returns n lines shaped like the lines of the files panel, with
+// colors and file icons.
+func filesPanelContent(n int) string {
+	var sb strings.Builder
+	for i := range n {
+		fmt.Fprintf(&sb, "    ??\x1b[39m \x1b[0m\x1b[38;2;255;202;41m\U000f031e\x1b[0m\x1b[39m \x1b[0m\x1b[39msome_module_file_%06d.js\x1b[0m\n", i)
+	}
+	return sb.String()
+}
+
+// diffContent returns n lines shaped like the output of `git diff --color`.
+func diffContent(n int) string {
+	var sb strings.Builder
+	for i := range n {
+		switch i % 4 {
+		case 0:
+			fmt.Fprintf(&sb, "\x1b[32m+\tif err := doSomething(ctx, %d); err != nil {\x1b[m\n", i)
+		case 1:
+			fmt.Fprintf(&sb, "\x1b[31m-\t\treturn fmt.Errorf(\"failed to do something: %%w\", err)\x1b[m\n")
+		default:
+			fmt.Fprintf(&sb, " \t// an unchanged context line with a bit of text, number %d\n", i)
+		}
+	}
+	return sb.String()
+}
+
+func BenchmarkSetContentFilesPanel(b *testing.B) {
+	content := filesPanelContent(100_000)
+	b.ReportAllocs()
+	for b.Loop() {
+		v := NewView("name", 0, 0, 100, 40, OutputTrue)
+		v.SetContent(content)
+	}
+}
+
+// A diff arrives in the main view a line at a time.
+func BenchmarkWriteDiffLineByLine(b *testing.B) {
+	lines := bytes.SplitAfter([]byte(diffContent(100_000)), []byte("\n"))
+	b.ReportAllocs()
+	for b.Loop() {
+		v := NewView("name", 0, 0, 100, 40, OutputTrue)
+		for _, line := range lines {
+			_, _ = v.Write(line)
+		}
+	}
 }
