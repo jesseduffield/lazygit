@@ -116,10 +116,10 @@ func (u *Updater) Install(version *types.VersionNumber) error {
 	if err != nil {
 		return err
 	}
-	return u.replaceExecutable(newPath)
+	return u.installNewExecutable(newPath)
 }
 
-func (u *Updater) replaceExecutable(newPath string) error {
+func (u *Updater) installNewExecutable(newPath string) error {
 	u.replaceMutex.Lock()
 	defer u.replaceMutex.Unlock()
 	return replaceExecutable(u.installation.ExecutablePath, newPath, u.goos)
