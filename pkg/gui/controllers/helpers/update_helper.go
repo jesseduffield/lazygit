@@ -92,8 +92,9 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 	)}
 	items := []*types.MenuItem{}
 
-	switch installation.Kind {
-	case updates.InstallKindRelease:
+	packageManager := installation.PackageManager()
+	switch {
+	case installation.Kind == updates.InstallKindRelease:
 		if err := self.updater.CheckCanInstall(); err != nil {
 			self.c.Log.Infof("Can't install the update: %v", err)
 			paragraphs = append(paragraphs, utils.ResolvePlaceholderString(
@@ -108,22 +109,21 @@ func (self *UpdateHelper) updateMenuOptions(newVersion *types.VersionNumber) typ
 			})
 		}
 
-	case updates.InstallKindHomebrew, updates.InstallKindGoInstall, updates.InstallKindScoop,
-		updates.InstallKindWinget, updates.InstallKindChocolatey:
+	case packageManager != nil:
 		paragraphs = append(paragraphs, utils.ResolvePlaceholderString(
 			self.c.Tr.UpdateWithPackageManager,
 			map[string]string{
-				"packageManager": installation.PackageManagerName(),
-				"command":        installation.UpdateCommand(),
+				"packageManager": packageManager.Name,
+				"command":        packageManager.UpdateCommand,
 			},
 		))
-		if installation.Kind != updates.InstallKindGoInstall {
+		if packageManager.CanBeSlow {
 			paragraphs = append(paragraphs, self.c.Tr.PackageManagersCanBeSlow)
 		}
 		items = append(items, &types.MenuItem{
 			Label: self.c.Tr.CopyUpdateCommand,
 			OnPress: func() error {
-				if err := self.c.OS().CopyToClipboard(installation.UpdateCommand()); err != nil {
+				if err := self.c.OS().CopyToClipboard(packageManager.UpdateCommand); err != nil {
 					return err
 				}
 				self.c.Toast(self.c.Tr.UpdateCommandCopiedToClipboard)

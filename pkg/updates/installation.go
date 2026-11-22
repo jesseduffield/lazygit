@@ -91,40 +91,30 @@ func isInPackageManagerFolder(path string) bool {
 	})
 }
 
-// PackageManagerName returns the name of the package manager that lazygit was
-// installed with, or "" if we don't know it.
-func (self Installation) PackageManagerName() string {
-	switch self.Kind {
-	case InstallKindHomebrew:
-		return "Homebrew"
-	case InstallKindGoInstall:
-		return "go install"
-	case InstallKindScoop:
-		return "Scoop"
-	case InstallKindWinget:
-		return "winget"
-	case InstallKindChocolatey:
-		return "Chocolatey"
-	default:
-		return ""
-	}
+// PackageManager is a package manager that we know how to update lazygit with
+type PackageManager struct {
+	Name string
+	// The command that updates lazygit
+	UpdateCommand string
+	// Whether it can take a few days to get a new version of lazygit after we
+	// release it
+	CanBeSlow bool
 }
 
-// UpdateCommand returns the command that updates lazygit with the package
-// manager that it was installed with, or "" if we don't know it.
-func (self Installation) UpdateCommand() string {
-	switch self.Kind {
-	case InstallKindHomebrew:
-		return "brew upgrade lazygit"
-	case InstallKindGoInstall:
-		return "go install github.com/jesseduffield/lazygit@latest"
-	case InstallKindScoop:
-		return "scoop update lazygit"
-	case InstallKindWinget:
-		return "winget upgrade JesseDuffield.lazygit"
-	case InstallKindChocolatey:
-		return "choco upgrade lazygit"
-	default:
-		return ""
+var packageManagers = map[InstallKind]PackageManager{
+	InstallKindHomebrew:   {Name: "Homebrew", UpdateCommand: "brew upgrade lazygit", CanBeSlow: true},
+	InstallKindGoInstall:  {Name: "go install", UpdateCommand: "go install github.com/jesseduffield/lazygit@latest"},
+	InstallKindScoop:      {Name: "Scoop", UpdateCommand: "scoop update lazygit", CanBeSlow: true},
+	InstallKindWinget:     {Name: "winget", UpdateCommand: "winget upgrade JesseDuffield.lazygit", CanBeSlow: true},
+	InstallKindChocolatey: {Name: "Chocolatey", UpdateCommand: "choco upgrade lazygit", CanBeSlow: true},
+}
+
+// PackageManager returns the package manager that lazygit was installed with,
+// or nil if we don't know how to update lazygit with it
+func (self Installation) PackageManager() *PackageManager {
+	packageManager, ok := packageManagers[self.Kind]
+	if !ok {
+		return nil
 	}
+	return &packageManager
 }
