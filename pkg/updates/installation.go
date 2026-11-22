@@ -21,21 +21,23 @@ const (
 
 type Installation struct {
 	Kind InstallKind
-	// The path of the lazygit executable, with symlinks resolved
+	// The path of the lazygit executable, with symlinks resolved, or "" if we
+	// don't know it
 	ExecutablePath string
 }
 
 func DetectInstallation(buildSource string, version string, executablePath string) Installation {
-	kind := detectInstallKind(buildSource, version)
+	kind := detectInstallKind(buildSource, version, executablePath)
 	return Installation{Kind: kind, ExecutablePath: executablePath}
 }
 
-func detectInstallKind(buildSource string, version string) InstallKind {
+func detectInstallKind(buildSource string, version string, executablePath string) InstallKind {
 	if _, err := types.ParseVersionNumber(version); err != nil {
 		return InstallKindDevBuild
 	}
 
-	if buildSource == BuildSourceRelease {
+	// We can't update the executable in place if we don't know where it is
+	if buildSource == BuildSourceRelease && executablePath != "" {
 		return InstallKindRelease
 	}
 	return InstallKindOther

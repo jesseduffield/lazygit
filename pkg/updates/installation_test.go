@@ -66,6 +66,13 @@ func TestDetectInstallKind(t *testing.T) {
 			expected:       InstallKindRelease,
 		},
 		{
+			name:           "release archive in an unknown folder",
+			buildSource:    "binaryRelease",
+			version:        "0.66.2",
+			executablePath: "",
+			expected:       InstallKindOther,
+		},
+		{
 			name:           "distribution package",
 			buildSource:    "unknown",
 			version:        "0.66.2",
