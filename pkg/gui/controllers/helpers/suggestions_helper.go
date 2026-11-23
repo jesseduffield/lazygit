@@ -202,8 +202,8 @@ func (self *SuggestionsHelper) getRemoteBranchNamesForRemote(remoteName string) 
 	return nil
 }
 
-func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string) func(string) []*types.Suggestion {
-	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig().Gui.UseFuzzySearch())
+func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string, additionalSuggestions ...string) func(string) []*types.Suggestion {
+	return FilterFunc(append(additionalSuggestions, self.getRemoteBranchNames(separator)...), self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
 func (self *SuggestionsHelper) GetRemoteBranchesForRemoteSuggestionsFunc(remoteName string) func(string) []*types.Suggestion {
