@@ -9,7 +9,7 @@ Undo uses the reflog which is specific to commits and branches so we can't undo 
 
 If you're as clumsy as me you'll probably have felt the pain of botching an interactive rebase or doing a hard reset onto the wrong commit. Luckily, the reflog allows you to trace your steps and make things right again, but I personally can't stand trying to make sense of the reflog.
 
-Lazygit can read through your reflog for you and walk back action by action so that you don't even need to read the reflog. If lazygit finds a reflog entry where you checked out a branch, we'll checkout the original branch. If the entry is from a commit being applied, we'll go back to the commit before that. If we hit an interactive rebase, we'll go back to the commit you were on just before you started it.
+Lazygit can read through your reflog for you and walk back action by action so that you don't even need to read the reflog. If lazygit finds a reflog entry where you checked out a branch, we'll checkout the original branch. If the entry is from a commit being applied, we'll go back to the commit before that. That covers cherry-picks, merges and reverts as well as plain commits. If we hit an interactive rebase, we'll go back to the commit you were on just before you started it.
 
 ## You can even undo things you did outside of lazygit!
 
