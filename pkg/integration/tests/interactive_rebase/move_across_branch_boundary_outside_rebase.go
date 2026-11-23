@@ -19,6 +19,9 @@ var MoveAcrossBranchBoundaryOutsideRebase = NewIntegrationTest(NewIntegrationTes
 			CreateNCommits(1).
 			NewBranch("branch1").
 			CreateNCommitsStartingAt(2, 2).
+			// A second branch at the head of branch1, so that the boundary
+			// consists of two update-ref todos
+			NewBranch("branch1b").
 			NewBranch("branch2").
 			CreateNCommitsStartingAt(2, 4)
 
@@ -35,11 +38,47 @@ var MoveAcrossBranchBoundaryOutsideRebase = NewIntegrationTest(NewIntegrationTes
 				Contains("CI commit-01"),
 			).
 			NavigateToLine(Contains("commit-04")).
+			// Moving the commit down past both update-ref todos makes it the
+			// head of both branches; it stays selected
+			Press(keys.Commits.MoveDownCommit).
+			Lines(
+				Contains("CI commit-05"),
+				Contains("CI * commit-04").IsSelected(),
+				Contains("CI commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
+			).
 			Press(keys.Commits.MoveDownCommit).
 			Lines(
 				Contains("CI commit-05"),
 				Contains("CI * commit-03"),
 				Contains("CI commit-04").IsSelected(),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
+			).
+			Press(keys.Commits.MoveUpCommit).
+			Lines(
+				Contains("CI commit-05"),
+				Contains("CI * commit-04").IsSelected(),
+				Contains("CI commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
+			).
+			// Moving it up past the update-ref todos makes it the first commit
+			// of branch2 again
+			Press(keys.Commits.MoveUpCommit).
+			Lines(
+				Contains("CI commit-05"),
+				Contains("CI commit-04").IsSelected(),
+				Contains("CI * commit-03"),
+				Contains("CI commit-02"),
+				Contains("CI commit-01"),
+			).
+			Press(keys.Commits.MoveUpCommit).
+			Lines(
+				Contains("CI commit-04").IsSelected(),
+				Contains("CI commit-05"),
+				Contains("CI * commit-03"),
 				Contains("CI commit-02"),
 				Contains("CI commit-01"),
 			)

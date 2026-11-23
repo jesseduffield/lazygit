@@ -156,26 +156,14 @@ func GetCommitListDisplayStrings(
 	}
 
 	// Determine the hashes of the local branches for which we want to show a
-	// branch marker in the commits list. We only want to do this for branches
-	// that are not the current branch, and not any of the main branches. The
-	// goal is to visualize stacks of local branches, so anything that doesn't
-	// contribute to a branch stack shouldn't show a marker.
+	// branch marker in the commits list.
 	//
 	// If there are other branches pointing to the current head commit, we only
 	// want to show the marker if the rebase.updateRefs config is on.
 	branchHeadsToVisualize := set.NewFromSlice(lo.FilterMap(branches,
 		func(b *models.Branch, index int) (string, bool) {
 			return b.CommitHash,
-				// Don't consider branches that don't have a commit hash. As far
-				// as I can see, this happens for a detached head, so filter
-				// these out
-				b.CommitHash != "" &&
-					// Don't show a marker for the current branch
-					b.Name != currentBranchName &&
-					// Don't show a marker for main branches
-					!lo.Contains(common.UserConfig().Git.MainBranches, b.Name) &&
-					// Don't show a marker for the head commit unless the
-					// rebase.updateRefs config is on
+				branchstack.IsStackBranch(b, currentBranchName, common.UserConfig().Git.MainBranches) &&
 					(hasRebaseUpdateRefsConfig || b.CommitHash != commits[0].Hash())
 		}))
 
