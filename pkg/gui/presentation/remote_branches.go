@@ -8,9 +8,12 @@ import (
 )
 
 func GetRemoteBranchListDisplayStrings(branches []*models.RemoteBranch, diffName string) [][]string {
-	return lo.Map(branches, func(branch *models.RemoteBranch, _ int) []string {
+	return lo.FilterMap(branches, func(branch *models.RemoteBranch, _ int) ([]string, bool) {
+		if branch == nil {
+			return nil, false
+		}
 		diffed := branch.FullName() == diffName
-		return getRemoteBranchDisplayStrings(branch, diffed)
+		return getRemoteBranchDisplayStrings(branch, diffed), true
 	})
 }
 
