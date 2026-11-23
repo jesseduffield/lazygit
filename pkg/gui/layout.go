@@ -223,6 +223,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 	// gui.c.Log.Info(utils.AsJson(gui.State.Model.Branches[0:4]))
 	gui.helpers.Confirmation.ResizeCurrentPopupPanels()
 
+	sidePanelArrangement, hasSidePanelArrangement := gui.helpers.WindowArrangement.GetSidePanelArrangement(informationStr, appStatus)
+	gui.helpers.SidePanelResize.Layout(viewDimensions, sidePanelArrangement, hasSidePanelArrangement)
+
 	gui.renderContextOptionsMap()
 
 outer:

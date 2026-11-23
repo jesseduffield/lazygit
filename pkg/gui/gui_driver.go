@@ -78,10 +78,16 @@ func (self *GuiDriver) ClickAndHold(x, y int) {
 }
 
 // MouseMove reports the mouse at a new position with the left button still
-// held down, i.e. a drag movement. (No test needs pointer motion without a
-// button held, so that variant doesn't exist.)
+// held down, i.e. a drag movement.
 func (self *GuiDriver) MouseMove(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonPrimary, gocui.ModNone)
+}
+
+// Hover reports the mouse at a new position with no button held down. It must
+// not be used while a button is held, because the event would then be a
+// release.
+func (self *GuiDriver) Hover(x, y int) {
+	self.replayMouseEvent(x, y, tcell.ButtonNone, gocui.ModNone)
 }
 
 func (self *GuiDriver) ScrollWheelDown(x, y int) {
@@ -136,6 +142,12 @@ func (self *GuiDriver) FocusIn() {
 	self.replayFocusIn()
 
 	self.waitTillIdle()
+}
+
+func (self *GuiDriver) UpdateAppStateFile(update func(*config.AppState)) {
+	if err := self.gui.Config.UpdateAppState(update); err != nil {
+		self.Fail(fmt.Sprintf("Failed to update state.yml: %v", err))
+	}
 }
 
 // Paste sends the events that a terminal with bracketed paste mode sends: the
