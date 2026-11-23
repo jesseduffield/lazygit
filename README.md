@@ -76,7 +76,6 @@ If you're a mere mortal like me and you're tired of hearing how powerful git is 
   - [gah (Linux and Mac OS)](#gah-linux-and-mac-os)
   - [Arch Linux](#arch-linux)
   - [Fedora](#fedora)
-  - [Amazon Linux 2023 / CentOS Stream](#amazon-linux-2023--centos-stream)
     - [RHEL Derivatives (Terra)](#rhel-derivatives-terra)
   - [Solus Linux](#solus-linux)
   - [Debian and Ubuntu](#debian-and-ubuntu)
@@ -317,21 +316,6 @@ Instruction of how to install AUR content can be found here:
 ```sh
 sudo dnf install lazygit
 ```
-
-### Amazon Linux 2023 / CentOS Stream
-
-Packages for Amazon Linux 2023 and CentOS Stream are available via
-[Copr](https://copr.fedorainfracloud.org/coprs/dejan/lazygit/) (Cool Other Package Repo).
-
-```sh
-sudo dnf copr enable dejan/lazygit
-sudo dnf install lazygit
-```
-
-These packages are built using the RPM spec file located here: https://codeberg.org/dejan/rpm-lazygit
-
-You should be able to build RPMs for Fedora derivatives using the
-SRPM (Source RPM) file that you can grab from the latest COPR build.
 
 #### RHEL Derivatives (Terra)
 
