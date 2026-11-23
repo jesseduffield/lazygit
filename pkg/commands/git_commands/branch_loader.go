@@ -321,12 +321,15 @@ func (self *BranchLoader) GetBaseBranch(branch *models.Branch, mainBranches *Mai
 	if err != nil {
 		return "", err
 	}
-	trimmedOutput := strings.TrimSpace(output)
-	split := strings.Split(trimmedOutput, "\n")
-	if len(split) == 0 || split[0] == "" {
-		return "", nil
-	}
-	return split[0], nil
+	containingBranches := strings.Split(strings.TrimSpace(output), "\n")
+
+	// Several main branches can contain the merge base, e.g. when they are
+	// nested like master < rc < dev. for-each-ref sorts its output by ref
+	// name, so pick the first one in the order the user configured them.
+	baseBranch, _ := lo.Find(mainBranches.Get(), func(ref string) bool {
+		return lo.Contains(containingBranches, ref)
+	})
+	return baseBranch, nil
 }
 
 // Returns the branches, along with the tip of each of them, keyed by full ref
