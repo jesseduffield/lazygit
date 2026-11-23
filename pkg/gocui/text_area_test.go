@@ -634,6 +634,26 @@ func TestTextArea(t *testing.T) {
 		},
 		{
 			actions: func(textarea *TextArea) {
+				textarea.TypeString(`(abc)def`)
+				textarea.GoToStartOfLine()
+				textarea.ForwardDeleteWord()
+			},
+			expectedContent:   "abc)def",
+			expectedCursor:    0,
+			expectedClipboard: "(",
+		},
+		{
+			actions: func(textarea *TextArea) {
+				textarea.TypeString(`abc)def`)
+				textarea.GoToStartOfLine()
+				textarea.ForwardDeleteWord()
+			},
+			expectedContent:   ")def",
+			expectedCursor:    0,
+			expectedClipboard: "abc",
+		},
+		{
+			actions: func(textarea *TextArea) {
 				textarea.TypeString(`abc`)
 				textarea.GoToStartOfLine()
 				textarea.BackSpaceWord()
