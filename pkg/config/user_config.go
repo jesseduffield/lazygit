@@ -441,6 +441,7 @@ type LogConfig struct {
 	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<ctrl+l>` in the commits window by default).
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
+	// Commits that aren't part of the current branch are only shown for reference; they can't be squashed, reworded, moved or otherwise changed.
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
 }
 

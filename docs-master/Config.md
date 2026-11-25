@@ -560,6 +560,8 @@ git:
 
     # displays the whole git graph by default in the commits view (equivalent to
     # passing the `--all` argument to `git log`)
+    # Commits that aren't part of the current branch are only shown for reference;
+    # they can't be squashed, reworded, moved or otherwise changed.
     showWholeGraph: false
 
   # How branches are sorted in the local branches view.

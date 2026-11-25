@@ -63,6 +63,9 @@ func (self *SwitchToDiffFilesController) canRebase(ref models.Ref, refRange *typ
 	if !self.context.CanRebase() {
 		return false
 	}
+	if commit, ok := ref.(*models.Commit); ok && commit.OffBranch {
+		return false
+	}
 	if self.c.Modes().Diffing.Active() {
 		return self.c.Modes().Diffing.Ref == ref.RefName()
 	}

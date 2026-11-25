@@ -3964,7 +3964,7 @@
         },
         "showWholeGraph": {
           "type": "boolean",
-          "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)",
+          "description": "displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)\nCommits that aren't part of the current branch are only shown for reference; they can't be squashed, reworded, moved or otherwise changed.",
           "default": false
         }
       },

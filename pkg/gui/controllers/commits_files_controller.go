@@ -416,6 +416,13 @@ func (self *CommitFilesController) canDiscardFileChanges(nodes []*filetree.Commi
 		}
 	}
 
+	if commit := self.c.Contexts().LocalCommits.GetSelected(); commit != nil && commit.OffBranch {
+		return &types.DisabledReason{
+			Text:             self.c.Tr.CommitsNotOnCurrentBranch,
+			ShowErrorInPanel: true,
+		}
+	}
+
 	if self.c.Git().Status.WorkingTreeState().Any() {
 		return &types.DisabledReason{
 			Text:             self.c.Tr.CantPatchWhileRebasingError,
