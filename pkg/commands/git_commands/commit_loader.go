@@ -594,6 +594,12 @@ func (self *CommitLoader) getReachableHashes(refName string, notRefNames []strin
 // getLogCmd gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	gitLogOrder := self.UserConfig().Git.Log.Order
+	if opts.All && gitLogOrder == "default" {
+		// Without an order option, git log may list a commit before its children
+		// when it has several starting points. Code that looks for the HEAD
+		// commit, or for a commit's ancestors, relies on children coming first.
+		gitLogOrder = "date-order"
+	}
 
 	refSpec := opts.RefName
 	if opts.RefToShowDivergenceFrom != "" {

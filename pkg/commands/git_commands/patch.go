@@ -248,8 +248,6 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 		return errors.New(self.Tr.DisabledForGPG)
 	}
 
-	baseIndex := sourceCommitIdx + 1
-
 	changes := []daemon.ChangeTodoAction{
 		{Hash: commits[sourceCommitIdx].Hash(), NewAction: todo.Edit},
 		{Hash: commits[destinationCommitIdx].Hash(), NewAction: todo.Edit},
@@ -257,7 +255,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: getBaseHashOrRoot(commits, baseIndex),
+		baseHashOrRoot: getBaseHashOrRoot(commits, sourceCommitIdx, 1),
 		overrideEditor: true,
 		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
@@ -415,7 +413,7 @@ func (self *PatchCommands) PullPatchIntoNewCommitBefore(
 	commitSummary string,
 	commitDescription string,
 ) error {
-	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, commitIdx+1, true); err != nil {
+	if err := self.rebase.BeginInteractiveRebaseForCommit(commits, models.BranchCommitIdxBelow(commits, commitIdx, 1), true); err != nil {
 		return err
 	}
 

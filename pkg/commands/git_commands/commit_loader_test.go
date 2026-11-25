@@ -336,6 +336,17 @@ func TestGetCommits(t *testing.T) {
 			expectedError:      nil,
 		},
 		{
+			testName: "should order by date when showing the whole graph with the default order",
+			logOrder: "default",
+			opts:     GetCommitsOptions{RefName: "HEAD", All: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "--all", "^HEAD"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--date-order", "--all", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
 			testName: "should set filter path",
 			logOrder: "default",
 			opts:     GetCommitsOptions{RefName: "HEAD", RefForPushedStatus: &models.Branch{Name: "mybranch"}, FilterPath: "src"},

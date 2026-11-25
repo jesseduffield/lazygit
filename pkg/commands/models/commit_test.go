@@ -30,6 +30,16 @@ func TestHeadCommitIdx(t *testing.T) {
 			expected: 2,
 		},
 		{
+			name: "first commit of the current branch when the whole graph is shown",
+			commits: []*Commit{
+				makeTestOffBranchCommit("x"),
+				makeTestCommit("a"),
+				makeTestOffBranchCommit("y"),
+				makeTestCommit("b"),
+			},
+			expected: 1,
+		},
+		{
 			name:     "no commits",
 			commits:  nil,
 			expected: -1,
@@ -63,6 +73,24 @@ func TestIsHeadCommit(t *testing.T) {
 	assert.False(t, IsHeadCommit(commits, 2))
 }
 
+func TestBranchCommitIdxBelow(t *testing.T) {
+	commits := []*Commit{
+		makeTestOffBranchCommit("x"),
+		makeTestCommit("a"),
+		makeTestOffBranchCommit("y"),
+		makeTestCommit("b"),
+		makeTestOffBranchCommit("z"),
+		makeTestCommit("c"),
+	}
+
+	assert.Equal(t, 1, BranchCommitIdxBelow(commits, 1, 0))
+	assert.Equal(t, 3, BranchCommitIdxBelow(commits, 1, 1))
+	assert.Equal(t, 5, BranchCommitIdxBelow(commits, 1, 2))
+	assert.Equal(t, 6, BranchCommitIdxBelow(commits, 1, 3))
+	assert.Equal(t, 1, BranchCommitIdxBelow(commits, 0, 1))
+	assert.Equal(t, 6, BranchCommitIdxBelow(commits, 5, 1))
+}
+
 func makeTestCommits(hashes ...string) []*Commit {
 	commits := make([]*Commit, 0, len(hashes))
 	for _, hash := range hashes {
@@ -74,6 +102,10 @@ func makeTestCommits(hashes ...string) []*Commit {
 
 func makeTestCommit(hash string) *Commit {
 	return NewCommit(&utils.StringPool{}, NewCommitOpts{Hash: hash})
+}
+
+func makeTestOffBranchCommit(hash string) *Commit {
+	return NewCommit(&utils.StringPool{}, NewCommitOpts{Hash: hash, OffBranch: true})
 }
 
 func makeTestTodoCommit(action todo.TodoCommand) *Commit {

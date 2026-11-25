@@ -166,6 +166,28 @@ func CommitDescription(hash string, subject string) string {
 	return fmt.Sprintf("%s %s", hash[:min(7, len(hash))], subject)
 }
 
+// BranchCommitIdxBelow returns the index of the commit that is distance commits
+// of the current branch below commits[index], skipping the commits of other
+// branches that are listed in between when the whole graph is shown. It returns
+// index for a distance of 0, and len(commits) when there aren't that many.
+func BranchCommitIdxBelow(commits []*Commit, index int, distance int) int {
+	if distance == 0 {
+		return index
+	}
+
+	for i := index + 1; i < len(commits); i++ {
+		if commits[i].OffBranch {
+			continue
+		}
+		distance--
+		if distance == 0 {
+			return i
+		}
+	}
+
+	return len(commits)
+}
+
 func (c *Commit) IsMerge() bool {
 	return len(c.parents) > 1
 }
@@ -177,12 +199,12 @@ func (c *Commit) IsTODO() bool {
 }
 
 func IsHeadCommit(commits []*Commit, index int) bool {
-	return !commits[index].IsTODO() && (index == 0 || commits[index-1].IsTODO())
+	return HeadCommitIdx(commits) == index
 }
 
 func HeadCommitIdx(commits []*Commit) int {
 	for index, commit := range commits {
-		if !commit.IsTODO() {
+		if !commit.IsTODO() && !commit.OffBranch {
 			return index
 		}
 	}

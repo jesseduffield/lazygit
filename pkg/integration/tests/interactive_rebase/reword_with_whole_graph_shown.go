@@ -43,17 +43,9 @@ var RewordWithWholeGraphShown = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().SubCommits().
 			IsFocused().
-			/* EXPECTED:
 			Lines(
 				Contains("dev-b-2"),
 				Contains("renamed dev-b-1"),
-				Contains("base"),
-			)
-			ACTUAL: */
-			Lines(
-				Contains("dev-b-2"),
-				Contains("renamed dev-b-1"),
-				Contains("dev-a-1"),
 				Contains("base"),
 			)
 	},

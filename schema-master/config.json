@@ -3949,7 +3949,7 @@
             "topo-order",
             "default"
           ],
-          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cctrl+l\u003e` in the commits window by default).",
+          "description": "One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'\n'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/\nWhen the whole graph is shown, 'default' behaves like 'date-order', so that commits are always listed before their parents.\n\nCan be changed from within Lazygit with `Log menu -\u003e Commit sort order` (`\u003cctrl+l\u003e` in the commits window by default).",
           "default": "topo-order"
         },
         "showGraph": {
