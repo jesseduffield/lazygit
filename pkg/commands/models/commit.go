@@ -64,6 +64,10 @@ type Commit struct {
 	ActionFlag string     // e.g. "-C" for fixup -C
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view
 
+	// True for a commit that is only listed because the whole git graph is
+	// shown, i.e. one that the ref whose commits we are showing can't reach.
+	OffBranch bool
+
 	// For a patch that "git am" hasn't applied yet, the file that contains
 	// it; empty for all other commits.
 	PatchFile string
@@ -81,6 +85,7 @@ type NewCommitOpts struct {
 	AuthorEmail   string
 	UnixTimestamp int64
 	Divergence    Divergence
+	OffBranch     bool
 	Parents       []string
 	PatchFile     string
 }
@@ -98,6 +103,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
+		OffBranch:     opts.OffBranch,
 		PatchFile:     opts.PatchFile,
 		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}

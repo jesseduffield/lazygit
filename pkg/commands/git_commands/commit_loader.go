@@ -114,6 +114,16 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		}
 	})
 
+	var offBranchCommitHashes *set.Set[string]
+	if opts.All {
+		wg.Add(1)
+		go utils.Safe(func() {
+			defer wg.Done()
+
+			offBranchCommitHashes = self.getReachableHashes("--all", []string{opts.RefName})
+		})
+	}
+
 	var unpushedCommitHashes *set.Set[string]
 	if opts.RefForPushedStatus != nil {
 		unpushedCommitHashes = self.getReachableHashes(opts.RefForPushedStatus.FullRefName(),
@@ -128,6 +138,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	if len(commits) == 0 {
 		return commits, nil
+	}
+
+	if offBranchCommitHashes != nil {
+		for _, commit := range commits {
+			commit.OffBranch = !commit.IsTODO() && offBranchCommitHashes.Includes(commit.Hash())
+		}
 	}
 
 	if opts.RefToShowDivergenceFrom != "" {
