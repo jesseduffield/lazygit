@@ -69,6 +69,9 @@ type commitDragState struct {
 	// Bounds of the selection at press time.
 	startIndex int
 	endIndex   int
+	// The commits at press time, which startIndex, endIndex and the insertion
+	// index refer to even if the model is refreshed during the drag.
+	commits []*models.Commit
 	// Identifying information of the dragged commits, so that they can be
 	// found again on release even if the model was refreshed during the drag.
 	commitIdentities []commitDragIdentity
@@ -173,6 +176,7 @@ func (self *LocalCommitsController) handleCommitDragPress(opts gocui.ViewMouseBi
 		pressedIndex: pressedIndex,
 		startIndex:   startIndex,
 		endIndex:     endIndex,
+		commits:      context.GetItems(),
 		commitIdentities: lo.Map(selectedCommits, func(commit *models.Commit, _ int) commitDragIdentity {
 			return commitDragIdentityForCommit(commit)
 		}),
@@ -287,15 +291,20 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
-	if state.insertionIndex < 0 {
+	// The rebase moves the commits past todos, which only exist for commits of
+	// the current branch, so the rows of other branches don't count.
+	isOnBranch := func(commit *models.Commit) bool { return !commit.OffBranch }
+	insertionIndex := min(state.insertionIndex, len(state.commits))
+	offset := 0
+	if insertionIndex >= 0 && insertionIndex < state.startIndex {
+		offset = -lo.CountBy(state.commits[insertionIndex:state.startIndex], isOnBranch)
+	} else if insertionIndex > state.endIndex {
+		offset = lo.CountBy(state.commits[state.endIndex+1:insertionIndex], isOnBranch)
+	}
+	if offset == 0 {
 		self.context().ClearDropInsertionIndex()
 		self.c.PostRefreshUpdate(self.context())
 		return nil
-	}
-
-	offset := state.insertionIndex - state.startIndex
-	if state.insertionIndex > state.endIndex {
-		offset = state.insertionIndex - state.endIndex - 1
 	}
 	selectedCommits, startIndex, endIndex, found := findCommitDragBlock(
 		self.context().GetItems(), state.commitIdentities,

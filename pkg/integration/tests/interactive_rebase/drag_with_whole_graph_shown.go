@@ -53,19 +53,11 @@ var DragWithWholeGraphShown = NewIntegrationTest(NewIntegrationTestArgs{
 
 		t.Views().SubCommits().
 			IsFocused().
-			/* EXPECTED:
 			Lines(
 				Contains("dev-b-3"),
 				Contains("dev-b-1"),
 				Contains("dev-b-2"),
 				Contains("base"),
-			)
-			ACTUAL: */
-			Lines(
-				Contains("dev-b-3"),
-				Contains("dev-b-1"),
-				Contains("base"),
-				Contains("dev-b-2"),
 			)
 	},
 })
