@@ -375,6 +375,7 @@ var tests = []*components.IntegrationTest{
 	interactive_rebase.DragToReorder,
 	interactive_rebase.DragToReorderInRebase,
 	interactive_rebase.DragToReorderWithAutoscroll,
+	interactive_rebase.DragWithWholeGraphShown,
 	interactive_rebase.DropCommitInCopiedBranchWithUpdateRef,
 	interactive_rebase.DropMergeCommit,
 	interactive_rebase.DropTodoCommitWithUpdateRef,
