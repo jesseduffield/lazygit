@@ -1743,7 +1743,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					}
 
 					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
-						self.c.Refresh(
+						self.c.RefreshFromWorker(
 							types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
 						)
 						return nil
