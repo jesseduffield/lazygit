@@ -18,6 +18,9 @@ func TestBranchesBelow(t *testing.T) {
 	todoCommit := func(hash string) *models.Commit {
 		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Action: todo.Pick, Status: models.StatusRebasing})
 	}
+	offBranchCommit := func(hash string, status models.CommitStatus) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, Status: status, OffBranch: true})
+	}
 	branch := func(name string, tip string) *models.Branch {
 		return &models.Branch{Name: name, CommitHash: tip}
 	}
@@ -123,6 +126,19 @@ func TestBranchesBelow(t *testing.T) {
 			},
 			branches: []*models.Branch{current, branch("sibling", "s1")},
 			expected: []string{},
+		},
+		{
+			testName: "branches of commits that are only shown with the whole graph are left out",
+			commits: []*models.Commit{
+				commit("c3", models.StatusUnpushed),
+				offBranchCommit("s1", models.StatusPushed),
+				commit("c1", models.StatusUnpushed),
+			},
+			branches: []*models.Branch{current, branch("sibling", "s1"), branch("first", "c1")},
+			/* EXPECTED:
+			expected: []string{"first"},
+			ACTUAL: */
+			expected: []string{"sibling", "first"},
 		},
 		{
 			testName: "todo commits of a rebase don't count",
