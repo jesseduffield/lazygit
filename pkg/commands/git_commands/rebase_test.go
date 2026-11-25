@@ -187,17 +187,11 @@ func TestGetBaseHashOrRoot(t *testing.T) {
 
 	t.Run("the commit below hasn't been loaded", func(t *testing.T) {
 		commits := []*models.Commit{newCommit("c", false, "b"), newCommit("b", false, "a")}
-		/* EXPECTED:
 		assert.Equal(t, "b~1", getBaseHashOrRoot(commits, 0, 2))
-		ACTUAL: */
-		assert.Equal(t, "--root", getBaseHashOrRoot(commits, 0, 2))
 	})
 
 	t.Run("only commits of other branches are loaded below", func(t *testing.T) {
 		commits := []*models.Commit{newCommit("b", false, "a"), newCommit("x", true, "a")}
-		/* EXPECTED:
 		assert.Equal(t, "b~1", getBaseHashOrRoot(commits, 0, 1))
-		ACTUAL: */
-		assert.Equal(t, "--root", getBaseHashOrRoot(commits, 0, 1))
 	})
 }

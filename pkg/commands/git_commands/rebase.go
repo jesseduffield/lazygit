@@ -671,17 +671,25 @@ func (self *RebaseCommands) DropMergeCommit(commits []*models.Commit, commitInde
 
 // getBaseHashOrRoot returns the base for a rebase that starts distance commits of
 // the current branch below commits[index], or commits[index] itself for a
-// distance of 0. We can't start an interactive rebase from the first commit
-// without passing the '--root' arg.
+// distance of 0. If the base is further down than the loaded commits, it is
+// counted from the last loaded commit of the current branch. We can't start an
+// interactive rebase from the first commit without passing the '--root' arg.
 func getBaseHashOrRoot(commits []*models.Commit, index int, distance int) string {
-	// We assume that the commits slice contains the initial commit of the repo.
-	// Technically this assumption could prove false, but it's unlikely you'll
-	// be starting a rebase from 300 commits ago (which is the original commit limit
-	// at time of writing)
-	index = models.BranchCommitIdxBelow(commits, index, distance)
-	if index < len(commits) {
-		return commits[index].Hash()
+	for ; distance > 0; distance-- {
+		below := models.BranchCommitIdxBelow(commits, index, 1)
+		if below == len(commits) {
+			break
+		}
+		index = below
 	}
 
-	return "--root"
+	commit := commits[index]
+	if distance == 0 {
+		return commit.Hash()
+	}
+	if len(commit.Parents()) == 0 {
+		return "--root"
+	}
+
+	return fmt.Sprintf("%s~%d", commit.Hash(), distance)
 }
