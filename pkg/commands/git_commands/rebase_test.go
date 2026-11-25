@@ -168,3 +168,36 @@ func TestRebaseDiscardOldFileChanges(t *testing.T) {
 		})
 	}
 }
+
+func TestGetBaseHashOrRoot(t *testing.T) {
+	hashPool := &utils.StringPool{}
+	newCommit := func(hash string, offBranch bool, parents ...string) *models.Commit {
+		return models.NewCommit(hashPool, models.NewCommitOpts{Hash: hash, OffBranch: offBranch, Parents: parents})
+	}
+
+	t.Run("the commit below is loaded", func(t *testing.T) {
+		commits := []*models.Commit{newCommit("b", false, "a"), newCommit("a", false)}
+		assert.Equal(t, "a", getBaseHashOrRoot(commits, 0, 1))
+	})
+
+	t.Run("the commit below is the parent of the root commit", func(t *testing.T) {
+		commits := []*models.Commit{newCommit("b", false, "a"), newCommit("a", false)}
+		assert.Equal(t, "--root", getBaseHashOrRoot(commits, 1, 1))
+	})
+
+	t.Run("the commit below hasn't been loaded", func(t *testing.T) {
+		commits := []*models.Commit{newCommit("c", false, "b"), newCommit("b", false, "a")}
+		/* EXPECTED:
+		assert.Equal(t, "b~1", getBaseHashOrRoot(commits, 0, 2))
+		ACTUAL: */
+		assert.Equal(t, "--root", getBaseHashOrRoot(commits, 0, 2))
+	})
+
+	t.Run("only commits of other branches are loaded below", func(t *testing.T) {
+		commits := []*models.Commit{newCommit("b", false, "a"), newCommit("x", true, "a")}
+		/* EXPECTED:
+		assert.Equal(t, "b~1", getBaseHashOrRoot(commits, 0, 1))
+		ACTUAL: */
+		assert.Equal(t, "--root", getBaseHashOrRoot(commits, 0, 1))
+	})
+}
