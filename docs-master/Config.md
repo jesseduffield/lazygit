@@ -544,6 +544,8 @@ git:
     # One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
     # 'topo-order' makes it easier to read the git log graph, but commits may not
     # appear chronologically. See https://git-scm.com/docs/
+    # When the whole graph is shown, 'default' behaves like 'date-order', so that
+    # commits are always listed before their parents.
     #
     # Can be changed from within Lazygit with `Log menu -> Commit sort order`
     # (`<ctrl+l>` in the commits window by default).
@@ -558,6 +560,8 @@ git:
 
     # displays the whole git graph by default in the commits view (equivalent to
     # passing the `--all` argument to `git log`)
+    # Commits that aren't part of the current branch are only shown for reference;
+    # they can't be squashed, reworded, moved or otherwise changed.
     showWholeGraph: false
 
   # How branches are sorted in the local branches view.

@@ -114,6 +114,16 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 		}
 	})
 
+	var offBranchCommitHashes *set.Set[string]
+	if opts.All {
+		wg.Add(1)
+		go utils.Safe(func() {
+			defer wg.Done()
+
+			offBranchCommitHashes = self.getReachableHashes("--all", []string{opts.RefName})
+		})
+	}
+
 	var unpushedCommitHashes *set.Set[string]
 	if opts.RefForPushedStatus != nil {
 		unpushedCommitHashes = self.getReachableHashes(opts.RefForPushedStatus.FullRefName(),
@@ -128,6 +138,12 @@ func (self *CommitLoader) GetCommits(opts GetCommitsOptions) ([]*models.Commit, 
 
 	if len(commits) == 0 {
 		return commits, nil
+	}
+
+	if offBranchCommitHashes != nil {
+		for _, commit := range commits {
+			commit.OffBranch = !commit.IsTODO() && offBranchCommitHashes.Includes(commit.Hash())
+		}
 	}
 
 	if opts.RefToShowDivergenceFrom != "" {
@@ -578,6 +594,12 @@ func (self *CommitLoader) getReachableHashes(refName string, notRefNames []strin
 // getLogCmd gets the git log.
 func (self *CommitLoader) getLogCmd(opts GetCommitsOptions) *oscommands.CmdObj {
 	gitLogOrder := self.UserConfig().Git.Log.Order
+	if opts.All && gitLogOrder == "default" {
+		// Without an order option, git log may list a commit before its children
+		// when it has several starting points. Code that looks for the HEAD
+		// commit, or for a commit's ancestors, relies on children coming first.
+		gitLogOrder = "date-order"
+	}
 
 	refSpec := opts.RefName
 	if opts.RefToShowDivergenceFrom != "" {

@@ -51,6 +51,58 @@ func TestGetCommits(t *testing.T) {
 			expectedError:      nil,
 		},
 		{
+			testName: "should mark commits that the ref can't reach when showing the whole graph",
+			logOrder: "topo-order",
+			opts:     GetCommitsOptions{RefName: "HEAD", All: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "--all", "^HEAD"}, "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164\n", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--topo-order", "--all", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"},
+					strings.ReplaceAll(`+b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164|1640824515|Jesse Duffield|jessedduffield@gmail.com|d8084cd558925eb7c9c3|>|other-branch|on other branch
++0eea75e8c631fba6b58135697835d58ba4c18dbc|1640826609|Jesse Duffield|jessedduffield@gmail.com|d8084cd558925eb7c9c3|>|HEAD -> mybranch|on mybranch
++d8084cd558925eb7c9c38afeed5725c21653ab90|1640821426|Jesse Duffield|jessedduffield@gmail.com||>||base`, "|", "\x00"), nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{
+				{
+					Hash:          "b21997d6b4cbdf84b149d8e6a2c4d06a8e9ec164",
+					Name:          "on other branch",
+					Status:        models.StatusPushed,
+					Action:        models.ActionNone,
+					Tags:          nil,
+					ExtraInfo:     "(other-branch)",
+					AuthorName:    "Jesse Duffield",
+					AuthorEmail:   "jessedduffield@gmail.com",
+					UnixTimestamp: 1640824515,
+					OffBranch:     true,
+					Parents:       []string{"d8084cd558925eb7c9c3"},
+				},
+				{
+					Hash:          "0eea75e8c631fba6b58135697835d58ba4c18dbc",
+					Name:          "on mybranch",
+					Status:        models.StatusPushed,
+					Action:        models.ActionNone,
+					Tags:          nil,
+					ExtraInfo:     "(HEAD -> mybranch)",
+					AuthorName:    "Jesse Duffield",
+					AuthorEmail:   "jessedduffield@gmail.com",
+					UnixTimestamp: 1640826609,
+					Parents:       []string{"d8084cd558925eb7c9c3"},
+				},
+				{
+					Hash:          "d8084cd558925eb7c9c38afeed5725c21653ab90",
+					Name:          "base",
+					Status:        models.StatusPushed,
+					Action:        models.ActionNone,
+					Tags:          nil,
+					ExtraInfo:     "",
+					AuthorName:    "Jesse Duffield",
+					AuthorEmail:   "jessedduffield@gmail.com",
+					UnixTimestamp: 1640821426,
+					Parents:       []string{},
+				},
+			},
+			expectedError: nil,
+		},
+		{
 			testName: "should use proper upstream name for branch",
 			logOrder: "topo-order",
 			opts:     GetCommitsOptions{RefName: "refs/heads/mybranch", RefForPushedStatus: &models.Branch{Name: "mybranch"}, IncludeRebaseCommits: false},
@@ -279,6 +331,17 @@ func TestGetCommits(t *testing.T) {
 			runner: oscommands.NewFakeRunner(t).
 				ExpectGitArgs([]string{"rev-list", "refs/heads/mybranch", "^mybranch@{u}"}, "", nil).
 				ExpectGitArgs([]string{"log", "HEAD", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
+
+			expectedCommitOpts: []models.NewCommitOpts{},
+			expectedError:      nil,
+		},
+		{
+			testName: "should order by date when showing the whole graph with the default order",
+			logOrder: "default",
+			opts:     GetCommitsOptions{RefName: "HEAD", All: true},
+			runner: oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-list", "--all", "^HEAD"}, "", nil).
+				ExpectGitArgs([]string{"log", "HEAD", "--date-order", "--all", "--oneline", "--pretty=format:+%H%x00%at%x00%aN%x00%ae%x00%P%x00%m%x00%D%x00%s", "--abbrev=40", "--no-show-signature", "--"}, "", nil),
 
 			expectedCommitOpts: []models.NewCommitOpts{},
 			expectedError:      nil,

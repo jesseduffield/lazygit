@@ -64,6 +64,10 @@ type Commit struct {
 	ActionFlag string     // e.g. "-C" for fixup -C
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view
 
+	// True for a commit that is only listed because the whole git graph is
+	// shown, i.e. one that the ref whose commits we are showing can't reach.
+	OffBranch bool
+
 	// For a patch that "git am" hasn't applied yet, the file that contains
 	// it; empty for all other commits.
 	PatchFile string
@@ -81,6 +85,7 @@ type NewCommitOpts struct {
 	AuthorEmail   string
 	UnixTimestamp int64
 	Divergence    Divergence
+	OffBranch     bool
 	Parents       []string
 	PatchFile     string
 }
@@ -98,6 +103,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
+		OffBranch:     opts.OffBranch,
 		PatchFile:     opts.PatchFile,
 		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}
@@ -160,6 +166,28 @@ func CommitDescription(hash string, subject string) string {
 	return fmt.Sprintf("%s %s", hash[:min(7, len(hash))], subject)
 }
 
+// BranchCommitIdxBelow returns the index of the commit that is distance commits
+// of the current branch below commits[index], skipping the commits of other
+// branches that are listed in between when the whole graph is shown. It returns
+// index for a distance of 0, and len(commits) when there aren't that many.
+func BranchCommitIdxBelow(commits []*Commit, index int, distance int) int {
+	if distance == 0 {
+		return index
+	}
+
+	for i := index + 1; i < len(commits); i++ {
+		if commits[i].OffBranch {
+			continue
+		}
+		distance--
+		if distance == 0 {
+			return i
+		}
+	}
+
+	return len(commits)
+}
+
 func (c *Commit) IsMerge() bool {
 	return len(c.parents) > 1
 }
@@ -171,12 +199,12 @@ func (c *Commit) IsTODO() bool {
 }
 
 func IsHeadCommit(commits []*Commit, index int) bool {
-	return !commits[index].IsTODO() && (index == 0 || commits[index-1].IsTODO())
+	return HeadCommitIdx(commits) == index
 }
 
 func HeadCommitIdx(commits []*Commit) int {
 	for index, commit := range commits {
-		if !commit.IsTODO() {
+		if !commit.IsTODO() && !commit.OffBranch {
 			return index
 		}
 	}

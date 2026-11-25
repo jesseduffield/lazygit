@@ -37,7 +37,7 @@ func BranchesBelow(
 
 	result := []*models.Branch{}
 	for _, commit := range commits {
-		if commit.IsTODO() || commit.Status == models.StatusMerged || mergedLocally.Includes(commit.Hash()) {
+		if commit.IsTODO() || commit.OffBranch || commit.Status == models.StatusMerged || mergedLocally.Includes(commit.Hash()) {
 			continue
 		}
 		result = append(result, branchesByTip[commit.Hash()]...)

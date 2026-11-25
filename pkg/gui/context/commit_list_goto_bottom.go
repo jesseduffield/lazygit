@@ -37,7 +37,7 @@ func indexForGotoBottomInCommits(
 
 	stops := []int{}
 
-	if headIdx := models.HeadCommitIdx(commits); headIdx > 0 {
+	if headIdx := models.HeadCommitIdx(commits); headIdx > 0 && commits[headIdx-1].IsTODO() {
 		stops = append(stops, headIdx-1)
 	}
 

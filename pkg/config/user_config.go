@@ -431,6 +431,7 @@ type MergingConfig struct {
 type LogConfig struct {
 	// One of: 'date-order' | 'author-date-order' | 'topo-order' | 'default'
 	// 'topo-order' makes it easier to read the git log graph, but commits may not appear chronologically. See https://git-scm.com/docs/
+	// When the whole graph is shown, 'default' behaves like 'date-order', so that commits are always listed before their parents.
 	//
 	// Can be changed from within Lazygit with `Log menu -> Commit sort order` (`<ctrl+l>` in the commits window by default).
 	Order string `yaml:"order" jsonschema:"enum=date-order,enum=author-date-order,enum=topo-order,enum=default"`
@@ -440,6 +441,7 @@ type LogConfig struct {
 	// Can be toggled from within lazygit with `Log menu -> Show git graph` (`<ctrl+l>` in the commits window by default).
 	ShowGraph string `yaml:"showGraph" jsonschema:"enum=always,enum=never,enum=when-maximised"`
 	// displays the whole git graph by default in the commits view (equivalent to passing the `--all` argument to `git log`)
+	// Commits that aren't part of the current branch are only shown for reference; they can't be squashed, reworded, moved or otherwise changed.
 	ShowWholeGraph bool `yaml:"showWholeGraph"`
 }
 

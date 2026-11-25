@@ -89,6 +89,9 @@ func (self *CustomPatchOptionsMenuAction) Call() error {
 				if selectedCommit.IsMerge() {
 					disabledReason = &types.DisabledReason{Text: self.c.Tr.CannotMovePatchToMergeCommit}
 				}
+				if selectedCommit.OffBranch {
+					disabledReason = &types.DisabledReason{Text: self.c.Tr.CommitsNotOnCurrentBranch}
+				}
 				if self.c.Contexts().LocalCommits.AreMultipleItemsSelected() {
 					disabledReason = &types.DisabledReason{Text: self.c.Tr.RangeSelectNotSupported}
 				}

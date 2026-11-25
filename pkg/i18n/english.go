@@ -182,6 +182,7 @@ type TranslationSet struct {
 	Quit                                  string
 	SquashTooltip                         string
 	CannotSquashOrFixupFirstCommit        string
+	CommitsNotOnCurrentBranch             string
 	CannotSquashOrFixupMergeCommit        string
 	Fixup                                 string
 	FixupTooltip                          string
@@ -1411,6 +1412,7 @@ func EnglishTranslationSet() *TranslationSet {
 		UpdateRefHere:                        "Update branch '{{.ref}}' here",
 		ExecCommandHere:                      "Execute the following command here:",
 		CannotSquashOrFixupFirstCommit:       "There's no commit below to squash into",
+		CommitsNotOnCurrentBranch:            "Only commits of the current branch can be changed; the others are only listed because the whole git graph is shown",
 		CannotSquashOrFixupMergeCommit:       "Cannot squash or fixup a merge commit",
 		Fixup:                                "Fixup",
 		FixupKeepMessage:                     "Fixup and use this commit's message",

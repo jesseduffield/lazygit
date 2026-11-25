@@ -69,6 +69,9 @@ type commitDragState struct {
 	// Bounds of the selection at press time.
 	startIndex int
 	endIndex   int
+	// The commits at press time, which startIndex, endIndex and the insertion
+	// index refer to even if the model is refreshed during the drag.
+	commits []*models.Commit
 	// Identifying information of the dragged commits, so that they can be
 	// found again on release even if the model was refreshed during the drag.
 	commitIdentities []commitDragIdentity
@@ -163,6 +166,7 @@ func (self *LocalCommitsController) handleCommitDragPress(opts gocui.ViewMouseBi
 	if opts.IsDoubleClick ||
 		pressedIndex < startIndex || pressedIndex > endIndex ||
 		context.ModelIndexToViewIndex(pressedIndex) != opts.Y ||
+		self.onCurrentBranch(selectedCommits, startIndex, endIndex) != nil ||
 		self.midRebaseMoveCommandEnabled(selectedCommits, startIndex, endIndex) != nil {
 		return gocui.ErrKeybindingNotHandled
 	}
@@ -172,6 +176,7 @@ func (self *LocalCommitsController) handleCommitDragPress(opts gocui.ViewMouseBi
 		pressedIndex: pressedIndex,
 		startIndex:   startIndex,
 		endIndex:     endIndex,
+		commits:      context.GetItems(),
 		commitIdentities: lo.Map(selectedCommits, func(commit *models.Commit, _ int) commitDragIdentity {
 			return commitDragIdentityForCommit(commit)
 		}),
@@ -286,15 +291,20 @@ func (self *LocalCommitsController) handleCommitDragRelease(gocui.ViewMouseBindi
 		self.c.PostRefreshUpdate(self.context())
 		return nil
 	}
-	if state.insertionIndex < 0 {
+	// The rebase moves the commits past todos, which only exist for commits of
+	// the current branch, so the rows of other branches don't count.
+	isOnBranch := func(commit *models.Commit) bool { return !commit.OffBranch }
+	insertionIndex := min(state.insertionIndex, len(state.commits))
+	offset := 0
+	if insertionIndex >= 0 && insertionIndex < state.startIndex {
+		offset = -lo.CountBy(state.commits[insertionIndex:state.startIndex], isOnBranch)
+	} else if insertionIndex > state.endIndex {
+		offset = lo.CountBy(state.commits[state.endIndex+1:insertionIndex], isOnBranch)
+	}
+	if offset == 0 {
 		self.context().ClearDropInsertionIndex()
 		self.c.PostRefreshUpdate(self.context())
 		return nil
-	}
-
-	offset := state.insertionIndex - state.startIndex
-	if state.insertionIndex > state.endIndex {
-		offset = state.insertionIndex - state.endIndex - 1
 	}
 	selectedCommits, startIndex, endIndex, found := findCommitDragBlock(
 		self.context().GetItems(), state.commitIdentities,
@@ -482,6 +492,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.squashDown)),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
+					self.onCurrentBranch,
 					self.midRebaseCommandEnabled,
 					self.canSquashOrFixup,
 				),
@@ -495,6 +506,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.fixup)),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
+					self.onCurrentBranch,
 					self.midRebaseCommandEnabled,
 					self.canSquashOrFixup,
 				),
@@ -507,7 +519,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Keys:    opts.GetKeys(opts.Config.Commits.SetFixupMessage),
 			Handler: self.withItem(self.setFixupMessage),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.canSetFixupMessage),
+				self.singleItemSelected(self.commitOnCurrentBranch, self.canSetFixupMessage),
 			),
 			Description: self.c.Tr.SetFixupMessage,
 			Tooltip:     self.c.Tr.SetFixupMessageTooltip,
@@ -516,7 +528,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Keys:    opts.GetKeys(opts.Config.Commits.RenameCommit),
 			Handler: self.withItem(self.reword),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rewordEnabled),
+				self.singleItemSelected(self.commitOnCurrentBranch, self.rewordEnabled),
 			),
 			Description:     self.c.Tr.Reword,
 			Tooltip:         self.c.Tr.CommitRewordTooltip,
@@ -527,7 +539,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Keys:    opts.GetKeys(opts.Config.Commits.RenameCommitWithEditor),
 			Handler: self.withItem(self.rewordEditor),
 			GetDisabledReason: self.require(
-				self.singleItemSelected(self.rewordEnabled),
+				self.singleItemSelected(self.commitOnCurrentBranch, self.rewordEnabled),
 			),
 			Description: self.c.Tr.RewordCommitEditor,
 		},
@@ -536,6 +548,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Handler: self.withItemsRange(self.drop),
 			GetDisabledReason: self.require(
 				self.itemRangeSelected(
+					self.onCurrentBranch,
 					self.canDropCommits,
 				),
 			),
@@ -547,7 +560,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Keys:    opts.GetKeys(editCommitKey),
 			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.edit)),
 			GetDisabledReason: self.require(
-				self.itemRangeSelected(self.midRebaseCommandEnabled),
+				self.itemRangeSelected(self.onCurrentBranch, self.midRebaseCommandEnabled),
 			),
 			Description:      self.c.Tr.EditCommit,
 			ShortDescription: self.c.Tr.Edit,
@@ -578,7 +591,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.CreateFixupCommit),
 			Handler:           opts.Guards.OutsideFilterMode(self.withItem(self.createFixupCommit)),
-			GetDisabledReason: self.require(self.singleItemSelected()),
+			GetDisabledReason: self.require(self.singleItemSelected(self.commitOnCurrentBranch)),
 			Description:       self.c.Tr.CreateFixupCommit,
 			Tooltip: utils.ResolvePlaceholderString(
 				self.c.Tr.CreateFixupCommitTooltip,
@@ -601,6 +614,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Keys:    opts.GetKeys(opts.Config.Commits.MoveDownCommit),
 			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.moveDown)),
 			GetDisabledReason: self.require(self.itemRangeSelected(
+				self.onCurrentBranch,
 				self.midRebaseMoveCommandEnabled,
 				self.canMoveDown,
 			)),
@@ -610,6 +624,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 			Keys:    opts.GetKeys(opts.Config.Commits.MoveUpCommit),
 			Handler: opts.Guards.OutsideFilterMode(self.withItemsRange(self.moveUp)),
 			GetDisabledReason: self.require(self.itemRangeSelected(
+				self.onCurrentBranch,
 				self.midRebaseMoveCommandEnabled,
 				self.canMoveUp,
 			)),
@@ -640,7 +655,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.AmendToCommit),
 			Handler:           self.withItem(self.amendTo),
-			GetDisabledReason: self.require(self.singleItemSelected(self.canAmend)),
+			GetDisabledReason: self.require(self.singleItemSelected(self.commitOnCurrentBranch, self.canAmend)),
 			Description:       self.c.Tr.Amend,
 			Tooltip:           self.c.Tr.AmendCommitTooltip,
 			DisplayOnScreen:   true,
@@ -648,7 +663,7 @@ func (self *LocalCommitsController) GetKeybindings(opts types.KeybindingsOpts) [
 		{
 			Keys:              opts.GetKeys(opts.Config.Commits.ResetCommitAuthor),
 			Handler:           self.withItemsRange(self.amendAttribute),
-			GetDisabledReason: self.require(self.itemRangeSelected(self.canAmendRange)),
+			GetDisabledReason: self.require(self.itemRangeSelected(self.onCurrentBranch, self.canAmendRange)),
 			Description:       self.c.Tr.AmendCommitAttribute,
 			Tooltip:           self.c.Tr.AmendCommitAttributeTooltip,
 			OpensMenu:         true,
@@ -1104,11 +1119,12 @@ func (self *LocalCommitsController) startInteractiveRebaseWithEdit(
 }
 
 func (self *LocalCommitsController) findCommitForQuickStartInteractiveRebase() (*models.Commit, error) {
-	commit, index, ok := lo.FindIndexOf(self.c.Model().Commits, func(c *models.Commit) bool {
-		return c.IsMerge() || c.Status == models.StatusMerged
+	commits := self.c.Model().Commits
+	commit, index, ok := lo.FindIndexOf(commits, func(c *models.Commit) bool {
+		return !c.OffBranch && (c.IsMerge() || c.Status == models.StatusMerged)
 	})
 
-	if !ok || index == 0 {
+	if !ok || models.IsHeadCommit(commits, index) {
 		errorMsg := utils.ResolvePlaceholderString(self.c.Tr.CannotQuickStartInteractiveRebase, map[string]string{
 			"editKey": self.c.UserConfig().Keybinding.Universal.Edit.String(),
 		})
@@ -1556,7 +1572,10 @@ func (self *LocalCommitsController) moveFixupCommitToOwnerStackedBranch(
 	}
 
 	headOfOwnerBranchIdx := -1
-	for i := selectedIdx; i > 0; i-- {
+	for i := selectedIdx; i > models.HeadCommitIdx(commits); i-- {
+		if commits[i].OffBranch {
+			continue
+		}
 		if lo.SomeBy(branches, func(b *models.Branch) bool {
 			return b.CommitHash == commits[i].Hash()
 		}) {
@@ -1628,7 +1647,7 @@ func (self *LocalCommitsController) squashFixupCommits() error {
 			{
 				Label:          self.c.Tr.SquashCommitsAboveSelectedCommit,
 				OnPress:        self.withItem(self.squashAllFixupsAboveSelectedCommit),
-				DisabledReason: self.singleItemSelected()(),
+				DisabledReason: self.singleItemSelected(self.commitOnCurrentBranch)(),
 				Keys:           menuKey('a'),
 				Tooltip:        self.c.Tr.SquashCommitsAboveSelectedTooltip,
 			},
@@ -1682,14 +1701,15 @@ func (self *LocalCommitsController) squashFixupsImpl(commit *models.Commit, reba
 func (self *LocalCommitsController) findCommitForSquashFixupsInCurrentBranch() (*models.Commit, int, error) {
 	commits := self.c.Model().Commits
 	_, index, ok := lo.FindIndexOf(commits, func(c *models.Commit) bool {
-		return c.IsMerge() || c.Status == models.StatusMerged
+		return !c.OffBranch && (c.IsMerge() || c.Status == models.StatusMerged)
 	})
 
-	if !ok || index == 0 {
+	if !ok || models.IsHeadCommit(commits, index) {
 		return nil, -1, errors.New(self.c.Tr.CannotSquashCommitsInCurrentBranch)
 	}
 
-	return commits[index-1], index - 1, nil
+	_, idxAbove, _ := lo.FindLastIndexOf(commits[:index], func(c *models.Commit) bool { return !c.OffBranch })
+	return commits[idxAbove], idxAbove, nil
 }
 
 // Anticipate how many commits above the selectedIdx are going to get squashed
@@ -1701,11 +1721,11 @@ func countSquashableCommitsAbove(commits []*models.Commit, selectedIdx int, reba
 	// For each commit _above_ the selection, ...
 	for i, commit := range commits[0:selectedIdx] {
 		// ... see if it is a fixup commit, and get the base subject it applies to
-		if baseSubject, isFixup := helpers.IsFixupCommit(commit.Name); isFixup {
+		if baseSubject, isFixup := helpers.IsFixupCommit(commit.Name); isFixup && !commit.OffBranch {
 			// Then, for each commit after the fixup, up to and including the
 			// rebase start commit, see if we find the base commit
 			for _, baseCommit := range commits[i+1 : rebaseStartIdx+1] {
-				if strings.HasPrefix(baseCommit.Name, baseSubject) {
+				if !baseCommit.OffBranch && strings.HasPrefix(baseCommit.Name, baseSubject) {
 					result++
 				}
 			}
@@ -1743,7 +1763,7 @@ func (self *LocalCommitsController) handleOpenLogMenu() error {
 					}
 
 					return self.c.WithWaitingStatus(self.c.Tr.LoadingCommits, func(gocui.Task) error {
-						self.c.Refresh(
+						self.c.RefreshFromWorker(
 							types.RefreshOptions{Scope: []types.RefreshableView{types.COMMITS}},
 						)
 						return nil
@@ -1904,8 +1924,21 @@ func (self *LocalCommitsController) canFindCommitForSquashFixupsInCurrentBranch(
 	return nil
 }
 
+func (self *LocalCommitsController) onCurrentBranch(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
+	if lo.SomeBy(selectedCommits, func(c *models.Commit) bool { return c.OffBranch }) {
+		return &types.DisabledReason{Text: self.c.Tr.CommitsNotOnCurrentBranch}
+	}
+
+	return nil
+}
+
+func (self *LocalCommitsController) commitOnCurrentBranch(commit *models.Commit) *types.DisabledReason {
+	return self.onCurrentBranch([]*models.Commit{commit}, 0, 0)
+}
+
 func (self *LocalCommitsController) canSquashOrFixup(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if endIdx >= len(self.c.Model().Commits)-1 {
+	commits := self.c.Model().Commits
+	if models.BranchCommitIdxBelow(commits, endIdx, 1) >= len(commits) {
 		return &types.DisabledReason{Text: self.c.Tr.CannotSquashOrFixupFirstCommit}
 	}
 
@@ -1917,13 +1950,12 @@ func (self *LocalCommitsController) canSquashOrFixup(selectedCommits []*models.C
 }
 
 func (self *LocalCommitsController) canMoveDown(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if endIdx >= len(self.c.Model().Commits)-1 {
+	commits := self.c.Model().Commits
+	if models.BranchCommitIdxBelow(commits, endIdx, 1) >= len(commits) {
 		return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
 	}
 
 	if self.isRebasing() {
-		commits := self.c.Model().Commits
-
 		if !commits[endIdx+1].IsTODO() || commits[endIdx+1].Status == models.StatusConflicted {
 			return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
 		}
@@ -1933,13 +1965,12 @@ func (self *LocalCommitsController) canMoveDown(selectedCommits []*models.Commit
 }
 
 func (self *LocalCommitsController) canMoveUp(selectedCommits []*models.Commit, startIdx int, endIdx int) *types.DisabledReason {
-	if startIdx == 0 {
+	commits := self.c.Model().Commits
+	if startIdx == 0 || models.IsHeadCommit(commits, startIdx) {
 		return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
 	}
 
 	if self.isRebasing() {
-		commits := self.c.Model().Commits
-
 		if !commits[startIdx-1].IsTODO() || commits[startIdx-1].Status == models.StatusConflicted {
 			return &types.DisabledReason{Text: self.c.Tr.CannotMoveAnyFurther}
 		}
