@@ -135,10 +135,7 @@ func TestBranchesBelow(t *testing.T) {
 				commit("c1", models.StatusUnpushed),
 			},
 			branches: []*models.Branch{current, branch("sibling", "s1"), branch("first", "c1")},
-			/* EXPECTED:
 			expected: []string{"first"},
-			ACTUAL: */
-			expected: []string{"sibling", "first"},
 		},
 		{
 			testName: "todo commits of a rebase don't count",
