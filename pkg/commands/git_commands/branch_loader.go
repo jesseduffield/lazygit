@@ -36,6 +36,8 @@ type BranchInfo struct {
 	RefName      string
 	DisplayName  string // e.g. '(HEAD detached at 123asdf)'
 	DetachedHead bool
+	// The subject of the commit that a detached HEAD points at
+	Subject string
 }
 
 // BranchLoader returns a list of Branch objects for the current repo
@@ -129,7 +131,7 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		if err != nil {
 			return nil, err
 		}
-		branches = utils.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Recency: "  *"})
+		branches = utils.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Subject: info.Subject, Recency: "  *"})
 	}
 
 	configBranches := self.config.Branches(self.cmd)

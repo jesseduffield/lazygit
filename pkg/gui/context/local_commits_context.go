@@ -11,6 +11,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/branchstack"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation"
 	"github.com/jesseduffield/lazygit/pkg/gui/presentation/graph"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -226,6 +227,20 @@ func NewLocalCommitsContext(c *ContextCommon) *LocalCommitsContext {
 				})
 			}
 
+			if c.Model().WorkingTreeStateAtLastCommitRefresh.ApplyingPatches {
+				_, firstPatch, found := lo.FindIndexOf(
+					c.Model().Commits, func(c *models.Commit) bool {
+						return c.PatchFile != ""
+					})
+				if !found {
+					firstPatch = 0
+				}
+				result = append(result, &NonModelItem{
+					Index:   firstPatch,
+					Content: formatListSectionHeader(c.Tr.PendingPatchesSectionHeader),
+				})
+			}
+
 			result = addCommitDropIndicator(
 				result,
 				dropIndicator,
@@ -343,6 +358,10 @@ type LocalCommitsViewModel struct {
 	// commits refresh reads it on the UI thread to decide how many commits to load.
 	limitCommits atomic.Bool
 
+	// The limit that the commits in the model were loaded with, or 0 if they
+	// were loaded without one.
+	loadedCommitLimit int
+
 	// If this is true we'll use git log --all when fetching the commits.
 	showWholeGitGraph bool
 }
@@ -431,6 +450,14 @@ func (self *LocalCommitsViewModel) GetLimitCommits() bool {
 	return self.limitCommits.Load()
 }
 
+func (self *LocalCommitsViewModel) SetLoadedCommitLimit(value int) {
+	self.loadedCommitLimit = value
+}
+
+func (self *LocalCommitsViewModel) GetLoadedCommitLimit() int {
+	return self.loadedCommitLimit
+}
+
 func (self *LocalCommitsViewModel) SetShowWholeGitGraph(value bool) {
 	self.showWholeGitGraph = value
 }
@@ -508,18 +535,9 @@ func searchModelCommits(caseSensitive bool, commits []*models.Commit, columnPosi
 }
 
 func (self *LocalCommitsContext) IndexForGotoBottom() int {
+	c := self.ListContextTrait.c
 	commits := self.GetCommits()
-	selectedIdx := self.GetSelectedLineIdx()
-	if selectedIdx >= 0 && selectedIdx < len(commits)-1 {
-		if commits[selectedIdx+1].Status != models.StatusMerged {
-			_, idx, found := lo.FindIndexOf(commits, func(c *models.Commit) bool {
-				return c.Status == models.StatusMerged
-			})
-			if found {
-				return idx - 1
-			}
-		}
-	}
-
-	return self.list.Len() - 1
+	branchesBelow := branchstack.BranchesBelow(
+		commits, c.Model().Branches, c.Model().CheckedOutBranch, c.UserConfig().Git.MainBranches)
+	return indexForGotoBottomInCommits(commits, self.GetSelectedLineIdx(), branchesBelow, c.Model().BisectInfo)
 }

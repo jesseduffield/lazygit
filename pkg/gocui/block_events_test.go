@@ -18,7 +18,7 @@ func TestEventWithheldWhileBlocking(t *testing.T) {
 		{"mouse move", GocuiEvent{Type: eventMouseMove}, true},
 		{"resize", GocuiEvent{Type: eventResize}, false},
 		{"focus", GocuiEvent{Type: eventFocus}, false},
-		{"paste", GocuiEvent{Type: eventPaste}, false},
+		{"paste", GocuiEvent{Type: eventPaste}, true},
 		{"error", GocuiEvent{Type: eventError}, false},
 	}
 
@@ -86,7 +86,7 @@ func TestBlockingEvents_KeysBufferedAndReplayed(t *testing.T) {
 
 	runQueuedWork(t, g)
 	assert.Len(t, *fired, 3, "both buffered keys should replay on unblock")
-	assert.Empty(t, g.bufferedKeyEvents)
+	assert.Empty(t, g.bufferedInputEvents)
 }
 
 func TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt(t *testing.T) {
@@ -109,6 +109,29 @@ func TestBlockingEvents_KeysArrivingBeforeTheReplayGoBehindIt(t *testing.T) {
 
 	runQueuedWork(t, g)
 	assert.Equal(t, []int{1, 0}, *fired, "the keys should arrive in the order they were pressed")
+}
+
+func TestBlockingEvents_PastedKeysReplayedAsPasted(t *testing.T) {
+	g := newTestGui(t)
+	keyEvent, fired := setupKeyRecorder(t, g)
+	pasteStart := GocuiEvent{Type: eventPaste, Start: true}
+	pasteEnd := GocuiEvent{Type: eventPaste, Start: false}
+
+	// Pasting into a view that isn't editable doesn't run its keybindings.
+	assert.NoError(t, g.handleEvent(&pasteStart))
+	assert.NoError(t, g.handleEvent(&keyEvent))
+	assert.NoError(t, g.handleEvent(&pasteEnd))
+	assert.Empty(t, *fired)
+
+	// The same must hold for a paste that arrives while input is blocked.
+	g.BeginBlockingEvents()
+	assert.NoError(t, g.handleEvent(&pasteStart))
+	assert.NoError(t, g.handleEvent(&keyEvent))
+	assert.NoError(t, g.handleEvent(&pasteEnd))
+	g.EndBlockingEvents()
+	runQueuedWork(t, g)
+	assert.Empty(t, *fired)
+	assert.False(t, g.isPasting)
 }
 
 func TestBlockingEvents_NestsWithCounter(t *testing.T) {
@@ -136,7 +159,7 @@ func TestBlockingEvents_MouseClicksDroppedNotBuffered(t *testing.T) {
 	g.BeginBlockingEvents()
 	click := GocuiEvent{Type: eventMouse, Key: NewKeyName(MouseLeft)}
 	assert.NoError(t, g.handleEvent(&click))
-	assert.Empty(t, g.bufferedKeyEvents, "mouse clicks must be dropped, not buffered")
+	assert.Empty(t, g.bufferedInputEvents, "mouse clicks must be dropped, not buffered")
 	g.EndBlockingEvents()
 	runQueuedWork(t, g)
 }

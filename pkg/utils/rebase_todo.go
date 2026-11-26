@@ -68,6 +68,40 @@ func findTodo(todos []todo.Todo, todoToFind Todo) (int, bool) {
 	return idx, ok
 }
 
+// LastDoneTodoWasRescheduled tells whether git put the last command of
+// rebase-merge/done back into git-rebase-todo, given the parsed contents of
+// these two files. In certain cases, git reschedules commands that failed. One
+// example is if a patch would overwrite an untracked file; another one is an
+// "exec" that failed.
+func LastDoneTodoWasRescheduled(doneTodos []todo.Todo, todos []todo.Todo) bool {
+	// If the last command of the "done" file is the same as the first command
+	// of "git-rebase-todo", the command was rescheduled.
+	if len(doneTodos) > 0 && len(todos) > 0 && doneTodos[len(doneTodos)-1] == todos[0] {
+		return true
+	}
+
+	// Older versions of git have a bug whereby, if a command is rescheduled,
+	// the last successful command is appended to the "done" file again. To
+	// detect this, we need to compare the second-to-last done entry against the
+	// first todo entry, and also compare the last done entry against the
+	// last-but-two done entry; this latter check is needed for the following
+	// case:
+	//   pick A
+	//   exec make test
+	//   pick B
+	//   exec make test
+	// If pick B fails with conflicts, then the "done" file contains
+	//   pick A
+	//   exec make test
+	//   pick B
+	// and git-rebase-todo contains
+	//   exec make test
+	// Without the last condition we would erroneously treat this as the exec
+	// command being rescheduled.
+	return len(doneTodos) >= 3 && len(todos) > 0 && doneTodos[len(doneTodos)-2] == todos[0] &&
+		doneTodos[len(doneTodos)-1] == doneTodos[len(doneTodos)-3]
+}
+
 func ReadRebaseTodoFile(fileName string, commentChar byte) ([]todo.Todo, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -330,4 +364,31 @@ func dropMergeCommit(todos []todo.Todo, hash string) ([]todo.Todo, error) {
 
 	_, idx, _ := lo.FindIndexOf(todos, isMerge)
 	return slices.Delete(todos, idx, idx+1), nil
+}
+
+// Read a git-rebase-todo file, make the todo for the given commit use a
+// different commit instead, and write it back
+func ChangeTodoCommit(fileName string, hash string, newHash string, commentChar byte) error {
+	todos, err := ReadRebaseTodoFile(fileName, commentChar)
+	if err != nil {
+		return err
+	}
+
+	newTodos, err := changeTodoCommit(todos, hash, newHash)
+	if err != nil {
+		return err
+	}
+
+	return WriteRebaseTodoFile(fileName, newTodos, commentChar)
+}
+
+func changeTodoCommit(todos []todo.Todo, hash string, newHash string) ([]todo.Todo, error) {
+	idx, ok := findTodo(todos, Todo{Hash: hash})
+	if !ok {
+		// Should never happen
+		return nil, fmt.Errorf("Todo %s not found in git-rebase-todo", hash)
+	}
+
+	todos[idx].Commit = newHash
+	return todos, nil
 }

@@ -537,7 +537,7 @@ func (gui *Gui) onUserConfigLoaded() error {
 	// originally we could only hide the command log permanently via the config
 	// but now we do it via state. So we need to still support the config for the
 	// sake of backwards compatibility. We're making use of short circuiting here
-	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.GetAppState().HideCommandLog
+	gui.ShowExtrasWindow = userConfig.Gui.ShowCommandLog && !gui.c.ReadAppState().HideCommandLog
 
 	if userConfig.Gui.NerdFontsVersion != "" {
 		icons.SetNerdFontsVersion(userConfig.Gui.NerdFontsVersion)
@@ -666,7 +666,7 @@ func (gui *Gui) resetState(startArgs appTypes.StartArgs) types.Context {
 
 	gui.applySidePanelConfig()
 
-	return initialContext(contextTree, startArgs)
+	return initialContext(contextTree, startArgs, gui.git.Bisect.GetInfo().Started())
 }
 
 func (gui *Gui) loadCachedPullRequests() []*models.GithubPullRequest {
@@ -754,7 +754,7 @@ func parseScreenModeArg(screenModeArg string) types.ScreenMode {
 	}
 }
 
-func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs) types.IListContext {
+func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartArgs, bisectStarted bool) types.IListContext {
 	var initialContext types.IListContext = contextTree.Files
 
 	if startArgs.FilterPath != "" {
@@ -772,6 +772,10 @@ func initialContext(contextTree *context.ContextTree, startArgs appTypes.StartAr
 		default:
 			panic("unhandled git arg")
 		}
+	} else if bisectStarted {
+		// The commits panel shows how far the bisect has got, and the user
+		// marks the commits to test there
+		initialContext = contextTree.LocalCommits
 	}
 
 	return initialContext
@@ -1184,10 +1188,11 @@ func (gui *Gui) showIntroPopupMessage() {
 
 	gui.c.OnUIThread(func() error {
 		onConfirm := func() error {
-			gui.c.GetAppState().StartupPopupVersion = StartupPopupVersion
-			err := gui.c.SaveAppState()
+			gui.c.UpdateAppState(func(state *config.AppState) {
+				state.StartupPopupVersion = StartupPopupVersion
+			})
 			gui.waitForIntro.Done()
-			return err
+			return nil
 		}
 
 		introMessage := utils.ResolvePlaceholderString(
@@ -1218,7 +1223,7 @@ func (gui *Gui) showBreakingChangesMessage() {
 	}
 
 	last := &types.VersionNumber{}
-	lastVersionStr := gui.c.GetAppState().LastVersion
+	lastVersionStr := gui.c.ReadAppState().LastVersion
 	// If there's no saved last version, we show all release notes. This is for
 	// people upgrading from a version before we started to save lastVersion.
 	// First time new users won't see the release notes because we show them the

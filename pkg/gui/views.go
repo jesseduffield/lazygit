@@ -101,6 +101,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Search.Editable = true
 	gui.Views.Search.Frame = false
 	gui.Views.Search.Editor = gocui.EditorFunc(gui.searchEditor)
+	gui.Views.Search.OnPaste = func(text string) error {
+		gui.pasteIntoSearch(text)
+		return nil
+	}
 
 	for _, view := range []*gocui.View{gui.Views.Main, gui.Views.Secondary, gui.Views.MergeConflicts} {
 		view.Wrap = true
@@ -119,10 +123,18 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.CommitMessage.Visible = false
 	gui.Views.CommitMessage.Editable = true
 	gui.Views.CommitMessage.Editor = gocui.EditorFunc(gui.commitMessageEditor)
+	gui.Views.CommitMessage.OnPaste = func(text string) error {
+		gui.helpers.Commits.HandlePasteIntoSummary(text)
+		return nil
+	}
 
 	gui.Views.CommitDescription.Visible = false
 	gui.Views.CommitDescription.Editable = true
 	gui.Views.CommitDescription.Editor = gocui.EditorFunc(gui.commitDescriptionEditor)
+	gui.Views.CommitDescription.OnPaste = func(text string) error {
+		gui.helpers.Commits.HandlePasteIntoDescription(text)
+		return nil
+	}
 
 	gui.Views.Confirmation.Visible = false
 	gui.Views.Confirmation.Wrap = true
@@ -132,6 +144,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.Prompt.Wrap = false // We don't want wrapping in one-line prompts
 	gui.Views.Prompt.Editable = true
 	gui.Views.Prompt.Editor = gocui.EditorFunc(gui.promptEditor)
+	gui.Views.Prompt.OnPaste = func(text string) error {
+		gui.pasteIntoPrompt(text)
+		return nil
+	}
 
 	gui.Views.Suggestions.Visible = false
 
@@ -142,6 +158,10 @@ func (gui *Gui) createAllViews() error {
 	gui.Views.MenuFilter.Frame = false
 	gui.Views.MenuFilter.Editable = true
 	gui.Views.MenuFilter.Editor = gocui.EditorFunc(gui.menuFilterEditor)
+	gui.Views.MenuFilter.OnPaste = func(text string) error {
+		gui.pasteIntoMenuFilter(text)
+		return nil
+	}
 	// The filter row belongs to the menu: it shares the menu's focus, and keys
 	// that the input field doesn't take are the menu's to handle.
 	gui.Views.MenuFilterFrame.ParentView = gui.Views.Menu

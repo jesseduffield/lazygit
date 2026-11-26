@@ -4,7 +4,6 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
-	"github.com/samber/lo"
 )
 
 type CommitDescriptionController struct {
@@ -27,7 +26,7 @@ func (self *CommitDescriptionController) GetKeybindings(opts types.KeybindingsOp
 	bindings := []*types.Binding{
 		{
 			Keys:    opts.GetKeys(opts.Config.Universal.TogglePanel),
-			Handler: self.handleTogglePanel,
+			Handler: self.switchToCommitMessage,
 		},
 		{
 			Keys:    opts.GetKeys(opts.Config.Universal.Return),
@@ -84,32 +83,6 @@ func (self *CommitDescriptionController) GetOnQuit() func() {
 func (self *CommitDescriptionController) switchToCommitMessage() error {
 	self.c.Context().Replace(self.c.Contexts().CommitMessage)
 	return nil
-}
-
-func (self *CommitDescriptionController) handleTogglePanel() error {
-	// The default keybinding for this action is "<tab>", which means that we
-	// also get here when pasting multi-line text that contains tabs. In that
-	// case we don't want to toggle the panel, but insert the tab as a character
-	// (somehow, see below).
-	//
-	// Only do this if the TogglePanel command is actually mapped to "<tab>"
-	// (the default). If it's not, we can only hope that it's mapped to some
-	// ctrl key or fn key, which is unlikely to occur in pasted text. And if
-	// they mapped some *other* command to "<tab>", then we're totally out of
-	// luck.
-	if self.c.GocuiGui().IsPasting && lo.Contains(self.c.UserConfig().Keybinding.Universal.TogglePanel, "<tab>") {
-		// Handling tabs in pasted commit messages is not optimal, but hopefully
-		// good enough for now. We simply insert 4 spaces without worrying about
-		// column alignment. This works well enough for leading indentation,
-		// which is common in pasted code snippets.
-		view := self.Context().GetView()
-		for range 4 {
-			view.Editor.Edit(view, gocui.NewKeyRune(' '))
-		}
-		return nil
-	}
-
-	return self.switchToCommitMessage()
 }
 
 func (self *CommitDescriptionController) close() error {

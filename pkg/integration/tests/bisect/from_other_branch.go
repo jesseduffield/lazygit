@@ -6,7 +6,7 @@ import (
 )
 
 var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
-	Description:  "Opening lazygit when bisect has been started from another branch. There's an issue where we don't reselect the current branch if we mark the current branch as bad so this test side-steps that problem",
+	Description:  "Opening lazygit when bisect has been started from another branch",
 	ExtraCmdArgs: []string{},
 	Skip:         false,
 	SetupRepo: func(shell *Shell) {
@@ -25,11 +25,10 @@ var FromOtherBranch = NewIntegrationTest(NewIntegrationTestArgs{
 			Focus().
 			TopLines(
 				MatchesRegexp(`<-- bad.*commit-08`),
-				MatchesRegexp(`<-- current.*commit-07`),
+				MatchesRegexp(`<-- current.*commit-07`).IsSelected(),
 				MatchesRegexp(`\?.*commit-06`),
 				MatchesRegexp(`<-- good.*commit-05`),
 			).
-			SelectNextItem().
 			Press(keys.Commits.ViewBisectOptions).
 			Tap(func() {
 				t.ExpectPopup().Menu().Title(Equals("Bisect")).Select(MatchesRegexp(`Mark .* as good`)).Confirm()

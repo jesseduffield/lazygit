@@ -302,6 +302,22 @@ func (wrapper TcellFocusEventWrapper) toTcellEvent() tcell.Event {
 	return tcell.NewEventFocus(wrapper.Focused)
 }
 
+type TcellPasteEventWrapper struct {
+	Start bool
+
+	task Task // see GocuiEvent.task
+}
+
+func NewTcellPasteEventWrapper(event *tcell.EventPaste) *TcellPasteEventWrapper {
+	return &TcellPasteEventWrapper{
+		Start: event.Start(),
+	}
+}
+
+func (wrapper TcellPasteEventWrapper) toTcellEvent() tcell.Event {
+	return tcell.NewEventPaste(wrapper.Start)
+}
+
 // pollEvent get tcell.Event and transform it into gocuiEvent
 func (g *Gui) pollEvent() GocuiEvent {
 	var tev tcell.Event
@@ -317,6 +333,9 @@ func (g *Gui) pollEvent() GocuiEvent {
 			tev = ev.toTcellEvent()
 			task = ev.task
 		case ev := <-g.replayedEvents.FocusEvents:
+			tev = ev.toTcellEvent()
+			task = ev.task
+		case ev := <-g.replayedEvents.PasteEvents:
 			tev = ev.toTcellEvent()
 			task = ev.task
 		}

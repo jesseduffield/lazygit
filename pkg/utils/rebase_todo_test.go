@@ -596,6 +596,75 @@ func TestRebaseCommands_deleteTodos(t *testing.T) {
 	}
 }
 
+func TestRebaseCommands_changeTodoCommit(t *testing.T) {
+	scenarios := []struct {
+		name          string
+		todos         []todo.Todo
+		hash          string
+		newHash       string
+		expectedTodos []todo.Todo
+		expectedErr   error
+	}{
+		{
+			name: "success",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234", Msg: "first"},
+				{Command: todo.Pick, Commit: "5678", Msg: "second"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "abcd", Msg: "third"},
+			},
+			hash:    "5678",
+			newHash: "ef01",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234", Msg: "first"},
+				{Command: todo.Pick, Commit: "ef01", Msg: "second"},
+				{Command: todo.UpdateRef, Ref: "refs/heads/some_branch"},
+				{Command: todo.Pick, Commit: "abcd", Msg: "third"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "abbreviated hash in todo",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			hash:    "56789abc",
+			newHash: "ef01",
+			expectedTodos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "ef01"},
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "failure",
+			todos: []todo.Todo{
+				{Command: todo.Pick, Commit: "1234"},
+				{Command: todo.Pick, Commit: "5678"},
+			},
+			hash:          "abcd",
+			newHash:       "ef01",
+			expectedTodos: nil,
+			expectedErr:   errors.New("Todo abcd not found in git-rebase-todo"),
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			actualTodos, actualErr := changeTodoCommit(scenario.todos, scenario.hash, scenario.newHash)
+
+			if scenario.expectedErr == nil {
+				assert.NoError(t, actualErr)
+			} else {
+				assert.EqualError(t, actualErr, scenario.expectedErr.Error())
+			}
+
+			assert.EqualValues(t, scenario.expectedTodos, actualTodos)
+		})
+	}
+}
+
 func Test_equalHash(t *testing.T) {
 	scenarios := []struct {
 		a        string

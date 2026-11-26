@@ -3,7 +3,12 @@ package git_commands
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+
+	"github.com/jesseduffield/generics/set"
+	"github.com/jesseduffield/lazygit/pkg/commands/models"
+	"github.com/samber/lo"
 )
 
 type BisectCommands struct {
@@ -180,6 +185,40 @@ func (self *BisectCommands) IsDone() (bool, []string, error) {
 	return done, candidates, nil
 }
 
+// Asks git which of the given commits the bisect hasn't ruled out yet, and
+// stores them in the bisect info. Git may list many more commits than these,
+// so we don't keep the others.
+func (self *BisectCommands) LoadCandidates(info *BisectInfo, commits []*models.Commit) error {
+	if !info.Bisecting() {
+		return nil
+	}
+
+	oldHashes := lo.Keys(lo.PickBy(info.statusMap, func(_ string, status BisectStatus) bool {
+		return status == BisectStatusOld
+	}))
+	cmdArgs := NewGitCmd("rev-list").
+		Arg(info.GetNewHash(), "--not").
+		Arg(oldHashes...).
+		ToArgv()
+
+	loadedHashes := set.NewFromSlice(lo.Map(commits, func(commit *models.Commit, _ int) string {
+		return commit.Hash()
+	}))
+	candidates := set.New[string]()
+	err := self.cmd.New(cmdArgs).DontLog().RunAndProcessLines(func(line string) (bool, error) {
+		if hash := strings.TrimSpace(line); loadedHashes.Includes(hash) {
+			candidates.Add(hash)
+		}
+		return false, nil
+	})
+	if err != nil {
+		return err
+	}
+
+	info.candidates = candidates
+	return nil
+}
+
 // tells us whether the 'start' ref that we'll be sent back to after we're done
 // bisecting is actually a descendant of our current bisect commit. If it's not, we need to
 // render the commits from the bad commit.
@@ -191,4 +230,21 @@ func (self *BisectCommands) ReachableFromStart(bisectInfo *BisectInfo) bool {
 	err := self.cmd.New(cmdArgs).DontLog().Run()
 
 	return err == nil
+}
+
+// Returns the number of commits that are reachable from logRef but not from
+// the given commit. In a log of logRef, parents come after their children
+// (unless the log uses git's default order and commit dates are skewed), so
+// the commit is at most this many commits down from the top.
+func (self *BisectCommands) CountCommitsAbove(hash string, logRef string) (int, error) {
+	cmdArgs := NewGitCmd("rev-list").
+		Arg("--count", hash+".."+logRef).
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.Atoi(strings.TrimSpace(output))
 }

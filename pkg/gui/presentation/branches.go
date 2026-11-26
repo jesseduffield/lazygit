@@ -162,7 +162,8 @@ func getBranchDisplayStrings(
 	res = append(res, coloredPrIcon)
 
 	if showCommitHash {
-		res = append(res, utils.ShortHash(b.CommitHash))
+		// The CommitHash of a detached HEAD is empty, but its Name is the hash
+		res = append(res, utils.ShortHash(lo.Ternary(b.DetachedHead, b.Name, b.CommitHash)))
 	}
 
 	if divergence != "" {

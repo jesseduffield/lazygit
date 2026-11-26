@@ -38,10 +38,10 @@ func (r *SubmoduleConfig) Description() string {
 	return r.RefName()
 }
 
-func (r *SubmoduleConfig) GitDirPath(repoGitDirPath string) string {
-	parentPath := repoGitDirPath
+func (r *SubmoduleConfig) GitDirPath(worktreeGitDirPath string) string {
+	parentPath := worktreeGitDirPath
 	if r.ParentModule != nil {
-		parentPath = r.ParentModule.GitDirPath(repoGitDirPath)
+		parentPath = r.ParentModule.GitDirPath(worktreeGitDirPath)
 	}
 
 	return filepath.Join(parentPath, "modules", r.Name)

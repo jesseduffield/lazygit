@@ -361,6 +361,11 @@ func (self *WorkingTreeCommands) DiscardUnstagedFileChanges(file *models.File) e
 	return self.cmd.New(cmdArgs).Run()
 }
 
+// DiscardUnstagedChanges discards the unstaged changes of the given files
+func (self *WorkingTreeCommands) DiscardUnstagedChanges(paths []string) error {
+	return runGitCmdOnPaths("checkout", paths, self.cmd)
+}
+
 // Escapes special characters in a filename for gitignore and exclude files, and prepends `/`
 func escapeFilename(filename string) string {
 	re := regexp.MustCompile(`^[!#]|[\[\]*]`)

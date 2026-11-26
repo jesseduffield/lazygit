@@ -3,6 +3,7 @@ package gui
 import (
 	"io"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
@@ -23,8 +24,9 @@ func (gui *Gui) handleCreateExtrasMenuPanel() error {
 					}
 					show := !gui.c.State().GetShowExtrasWindow()
 					gui.c.State().SetShowExtrasWindow(show)
-					gui.c.GetAppState().HideCommandLog = !show
-					gui.c.SaveAppStateAndLogError()
+					gui.c.UpdateAppState(func(state *config.AppState) {
+						state.HideCommandLog = !show
+					})
 					return nil
 				},
 			},

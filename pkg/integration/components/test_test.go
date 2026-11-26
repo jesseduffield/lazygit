@@ -84,6 +84,9 @@ func (self *fakeGuiDriver) OnUIThreadAndWait(f func()) {
 func (self *fakeGuiDriver) FocusIn() {
 }
 
+func (self *fakeGuiDriver) Paste(text string) {
+}
+
 func (self *fakeGuiDriver) FocusInAndClick(x, y int) {
 	self.clickedCoordinates = append(self.clickedCoordinates, coordinate{x: x, y: y})
 }

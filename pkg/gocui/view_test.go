@@ -5,8 +5,11 @@
 package gocui
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/gdamore/tcell/v3"
 	"github.com/gdamore/tcell/v3/color"
@@ -16,16 +19,16 @@ import (
 )
 
 // WithSimulationScreen swaps the package-level Screen for a tcell
-// terminfo-backed mock terminal so tests can call view.draw() and
-// inspect rendered cells via Screen.Get(). The previous Screen is
-// restored on test cleanup.
-func WithSimulationScreen(t *testing.T, width, height int) {
-	t.Helper()
+// terminfo-backed mock terminal so tests and benchmarks can call
+// view.draw() and inspect rendered cells via Screen.Get(). The previous
+// Screen is restored on test cleanup.
+func WithSimulationScreen(tb testing.TB, width, height int) {
+	tb.Helper()
 	saved := Screen
 	if err := (&Gui{}).tcellInitSimulation(width, height); err != nil {
-		t.Fatal(err)
+		tb.Fatal(err)
 	}
-	t.Cleanup(func() {
+	tb.Cleanup(func() {
 		Screen.Fini()
 		Screen = saved
 	})
@@ -236,19 +239,19 @@ func TestAutoRenderingHyperlinks(t *testing.T) {
 
 	v.writeString("htt")
 	// No hyperlinks are generated for incomplete URLs
-	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "", v.buf.lines[0].cells[0].hyperlink())
 	// Writing more characters to the same line makes the link complete (even
 	// though we didn't see a newline yet)
 	v.writeString("ps://example.com")
-	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink())
 
 	v.Clear()
 	// Valid but incomplete URL
 	v.writeString("https://exa")
-	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://exa", v.buf.lines[0].cells[0].hyperlink())
 	// Writing more characters to the same fixes the link
 	v.writeString("mple.com")
-	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink)
+	assert.Equal(t, "https://example.com", v.buf.lines[0].cells[0].hyperlink())
 }
 
 // osc1717 wraps an OSC 1717 payload in the sequence a diff renderer emits it in:
@@ -1084,6 +1087,18 @@ func TestMulticolorWrappedFillUsesLastCellOfEachSegment(t *testing.T) {
 	}
 }
 
+func TestEraseInLineInCopiedContent(t *testing.T) {
+	from := NewView("from", 0, 0, 10, 10, OutputTrue)
+	from.SetContent("hello")
+	v := NewView("name", 0, 0, 10, 10, OutputTrue)
+	v.CopyContent(from)
+
+	v.SetWritePos(2, 0)
+	_, _ = v.Write([]byte("\x1b[K"))
+
+	assert.Equal(t, []string{"he"}, v.BufferLines())
+}
+
 func TestApplySelTextColor(t *testing.T) {
 	scenarios := []struct {
 		name         string
@@ -1327,6 +1342,16 @@ func TestSearchMatchBesideTheInclusionGutter(t *testing.T) {
 	assert.Equal(t,
 		".....##...",
 		highlightedColumns(1))
+
+	// Scrolled sideways, a match that begins in the columns scrolled off to the left
+	// is highlighted where it shows, and not in the gutter.
+	v.UpdateSearchResults("12", nil)
+	v.SetOriginX(2)
+	v.draw(true)
+	// The row reads "✓ 23456789", so the "2" of the match is at view column 2.
+	assert.Equal(t,
+		"..#.......",
+		highlightedColumns(1))
 }
 
 // A hyperlink beside the inclusion gutter is underlined while the mouse is over it.
@@ -1337,7 +1362,7 @@ func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
 	v.InclusionGutterMarker = "✓"
 	v.UnderlineHyperLinksOnlyOnHover = true
 
-	v.writeString("ab\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\cd\n")
+	v.writeString("ab\x1b]8;;https://example.com\x1b\\link\x1b]8;;\x1b\\cdefg\n")
 	v.SetInclusionGutter(true, []bool{true})
 
 	// The row reads "✓ ablinkcd". Point at the "l" of "link", at view column 4,
@@ -1355,6 +1380,16 @@ func TestHoveredHyperlinkBesideTheInclusionGutter(t *testing.T) {
 	}
 	assert.Equal(t,
 		"....____..",
+		underlinedColumns(1))
+
+	// Scrolled sideways, a hyperlink that begins in the columns scrolled off to the
+	// left is underlined where it shows, and not in the gutter. The row reads
+	// "✓ inkcdefg"; point at the "k" of "link", at view column 4 again.
+	v.SetOriginX(3)
+	v.onMouseMove(5, 1)
+	v.draw(true)
+	assert.Equal(t,
+		"..___.....",
 		underlinedColumns(1))
 }
 
@@ -1519,4 +1554,76 @@ func TestShowingTheInclusionGutterKeepsThePlaceInTheContent(t *testing.T) {
 	v.SetInclusionGutter(true, []bool{false, false, true, false})
 	assert.Equal(t, 6, v.ViewLinesHeight())
 	assert.Equal(t, "three", v.SelectedLine())
+}
+
+func TestStartsWithPrintableASCIICluster(t *testing.T) {
+	// Wherever the shortcut applies, uniseg must agree with it: the character is a
+	// cluster of its own, and one column wide.
+	agreesWithUniseg := func(p []byte) {
+		if !startsWithPrintableASCIICluster(p) {
+			return
+		}
+		cluster, _, width, _ := uniseg.FirstGraphemeCluster(p, -1)
+		assert.Equal(t, p[:1], cluster, "%q", p)
+		assert.Equal(t, 1, width, "%q", p)
+	}
+	for first := range byte(utf8.RuneSelf) {
+		agreesWithUniseg([]byte{first})
+		for second := range byte(utf8.RuneSelf) {
+			agreesWithUniseg([]byte{first, second})
+		}
+	}
+
+	assert.True(t, startsWithPrintableASCIICluster([]byte("ab")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("e\u0301")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("\t")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("\r\n")))
+	assert.False(t, startsWithPrintableASCIICluster([]byte("\x1b[")))
+}
+
+// filesPanelContent returns n lines shaped like the lines of the files panel, with
+// colors and file icons.
+func filesPanelContent(n int) string {
+	var sb strings.Builder
+	for i := range n {
+		fmt.Fprintf(&sb, "    ??\x1b[39m \x1b[0m\x1b[38;2;255;202;41m\U000f031e\x1b[0m\x1b[39m \x1b[0m\x1b[39msome_module_file_%06d.js\x1b[0m\n", i)
+	}
+	return sb.String()
+}
+
+// diffContent returns n lines shaped like the output of `git diff --color`.
+func diffContent(n int) string {
+	var sb strings.Builder
+	for i := range n {
+		switch i % 4 {
+		case 0:
+			fmt.Fprintf(&sb, "\x1b[32m+\tif err := doSomething(ctx, %d); err != nil {\x1b[m\n", i)
+		case 1:
+			fmt.Fprintf(&sb, "\x1b[31m-\t\treturn fmt.Errorf(\"failed to do something: %%w\", err)\x1b[m\n")
+		default:
+			fmt.Fprintf(&sb, " \t// an unchanged context line with a bit of text, number %d\n", i)
+		}
+	}
+	return sb.String()
+}
+
+func BenchmarkSetContentFilesPanel(b *testing.B) {
+	content := filesPanelContent(100_000)
+	b.ReportAllocs()
+	for b.Loop() {
+		v := NewView("name", 0, 0, 100, 40, OutputTrue)
+		v.SetContent(content)
+	}
+}
+
+// A diff arrives in the main view a line at a time.
+func BenchmarkWriteDiffLineByLine(b *testing.B) {
+	lines := bytes.SplitAfter([]byte(diffContent(100_000)), []byte("\n"))
+	b.ReportAllocs()
+	for b.Loop() {
+		v := NewView("name", 0, 0, 100, 40, OutputTrue)
+		for _, line := range lines {
+			_, _ = v.Write(line)
+		}
+	}
 }
