@@ -133,7 +133,7 @@ var DiscardOldFileChanges = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("multiLineFile")).
 			PressEnter()
 
-		t.Views().PatchBuilding().
+		t.Views().Main().
 			IsFocused().
 			SelectedLine(
 				Contains("+this file has"),

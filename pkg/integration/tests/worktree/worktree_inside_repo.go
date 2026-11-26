@@ -22,7 +22,7 @@ var WorktreeInsideRepo = NewIntegrationTest(NewIntegrationTestArgs{
 		t.Views().Files().
 			IsFocused().
 			Lines(
-				Equals("?? 󰌹 nested-worktree").IsSelected(),
+				Equals("?? 󰌹 nested-worktree (worktree)").IsSelected(),
 			)
 	},
 })

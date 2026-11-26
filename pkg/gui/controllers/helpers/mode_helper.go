@@ -7,6 +7,7 @@ import (
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/style"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -14,7 +15,7 @@ type ModeHelper struct {
 	c *HelperCommon
 
 	diffHelper                   *DiffHelper
-	patchBuildingHelper          *PatchBuildingHelper
+	customPatchHelper            *CustomPatchHelper
 	cherryPickHelper             *CherryPickHelper
 	mergeAndRebaseHelper         *MergeAndRebaseHelper
 	bisectHelper                 *BisectHelper
@@ -24,7 +25,7 @@ type ModeHelper struct {
 func NewModeHelper(
 	c *HelperCommon,
 	diffHelper *DiffHelper,
-	patchBuildingHelper *PatchBuildingHelper,
+	customPatchHelper *CustomPatchHelper,
 	cherryPickHelper *CherryPickHelper,
 	mergeAndRebaseHelper *MergeAndRebaseHelper,
 	bisectHelper *BisectHelper,
@@ -32,7 +33,7 @@ func NewModeHelper(
 	return &ModeHelper{
 		c:                    c,
 		diffHelper:           diffHelper,
-		patchBuildingHelper:  patchBuildingHelper,
+		customPatchHelper:    customPatchHelper,
 		cherryPickHelper:     cherryPickHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
 		bisectHelper:         bisectHelper,
@@ -71,9 +72,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				return self.withResetButton(self.c.Tr.BuildingPatch, style.FgYellow.SetBold())
 			},
 			CancelLabel: func() string {
-				return self.c.Tr.ExitCustomPatchBuilder
+				return self.c.Tr.ResetCustomPatch
 			},
-			Reset: self.patchBuildingHelper.Reset,
+			Reset: self.customPatchHelper.Reset,
 		},
 		{
 			IsActive: self.c.Modes().Filtering.Active,
@@ -140,7 +141,9 @@ func (self *ModeHelper) Statuses() []ModeStatus {
 				)
 			},
 			CancelLabel: func() string {
-				return fmt.Sprintf(self.c.Tr.AbortTitle, self.c.Git().Status.WorkingTreeState().CommandName())
+				return utils.ResolvePlaceholderString(self.c.Tr.AbortOperationTitle, map[string]string{
+					"operation": self.c.Git().Status.WorkingTreeState().OperationName(self.c.Tr),
+				})
 			},
 			Reset: self.mergeAndRebaseHelper.AbortMergeOrRebaseWithConfirm,
 		},

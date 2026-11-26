@@ -30,8 +30,6 @@ type RefreshHelper struct {
 	c                    *HelperCommon
 	refsHelper           *RefsHelper
 	mergeAndRebaseHelper *MergeAndRebaseHelper
-	patchBuildingHelper  *PatchBuildingHelper
-	stagingHelper        *StagingHelper
 	mergeConflictsHelper *MergeConflictsHelper
 	worktreeHelper       *WorktreeHelper
 	searchHelper         *SearchHelper
@@ -62,8 +60,6 @@ func NewRefreshHelper(
 	c *HelperCommon,
 	refsHelper *RefsHelper,
 	mergeAndRebaseHelper *MergeAndRebaseHelper,
-	patchBuildingHelper *PatchBuildingHelper,
-	stagingHelper *StagingHelper,
 	mergeConflictsHelper *MergeConflictsHelper,
 	worktreeHelper *WorktreeHelper,
 	searchHelper *SearchHelper,
@@ -72,8 +68,6 @@ func NewRefreshHelper(
 		c:                    c,
 		refsHelper:           refsHelper,
 		mergeAndRebaseHelper: mergeAndRebaseHelper,
-		patchBuildingHelper:  patchBuildingHelper,
-		stagingHelper:        stagingHelper,
 		mergeConflictsHelper: mergeConflictsHelper,
 		worktreeHelper:       worktreeHelper,
 		searchHelper:         searchHelper,
@@ -138,6 +132,14 @@ type refreshEnv struct {
 	// Held by pointer so the copies of env that flow through the scope functions
 	// all share the one batch.
 	batch *refreshBounceBatch
+}
+
+// focusOpts returns the options for re-rendering the views this refresh updates.
+func (env refreshEnv) focusOpts() types.OnFocusOpts {
+	return types.OnFocusOpts{
+		KeepScrollPosition: env.keepScrollPosition,
+		SkipMainViewUpdate: env.skipMainViewUpdate,
+	}
 }
 
 // refreshBounceBatch collects the UI-thread bounces of a batched refresh so they
@@ -209,17 +211,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		panic("a refresh with a Then callback must not set DontBlockRepoSwitch")
 	}
 
-	// A RefreshBlockingInput caller wants keyboard input withheld until the
-	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
-	// the block synchronously here in the calling handler, so that no keypress
-	// can slip through before it; the finishing step ends it from a callback
-	// queued behind the refresh's own updates (see waitAndFinalize). Demos
-	// take the blocking inline path below and need none of this.
-	blockInputUntilDone := blockInput && !self.c.InDemo()
-	if blockInputUntilDone {
-		self.c.GocuiGui().BeginBlockingEvents()
-	}
-
 	// Capture the refresh's baseline once, here at the start: the repo
 	// generation that every scope's bounce is guarded against, and the git
 	// command instance the scopes run their commands through. The two are
@@ -242,14 +233,42 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 	}) {
 		return
 	}
+
+	// If the repo or worktree was deleted, there's nothing we can show any
+	// more, and every git command would fail.
+	if path, missing := env.git.RepoPaths.MissingDir(); missing {
+		self.c.OnUIThread(func() error {
+			if self.c.State().GetRepoGeneration() != env.generation {
+				// We have switched away from the deleted worktree
+				return nil
+			}
+
+			return types.ErrQuitWithMessage{
+				Message: utils.ResolvePlaceholderString(
+					self.c.Tr.RepoDirNoLongerExists, map[string]string{"path": path},
+				),
+			}
+		})
+		return
+	}
+
+	// A RefreshBlockingInput caller wants keyboard input withheld until the
+	// refreshed state is in place (see IGuiCommon.RefreshBlockingInput). Begin
+	// the block synchronously here in the calling handler, so that no keypress
+	// can slip through before it; the finishing step ends it from a callback
+	// queued behind the refresh's own updates (see waitAndFinalize). Demos
+	// take the blocking inline path below and need none of this.
+	blockInputUntilDone := blockInput && !self.c.InDemo()
+	if blockInputUntilDone {
+		self.c.GocuiGui().BeginBlockingEvents()
+	}
+
 	if options.BatchUIUpdates {
 		env.batch = &refreshBounceBatch{}
 	}
 
 	var scopeSet *set.Set[types.RefreshableView]
 	if len(options.Scope) == 0 {
-		// not refreshing staging/patch-building unless explicitly requested because we only need
-		// to refresh those while focused.
 		scopeSet = set.NewFromSlice([]types.RefreshableView{
 			types.COMMITS,
 			types.BRANCHES,
@@ -261,7 +280,6 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			types.WORKTREES,
 			types.STATUS,
 			types.BISECT_INFO,
-			types.STAGING,
 			types.PULL_REQUESTS,
 		})
 	} else {
@@ -516,37 +534,9 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 		})
 	}
 
-	if scopeSet.Includes(types.STAGING) {
-		refresh("staging", func() {
-			fileWg.Wait()
-			// Bounce onto the UI thread so this runs after the files
-			// scope's model-update bounce — RefreshStagingPanel reads
-			// Model.Files (via Files.GetSelected) and would otherwise
-			// see the pre-refresh model. Guard on the generation so a
-			// repo switch mid-refresh drops it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.stagingHelper.RefreshStagingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
-	if scopeSet.Includes(types.PATCH_BUILDING) {
-		refresh("patch building", func() {
-			// Bounce onto the UI thread, like the staging panel above:
-			// RefreshPatchBuildingPanel reads the commit-files selection and
-			// sets the patch view's origin, neither of which may run off the UI
-			// thread. Guard on the generation so a repo switch mid-refresh drops
-			// it, like the model bounces.
-			self.onUIThreadUnlessRepoChanged(env, func() {
-				self.patchBuildingHelper.RefreshPatchBuildingPanel(types.OnFocusOpts{})
-			})
-		})
-	}
-
 	if scopeSet.Includes(types.MERGE_CONFLICTS) {
 		refresh("merge conflicts", func() {
-			// Bounce onto the UI thread, like the staging and patch-building
-			// panels above: RefreshMergeState reads the current context and
+			// Bounce onto the UI thread: RefreshMergeState reads the current context and
 			// renders (or escapes) the merge-conflicts view, none of which may
 			// run off the UI thread.
 			self.onUIThreadUnlessRepoChanged(env, func() {
@@ -589,7 +579,8 @@ func (self *RefreshHelper) performRefresh(options types.RefreshOptions, calledFr
 			// this runs — and the keys buffered during the refresh replay —
 			// the refreshed state is in place.
 			self.c.OnUIThread(func() error {
-				return self.c.GocuiGui().EndBlockingEvents()
+				self.c.GocuiGui().EndBlockingEvents()
+				return nil
 			})
 		}
 
@@ -675,8 +666,6 @@ func getScopeNames(scopes []types.RefreshableView) []string {
 		types.WORKTREES:       "worktrees",
 		types.STATUS:          "status",
 		types.BISECT_INFO:     "bisect",
-		types.STAGING:         "staging",
-		types.PATCH_BUILDING:  "patchBuilding",
 		types.MERGE_CONFLICTS: "mergeConflicts",
 		types.COMMIT_FILES:    "commitFiles",
 		types.PULL_REQUESTS:   "pullRequests",
@@ -768,6 +757,10 @@ func (self *RefreshHelper) refreshReflogAndBranches(capturedReflog capturedReflo
 
 	return nil
 }
+
+// The number of commits that the commits and sub-commits views load at first,
+// to keep things fast. They load the rest when the user scrolls near the end.
+const commitLimit = 300
 
 // capturedCommitState holds everything the commits refresh reads from the
 // model, contexts, and modes. It is gathered on the UI thread (see
@@ -861,9 +854,10 @@ func (self *RefreshHelper) determineCheckedOutRef(env refreshEnv) models.Ref {
 func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState, commitSelection types.CommitSelectionBehavior, env refreshEnv) error {
 	checkedOutRef := self.determineCheckedOutRef(env)
 	refName, bisectInfo := self.refForLog(env)
+	limit := self.commitLimitForLog(captured.limitCommits, refName, bisectInfo, env)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                captured.limitCommits,
+			Limit:                limit,
 			FilterPath:           captured.filterPath,
 			FilterAuthor:         captured.filterAuthor,
 			IncludeRebaseCommits: true,
@@ -877,19 +871,26 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 	if err != nil {
 		return err
 	}
+	if err := env.git.Bisect.LoadCandidates(bisectInfo, commits); err != nil {
+		self.c.Log.Warnf("Failed to find the commits that the bisect hasn't ruled out yet: %v", err)
+	}
 	workingTreeState := env.git.Status.WorkingTreeState()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		var selectionRange *localCommitSelectionRange
-		var newConflictedCommitIdx *int
+		var jumpToCommitIdx *int
 		if commitSelection == types.KeepCommitSelectionByHash {
 			selectedIdx, rangeStartIdx, rangeSelectMode := self.c.Contexts().LocalCommits.GetSelectionRangeAndMode()
 			selectionRange = captureLocalCommitSelectionRange(self.c.Model().Commits, selectedIdx, rangeStartIdx, rangeSelectMode)
-			newConflictedCommitIdx = findNewConflictedCommit(self.c.Model().Commits, commits)
+			jumpToCommitIdx = findNewConflictedCommit(self.c.Model().Commits, commits)
+			if jumpToCommitIdx == nil {
+				jumpToCommitIdx = findNewBisectCommitToSelect(self.c.Model().BisectInfo, bisectInfo, commits)
+			}
 		}
 
 		self.c.Model().BisectInfo = bisectInfo
 		self.c.Model().Commits = commits
+		self.c.Contexts().LocalCommits.SetLoadedCommitLimit(limit)
 		self.c.Model().CommitsWereFilteredAtLastRefresh = captured.filterPath != "" || captured.filterAuthor != ""
 		self.RefreshAuthors(commits)
 		self.c.Model().WorkingTreeStateAtLastCommitRefresh = workingTreeState
@@ -905,8 +906,8 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 				self.c.Contexts().LocalCommits.SetSelection(headCommitIdx)
 			}
 		case types.KeepCommitSelectionByHash:
-			if newConflictedCommitIdx != nil {
-				self.c.Contexts().LocalCommits.SetSelection(*newConflictedCommitIdx)
+			if jumpToCommitIdx != nil {
+				self.c.Contexts().LocalCommits.SetSelection(*jumpToCommitIdx)
 			} else if selectionRange != nil {
 				selectedIdx, rangeStartIdx, found := findLocalCommitSelectionRange(commits, selectionRange)
 				if found {
@@ -916,9 +917,17 @@ func (self *RefreshHelper) refreshCommitsWithLimit(captured capturedCommitState,
 		case types.KeepCommitSelectionIndex:
 			// The caller set the selection index deliberately; leave it untouched.
 		}
+
+		focusOpts := env.focusOpts()
+		if jumpToCommitIdx != nil {
+			// We selected a commit that the user needs to look at next, so
+			// scroll it into view even if the refresh keeps the scroll position
+			// otherwise.
+			focusOpts.KeepScrollPosition = false
+		}
+		self.rerenderView(self.c.Contexts().LocalCommits, focusOpts)
 	})
 
-	self.refreshView(self.c.Contexts().LocalCommits, env)
 	return nil
 }
 
@@ -1010,6 +1019,42 @@ func findNewConflictedCommit(previousCommits []*models.Commit, commits []*models
 	return nil
 }
 
+// Returns the index of the commit that the user needs to look at during a
+// bisect, if it is in the new commits slice and it is a different commit than
+// at the previous refresh (or there wasn't one then). Otherwise returns nil.
+func findNewBisectCommitToSelect(previousBisectInfo *git_commands.BisectInfo, bisectInfo *git_commands.BisectInfo, commits []*models.Commit) *int {
+	hash := bisectCommitToSelect(bisectInfo)
+	if hash == "" || hash == bisectCommitToSelect(previousBisectInfo) {
+		return nil
+	}
+
+	_, idx, found := lo.FindIndexOf(commits, func(commit *models.Commit) bool {
+		return commit.Hash() == hash
+	})
+	if found {
+		return &idx
+	}
+
+	return nil
+}
+
+// Returns the commit that the user needs to look at during a bisect: the one
+// that git wants them to test, or the first bad commit once git has found it.
+// Returns "" if git doesn't know both a good and a bad commit yet.
+func bisectCommitToSelect(bisectInfo *git_commands.BisectInfo) string {
+	if !bisectInfo.Bisecting() {
+		return ""
+	}
+
+	if bisectInfo.HasCommitToTest() {
+		return bisectInfo.GetCurrentHash()
+	}
+
+	// There's nothing left to test, so the commit marked bad is the first bad
+	// commit. (If only skipped commits are left, it is one of the candidates.)
+	return bisectInfo.GetNewHash()
+}
+
 // capturedSubCommitState holds the sub-commits refresh's model/context/mode
 // inputs, gathered on the UI thread (see captureSubCommitState) before the git
 // work is dispatched to a worker.
@@ -1042,9 +1087,10 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 		return nil
 	}
 
+	limit := lo.Ternary(captured.limitCommits, commitLimit, 0)
 	commits, err := env.git.Loaders.CommitLoader.GetCommits(
 		git_commands.GetCommitsOptions{
-			Limit:                   captured.limitCommits,
+			Limit:                   limit,
 			FilterPath:              captured.filterPath,
 			FilterAuthor:            captured.filterAuthor,
 			IncludeRebaseCommits:    false,
@@ -1060,6 +1106,7 @@ func (self *RefreshHelper) refreshSubCommitsWithLimit(captured capturedSubCommit
 	}
 	self.onUIThreadUnlessRepoChanged(env, func() {
 		self.c.Model().SubCommits = commits
+		self.c.Contexts().SubCommits.SetLoadedCommitLimit(limit)
 		self.RefreshAuthors(commits)
 	})
 
@@ -1085,17 +1132,31 @@ type capturedCommitFilesState struct {
 	from    string
 	to      string
 	reverse bool
+	// Whether there is a commit to load the files of at all. The panel is only ever
+	// pointed at one by being entered, and a patch can now be built from a commit's diff
+	// without that — after which anything that refreshes the panel would otherwise be
+	// asking for the files of nothing.
+	hasCommit bool
 }
 
 // captureCommitFilesState reads the commit-files refresh's diff endpoints into
 // an immutable snapshot. It must run on the UI thread.
 func (self *RefreshHelper) captureCommitFilesState() capturedCommitFilesState {
-	from, to := self.c.Contexts().CommitFiles.GetFromAndToForDiff()
+	commitFilesContext := self.c.Contexts().CommitFiles
+	if commitFilesContext.GetRef() == nil && commitFilesContext.GetRefRange() == nil {
+		return capturedCommitFilesState{}
+	}
+
+	from, to := commitFilesContext.GetFromAndToForDiff()
 	from, reverse := self.c.Modes().Diffing.GetFromAndReverseArgsForDiff(from)
-	return capturedCommitFilesState{from: from, to: to, reverse: reverse}
+	return capturedCommitFilesState{from: from, to: to, reverse: reverse, hasCommit: true}
 }
 
 func (self *RefreshHelper) refreshCommitFilesContext(captured capturedCommitFilesState, env refreshEnv) error {
+	if !captured.hasCommit {
+		return nil
+	}
+
 	files, err := env.git.Loaders.CommitFileLoader.GetFilesInDiff(captured.from, captured.to, captured.reverse)
 	if err != nil {
 		return err
@@ -1472,9 +1533,7 @@ func (self *RefreshHelper) refreshStateFiles(captured capturedFilesState, env re
 }
 
 // markWorktreeFiles marks the files that are linked worktrees of this repo, so
-// that the files view can render them as such. `git status` reports a worktree
-// as an untracked directory, i.e. with a trailing slash, which we take off:
-// keeping it would build a directory node with a nameless file inside it.
+// that the files view can render them as such.
 //
 // It must run on the UI thread, as it works on the model. Both models it needs
 // are written by refreshes of their own, so it is called after either of them
@@ -1483,24 +1542,24 @@ func markWorktreeFiles(files []*models.File, worktrees []*models.Worktree, workt
 	changed := false
 
 	for _, file := range files {
-		absPath := filepath.Join(worktreePath, file.Path)
-		isWorktree := lo.SomeBy(worktrees, func(worktree *models.Worktree) bool {
-			return worktree.Path == absPath
-		})
+		_, isWorktree := worktreeOfFile(file, worktrees, worktreePath)
 
 		if isWorktree != file.IsWorktree {
 			file.IsWorktree = isWorktree
 			changed = true
 		}
-		if isWorktree {
-			if trimmed := strings.TrimSuffix(file.Path, "/"); trimmed != file.Path {
-				file.Path = trimmed
-				changed = true
-			}
-		}
 	}
 
 	return changed
+}
+
+// worktreeOfFile returns the worktree that an entry of the files panel is, if
+// it is one. worktreePath is the path of the worktree that we're in.
+func worktreeOfFile(file *models.File, worktrees []*models.Worktree, worktreePath string) (*models.Worktree, bool) {
+	absPath := filepath.Join(worktreePath, file.Path)
+	return lo.Find(worktrees, func(worktree *models.Worktree) bool {
+		return worktree.Path == absPath
+	})
 }
 
 // the reflogs panel is the only panel where we cache data, in that we only
@@ -1686,6 +1745,7 @@ func (self *RefreshHelper) refreshStashEntries(filterPath string, env refreshEnv
 // never call this on its own, it should only be called from within refreshCommits()
 func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 	workingTreeState := env.git.Status.WorkingTreeState()
+	branchBeingRebased := env.git.Status.NameOfBranchBeingRebased()
 	repoName := env.git.RepoPaths.RepoName()
 
 	self.onUIThreadUnlessRepoChanged(env, func() {
@@ -1700,7 +1760,7 @@ func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 		}
 		linkedWorktreeName := self.worktreeHelper.GetLinkedWorktreeName()
 
-		status := presentation.FormatStatus(repoName, currentBranch, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
+		status := presentation.FormatStatus(repoName, currentBranch, branchBeingRebased, types.ItemOperationNone, linkedWorktreeName, workingTreeState, self.c.Tr, self.c.UserConfig())
 		self.c.SetViewContent(self.c.Views().Status, status)
 	})
 }
@@ -1712,16 +1772,41 @@ func (self *RefreshHelper) refreshStatus(env refreshEnv) {
 func (self *RefreshHelper) refForLog(env refreshEnv) (string, *git_commands.BisectInfo) {
 	bisectInfo := env.git.Bisect.GetInfo()
 
-	if !bisectInfo.Started() {
+	// Until we know both a good and a bad commit, git hasn't checked out
+	// anything for the user to test, and the user may be checking out
+	// branches to find the commits to mark. Show the log of what's checked
+	// out, as usual.
+	if !bisectInfo.Bisecting() {
 		return "HEAD", bisectInfo
 	}
 
 	// need to see if our bisect's current commit is reachable from our 'new' ref.
-	if bisectInfo.Bisecting() && !env.git.Bisect.ReachableFromStart(bisectInfo) {
+	if !env.git.Bisect.ReachableFromStart(bisectInfo) {
 		return bisectInfo.GetNewHash(), bisectInfo
 	}
 
 	return bisectInfo.GetStartHash(), bisectInfo
+}
+
+// commitLimitForLog returns the number of commits to load for the commits view,
+// or 0 to load all of them.
+func (self *RefreshHelper) commitLimitForLog(limitCommits bool, refName string, bisectInfo *git_commands.BisectInfo, env refreshEnv) int {
+	if !limitCommits {
+		return 0
+	}
+
+	if hash := bisectCommitToSelect(bisectInfo); hash != "" {
+		// Load the commit that the user needs to look at, and as many commits
+		// after it as we load from the top otherwise. This way we can select it
+		// without having to load all commits.
+		count, err := env.git.Bisect.CountCommitsAbove(hash, refName)
+		if err == nil {
+			return count + commitLimit
+		}
+		self.c.Log.Warnf("Failed to count the commits above the bisect commit to select: %v", err)
+	}
+
+	return commitLimit
 }
 
 func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
@@ -1732,27 +1817,30 @@ func (self *RefreshHelper) refreshView(context types.Context, env refreshEnv) {
 	// dropped, so there's nothing fresh to render — and the captured context
 	// belongs to the old repo's now-replaced context tree anyway.
 	self.onUIThreadUnlessRepoChanged(env, func() {
-		// Re-applying the filter must be done before re-rendering the view, so that
-		// the filtered list model is up to date for rendering.
-		self.searchHelper.ReApplyFilter(context)
+		self.rerenderView(context, env.focusOpts())
+	})
+}
 
-		self.c.PostRefreshUpdateWithOptions(context, types.OnFocusOpts{
-			KeepScrollPosition: env.keepScrollPosition,
-			SkipMainViewUpdate: env.skipMainViewUpdate,
-		})
+// rerenderView re-renders a context's view after a refresh has updated the
+// model it shows. It must run on the UI thread.
+func (self *RefreshHelper) rerenderView(context types.Context, opts types.OnFocusOpts) {
+	// Re-applying the filter must be done before re-rendering the view, so that
+	// the filtered list model is up to date for rendering.
+	self.searchHelper.ReApplyFilter(context)
 
-		self.c.AfterLayout(func() error {
-			// Re-applying the search must be done after re-rendering the view though,
-			// so that the "x of y" status is shown correctly.
-			//
-			// Also, it must be done after layout, because otherwise FocusPoint
-			// hasn't been called yet (see ListContextTrait.FocusLine), which means
-			// that the scroll position might be such that the entire visible
-			// content is outside the viewport. And this would cause problems in
-			// searchModelCommits.
-			self.searchHelper.ReApplySearch(context)
-			return nil
-		})
+	self.c.PostRefreshUpdateWithOptions(context, opts)
+
+	self.c.AfterLayout(func() error {
+		// Re-applying the search must be done after re-rendering the view though,
+		// so that the "x of y" status is shown correctly.
+		//
+		// Also, it must be done after layout, because otherwise FocusPoint
+		// hasn't been called yet (see ListContextTrait.FocusLine), which means
+		// that the scroll position might be such that the entire visible
+		// content is outside the viewport. And this would cause problems in
+		// searchModelCommits.
+		self.searchHelper.ReApplySearch(context)
+		return nil
 	})
 }
 

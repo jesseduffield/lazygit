@@ -95,6 +95,34 @@ func TestRenderCommitGraph(t *testing.T) {
 			6 ○ ╭───╯`,
 		},
 		{
+			name: "with a root commit followed by an unrelated history",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2"},
+				{Hash: "A", Parents: []string{"B"}},
+				{Hash: "B"},
+			},
+			expectedOutput: `
+			1 ○
+			2 ○
+			A ○
+			B ○`,
+		},
+		{
+			name: "with a merge of an unrelated history",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2", "A"}},
+				{Hash: "2", Parents: []string{"3"}},
+				{Hash: "A"},
+				{Hash: "3"},
+			},
+			expectedOutput: `
+			1 ◎─╮
+			2 ○ │
+			A │ ○
+			3 ○`,
+		},
+		{
 			name: "with a path that has room to move to the left and continues",
 			commitOpts: []models.NewCommitOpts{
 				{Hash: "1", Parents: []string{"2"}},
@@ -224,7 +252,7 @@ func TestRenderCommitGraph(t *testing.T) {
 			getStyle := func(c *models.Commit) *style.TextStyle { return &style.FgDefault }
 			commits := lo.Map(test.commitOpts,
 				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
-			lines := RenderCommitGraph(commits, hashPool.Add("blah"), getStyle)
+			lines := RenderCommitGraph(commits, hashPool.Add("blah"), getStyle, BoxDrawingSymbols)
 
 			trimmedExpectedOutput := ""
 			for line := range strings.SplitSeq(strings.TrimPrefix(test.expectedOutput, "\n"), "\n") {
@@ -244,6 +272,345 @@ func TestRenderCommitGraph(t *testing.T) {
 				trimmedExpectedOutput,
 				output)
 		})
+	}
+}
+
+// Box drawing look-alikes for the branch drawing symbols, so that the expected
+// output in tests is readable. The box drawing characters of the graph never
+// use ┤ and ┼; here they stand for the symbols that have two bends. Commit
+// symbols are shown as ○ and ◎, whichever lines they connect to.
+var branchDrawingLookAlikes = func() map[rune]rune {
+	lookAlikes := map[rune]rune{
+		'\uf5d0': '─',
+		'\uf5d1': '│',
+		'\uf5d6': '╭',
+		'\uf5d7': '╮',
+		'\uf5d8': '╰',
+		'\uf5d9': '╯',
+		'\uf5e0': '┬', // ╮ on ─
+		'\uf5e3': '┴', // ╯ on ─
+		'\uf5df': '┤', // ╯ and ╮
+		'\uf5e8': '┼', // ╯ and ╮ on ─
+	}
+	for _, symbols := range branchDrawingCommitSymbols {
+		lookAlikes[[]rune(symbols.commit)[0]] = CommitSymbol
+		lookAlikes[[]rune(symbols.merge)[0]] = MergeSymbol
+	}
+	return lookAlikes
+}()
+
+func TestRenderCommitGraphWithBranchDrawingSymbols(t *testing.T) {
+	tests := []struct {
+		name           string
+		commitOpts     []models.NewCommitOpts
+		selectedHash   string
+		expectedOutput string
+	}{
+		{
+			name: "branch forked off a merge commit",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2", "3"}},
+				{Hash: "3", Parents: []string{"5"}},
+				{Hash: "2", Parents: []string{"5", "4"}},
+				{Hash: "4", Parents: []string{"5"}},
+				{Hash: "5", Parents: []string{"6", "7"}},
+				{Hash: "7", Parents: []string{"6"}},
+				{Hash: "6", Parents: []string{"8"}},
+			},
+			expectedOutput: `
+			1 ◎─╮
+			3 │ ○
+			2 ◎─│─╮
+			4 │ │ ○
+			5 ◎─┼─╯
+			7 │ ○
+			6 ○─╯`,
+		},
+		{
+			name: "branch forked off a merge commit, with the merge commit selected",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2", "3"}},
+				{Hash: "3", Parents: []string{"5"}},
+				{Hash: "2", Parents: []string{"5", "4"}},
+				{Hash: "4", Parents: []string{"5"}},
+				{Hash: "5", Parents: []string{"6", "7"}},
+				{Hash: "7", Parents: []string{"6"}},
+				{Hash: "6", Parents: []string{"8"}},
+			},
+			selectedHash: "5",
+			expectedOutput: `
+			1 ◎─╮
+			3 │ ○
+			2 ◎─│─╮
+			4 │ │ ○
+			5 ◎─┼─╯
+			7 │ ○
+			6 ○─╯`,
+		},
+		{
+			name: "branch forked off a merge commit, with the merge commit above it selected",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2", "3"}},
+				{Hash: "3", Parents: []string{"5"}},
+				{Hash: "2", Parents: []string{"5", "4"}},
+				{Hash: "4", Parents: []string{"5"}},
+				{Hash: "5", Parents: []string{"6", "7"}},
+				{Hash: "7", Parents: []string{"6"}},
+				{Hash: "6", Parents: []string{"8"}},
+			},
+			selectedHash: "2",
+			expectedOutput: `
+			1 ◎─╮
+			3 │ ○
+			2 ◎───╮
+			4 │ │ ○
+			5 ◎─┼─╯
+			7 │ ○
+			6 ○─╯`,
+		},
+		{
+			name: "branch forked off a merge commit, with no line passing through",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2", "3"}},
+				{Hash: "3", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"4", "5"}},
+				{Hash: "4", Parents: []string{"6", "7"}},
+				{Hash: "6", Parents: []string{"8"}},
+			},
+			expectedOutput: `
+			1 ◎─╮
+			3 │ ○
+			2 ◎─┤
+			4 ◎─│─╮
+			6 ○ │ │`,
+		},
+		{
+			name: "several lines ending in a commit",
+			commitOpts: []models.NewCommitOpts{
+				{Hash: "1", Parents: []string{"2"}},
+				{Hash: "2", Parents: []string{"3", "4"}},
+				{Hash: "3", Parents: []string{"5", "4"}},
+				{Hash: "5", Parents: []string{"7", "8"}},
+				{Hash: "7", Parents: []string{"4", "A"}},
+				{Hash: "4", Parents: []string{"B"}},
+				{Hash: "B", Parents: []string{"C"}},
+			},
+			expectedOutput: `
+			1 ○
+			2 ◎─╮
+			3 ◎─│─╮
+			5 ◎─│─│─╮
+			7 ◎─│─│─│─╮
+			4 ○─┴─╯ │ │
+			B ○ ╭───╯ │`,
+		},
+	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			hashPool := &utils.StringPool{}
+
+			getStyle := func(c *models.Commit) *style.TextStyle { return &style.FgDefault }
+			commits := lo.Map(test.commitOpts,
+				func(opts models.NewCommitOpts, _ int) *models.Commit { return models.NewCommit(hashPool, opts) })
+			lines := RenderCommitGraph(commits, hashPool.Add(test.selectedHash), getStyle, BranchDrawingSymbols)
+
+			trimmedExpectedOutput := ""
+			for line := range strings.SplitSeq(strings.TrimPrefix(test.expectedOutput, "\n"), "\n") {
+				trimmedExpectedOutput += strings.TrimSpace(line) + "\n"
+			}
+
+			output := ""
+			for i, line := range lines {
+				lookAlikes := strings.Map(func(r rune) rune {
+					return lo.ValueOr(branchDrawingLookAlikes, r, r)
+				}, utils.Decolorise(line))
+				output += strings.TrimSpace(test.commitOpts[i].Hash+" "+lookAlikes) + "\n"
+			}
+
+			assert.Equal(t, trimmedExpectedOutput, output)
+		})
+	}
+}
+
+func TestRenderPipeSetWithBranchDrawingSymbols(t *testing.T) {
+	cyan := style.FgCyan
+	red := style.FgRed
+	green := style.FgGreen
+	yellow := style.FgYellow
+	magenta := style.FgMagenta
+	nothing := style.Nothing
+
+	hashPool := &utils.StringPool{}
+	pool := func(s string) *string { return hashPool.Add(s) }
+
+	tests := []struct {
+		name           string
+		pipes          []Pipe
+		prevCommit     *models.Commit
+		expectedStr    string
+		expectedStyles []style.TextStyle
+	}{
+		{
+			name: "commit with lines above and below",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a"), toHash: pool("b"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("b"), toHash: pool("c"), kind: STARTS, style: &green},
+			},
+			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
+			expectedStr:    "\uf5fb", // ○ with lines up and down
+			expectedStyles: []style.TextStyle{green},
+		},
+		{
+			name: "first commit",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: &StartCommitHash, toHash: pool("b"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("b"), toHash: pool("c"), kind: STARTS, style: &green},
+			},
+			expectedStr:    "\uf5f7", // ○ with a line down
+			expectedStyles: []style.TextStyle{green},
+		},
+		{
+			name: "root commit",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a"), toHash: pool("b"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("b"), toHash: &EmptyTreeCommitHash, kind: STARTS, style: &green},
+			},
+			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
+			expectedStr:    "\uf5f9", // ○ with a line up
+			expectedStyles: []style.TextStyle{green},
+		},
+		{
+			name: "selected root commit",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a"), toHash: pool("selected"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("selected"), toHash: &EmptyTreeCommitHash, kind: STARTS, style: &green},
+			},
+			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
+			expectedStr:    "\uf5f9", // ○ with a line up
+			expectedStyles: []style.TextStyle{highlightStyle},
+		},
+		{
+			name: "selected commit",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a"), toHash: pool("selected"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("selected"), toHash: pool("c"), kind: STARTS, style: &green},
+			},
+			prevCommit:     models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a"}),
+			expectedStr:    "\uf5fb", // ○ with lines up and down
+			expectedStyles: []style.TextStyle{highlightStyle},
+		},
+		{
+			name: "commit whose previous commit is selected and is a merge commit",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("selected"), toHash: pool("a2"), kind: TERMINATES, style: &red},
+				{fromPos: 0, toPos: 0, fromHash: pool("a2"), toHash: pool("a3"), kind: STARTS, style: &green},
+				{fromPos: 1, toPos: 1, fromHash: pool("selected"), toHash: pool("b3"), kind: CONTINUES, style: &red},
+			},
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "selected"}),
+			expectedStr: "\uf5fb \uf5d1", // ○ with lines up and down, │
+			expectedStyles: []style.TextStyle{
+				highlightStyle, nothing, highlightStyle,
+			},
+		},
+		{
+			name: "merge commit that a branch forks off",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a1"), toHash: pool("a2"), kind: TERMINATES, style: &red},
+				{fromPos: 1, toPos: 0, fromHash: pool("b1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
+				{fromPos: 2, toPos: 0, fromHash: pool("c1"), toHash: pool("a2"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("a2"), toHash: pool("a3"), kind: STARTS, style: &green},
+				{fromPos: 0, toPos: 1, fromHash: pool("a2"), toHash: pool("b3"), kind: STARTS, style: &green},
+			},
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
+			expectedStr: "\uf604\uf5d0\uf5e8\uf5d0\uf5d9", // ◎ with lines up, down and right, ─, ╯ and ╮ on ─, ─, ╯
+			expectedStyles: []style.TextStyle{
+				green, green, magenta, cyan, cyan,
+			},
+		},
+		{
+			name: "merge commit that a branch forks off, with the branch's first commit selected",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a1"), toHash: pool("a2"), kind: TERMINATES, style: &red},
+				{fromPos: 1, toPos: 0, fromHash: pool("selected"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
+				{fromPos: 2, toPos: 0, fromHash: pool("c1"), toHash: pool("a2"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("a2"), toHash: pool("a3"), kind: STARTS, style: &green},
+				{fromPos: 0, toPos: 1, fromHash: pool("a2"), toHash: pool("b3"), kind: STARTS, style: &green},
+			},
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
+			expectedStr: "\uf604\uf5d0\uf5e8\uf5d0\uf5d9", // ◎ with lines up, down and right, ─, ╯ and ╮ on ─, ─, ╯
+			expectedStyles: []style.TextStyle{
+				highlightStyle, highlightStyle, highlightStyle, cyan, cyan,
+			},
+		},
+		{
+			name: "line of the selected commit crossing another line",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a1"), toHash: pool("selected"), kind: TERMINATES, style: &red},
+				{fromPos: 0, toPos: 0, fromHash: pool("selected"), toHash: pool("a3"), kind: STARTS, style: &yellow},
+				{fromPos: 1, toPos: 1, fromHash: pool("b1"), toHash: pool("b2"), kind: CONTINUES, style: &magenta},
+				{fromPos: 3, toPos: 0, fromHash: pool("e1"), toHash: pool("selected"), kind: TERMINATES, style: &green},
+				{fromPos: 0, toPos: 2, fromHash: pool("selected"), toHash: pool("c3"), kind: STARTS, style: &yellow},
+			},
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
+			expectedStr: "\uf604\uf5d0\uf5d0\uf5d0\uf5e0\uf5d0\uf5d9", // ◎ with lines up, down and right, ─, ─, ─, ╮ on ─, ─, ╯
+			expectedStyles: []style.TextStyle{
+				highlightStyle, highlightStyle, highlightStyle, highlightStyle, highlightStyle, green, green,
+			},
+		},
+		{
+			name: "line of the selected commit passing through a cell in which other lines bend",
+			pipes: []Pipe{
+				{fromPos: 0, toPos: 0, fromHash: pool("a1"), toHash: pool("a2"), kind: TERMINATES, style: &red},
+				{fromPos: 1, toPos: 0, fromHash: pool("b1"), toHash: pool("a2"), kind: TERMINATES, style: &magenta},
+				{fromPos: 2, toPos: 0, fromHash: pool("selected"), toHash: pool("a2"), kind: TERMINATES, style: &cyan},
+				{fromPos: 0, toPos: 0, fromHash: pool("a2"), toHash: pool("a3"), kind: STARTS, style: &green},
+				{fromPos: 0, toPos: 1, fromHash: pool("a2"), toHash: pool("b3"), kind: STARTS, style: &green},
+			},
+			prevCommit:  models.NewCommit(hashPool, models.NewCommitOpts{Hash: "a1"}),
+			expectedStr: "\uf604\uf5d0\uf5e8\uf5d0\uf5d9", // ◎ with lines up, down and right, ─, ╯ and ╮ on ─, ─, ╯
+			expectedStyles: []style.TextStyle{
+				highlightStyle, highlightStyle, magenta, highlightStyle, highlightStyle,
+			},
+		},
+	}
+
+	oldColorLevel := color.ForceSetColorLevel(terminfo.ColorLevelMillions)
+	defer color.ForceSetColorLevel(oldColorLevel)
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit, BranchDrawingSymbols)
+			if len([]rune(test.expectedStr)) != len(test.expectedStyles) {
+				t.Fatalf("Error in test setup: you have %d characters in the expected output but have specified %d styles", len([]rune(test.expectedStr)), len(test.expectedStyles))
+			}
+			expectedStr := ""
+			for i, char := range []rune(test.expectedStr) {
+				expectedStr += test.expectedStyles[i].Sprint(string(char))
+			}
+			expectedStr += " "
+
+			assert.Equal(t, expectedStr, actualStr)
+		})
+	}
+}
+
+func TestBranchDrawingSymbolsCoverAllCells(t *testing.T) {
+	hashPool := &utils.StringPool{}
+	commits := generateCommits(hashPool, 1000)
+	getStyle := func(commit *models.Commit) *style.TextStyle { return &style.FgDefault }
+	isBoxDrawingChar := func(r rune) bool { return r >= '\u2500' && r <= '\u257f' }
+
+	for _, selectedHash := range []string{"none", commits[10].Hash(), commits[500].Hash()} {
+		lines := RenderCommitGraph(commits, hashPool.Add(selectedHash), getStyle, BranchDrawingSymbols)
+		for i, line := range lines {
+			line = utils.Decolorise(line)
+			assert.False(t, strings.ContainsFunc(line, isBoxDrawingChar),
+				"row %d falls back to box drawing characters: %q", i, line)
+		}
 	}
 }
 
@@ -462,7 +829,7 @@ func TestRenderPipeSet(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit)
+			actualStr := renderPipeSet(test.pipes, pool("selected"), test.prevCommit, BoxDrawingSymbols)
 			t.Log("actual cells:")
 			t.Log(actualStr)
 			expectedStr := ""
@@ -528,7 +895,7 @@ func TestGetNextPipes(t *testing.T) {
 				Parents: []string{},
 			}),
 			expected: []Pipe{
-				{fromPos: 1, toPos: 1, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
+				{fromPos: 0, toPos: 0, fromHash: pool("root"), toHash: pool(models.EmptyTreeCommitHash), kind: STARTS, style: &style.FgDefault},
 			},
 		},
 	}
@@ -540,8 +907,8 @@ func TestGetNextPipes(t *testing.T) {
 		getStyle := func(c *models.Commit) *style.TextStyle { return &style.FgDefault }
 		pipes := getNextPipes(test.prevPipes, test.commit, getStyle)
 		// rendering cells so that it's easier to see what went wrong
-		actualStr := renderPipeSet(pipes, pool("selected"), nil)
-		expectedStr := renderPipeSet(test.expected, pool("selected"), nil)
+		actualStr := renderPipeSet(pipes, pool("selected"), nil, BoxDrawingSymbols)
+		expectedStr := renderPipeSet(test.expected, pool("selected"), nil, BoxDrawingSymbols)
 		t.Log("expected cells:")
 		t.Log(expectedStr)
 		t.Log("actual cells:")
@@ -562,7 +929,7 @@ func BenchmarkRenderCommitGraph(b *testing.B) {
 	}
 	b.ResetTimer()
 	for b.Loop() {
-		RenderCommitGraph(commits, hashPool.Add("selected"), getStyle)
+		RenderCommitGraph(commits, hashPool.Add("selected"), getStyle, BoxDrawingSymbols)
 	}
 }
 

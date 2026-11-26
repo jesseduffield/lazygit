@@ -2,6 +2,7 @@ package git_commands
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
@@ -77,7 +78,7 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}
 	output, err := self.cmd.New(
 		NewGitCmd("branch").
-			Arg("--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)").
+			Arg("--points-at=HEAD", "--format=%(HEAD)%00%(objectname)%00%(refname)%00%(contents:subject)").
 			ToArgv(),
 	).DontLog().RunWithOutput()
 	if err != nil {
@@ -85,13 +86,15 @@ func (self *BranchCommands) CurrentBranchInfo() (BranchInfo, error) {
 	}
 	for _, line := range utils.SplitLines(output) {
 		split := strings.Split(strings.TrimRight(line, "\r\n"), "\x00")
-		if len(split) == 3 && split[0] == "*" {
+		if len(split) == 4 && split[0] == "*" {
 			hash := split[1]
 			displayName := split[2]
+			subject := split[3]
 			return BranchInfo{
 				RefName:      hash,
 				DisplayName:  displayName,
 				DetachedHead: true,
+				Subject:      subject,
 			}, nil
 		}
 	}
@@ -235,13 +238,6 @@ func (self *BranchCommands) countDifferences(from, to string) (string, error) {
 	return self.cmd.New(cmdArgs).DontLog().RunWithOutput()
 }
 
-func (self *BranchCommands) IsHeadDetached() bool {
-	cmdArgs := NewGitCmd("symbolic-ref").Arg("-q", "HEAD").ToArgv()
-
-	err := self.cmd.New(cmdArgs).DontLog().Run()
-	return err != nil
-}
-
 func (self *BranchCommands) Rename(oldName string, newName string) error {
 	cmdArgs := NewGitCmd("branch").
 		Arg("--move", oldName, newName).
@@ -283,6 +279,24 @@ func (self *BranchCommands) Merge(branchName string, variant MergeVariant) error
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+// SquashMerge stages the changes of the given branch, and makes message the
+// message for committing them. "git merge --squash" suggests a log of the
+// branch's commits in SQUASH_MSG; "git commit" uses this file.
+func (self *BranchCommands) SquashMerge(branchName string, message string) error {
+	mergeErr := self.Merge(branchName, MERGE_VARIANT_SQUASH)
+
+	// If the merge failed without writing SQUASH_MSG, it didn't start. Writing
+	// the file would make it look like a squash merge is in progress.
+	squashMsgPath := filepath.Join(self.repoPaths.WorktreeGitDirPath(), "SQUASH_MSG")
+	if exists, _ := self.os.FileExists(squashMsgPath); exists {
+		if err := self.os.CreateFileWithContent(squashMsgPath, message+"\n"); err != nil {
+			return err
+		}
+	}
+
+	return mergeErr
 }
 
 // Fast-forwards the branch that is checked out in the given worktree to the

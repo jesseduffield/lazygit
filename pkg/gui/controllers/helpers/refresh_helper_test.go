@@ -309,12 +309,12 @@ func TestMarkWorktreeFiles(t *testing.T) {
 		{Path: filepath.Join("/", "path", "to", "worktree3")},
 	}
 
-	t.Run("marks the files that are worktrees, and takes their slash off", func(t *testing.T) {
+	t.Run("marks the files that are worktrees", func(t *testing.T) {
 		files := []*models.File{
 			{Path: "file"},
-			{Path: "worktree1/"},
-			{Path: "dir/worktree2/"},
-			{Path: "dir/"},
+			{Path: "worktree1"},
+			{Path: "dir/worktree2"},
+			{Path: "dir"},
 		}
 
 		assert.True(t, markWorktreeFiles(files, worktrees, worktreePath))
@@ -322,12 +322,12 @@ func TestMarkWorktreeFiles(t *testing.T) {
 			{Path: "file"},
 			{Path: "worktree1", IsWorktree: true},
 			{Path: "dir/worktree2", IsWorktree: true},
-			{Path: "dir/"},
+			{Path: "dir"},
 		}, files)
 	})
 
 	t.Run("reports no change when there is nothing to mark", func(t *testing.T) {
-		files := []*models.File{{Path: "file"}, {Path: "dir/"}}
+		files := []*models.File{{Path: "file"}, {Path: "dir"}}
 
 		assert.False(t, markWorktreeFiles(files, worktrees, worktreePath))
 	})

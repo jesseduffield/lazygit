@@ -15,9 +15,14 @@ type WorkingTreeContext struct {
 }
 
 var (
-	_ types.IListContext       = (*WorkingTreeContext)(nil)
-	_ types.IFilterableContext = (*WorkingTreeContext)(nil)
+	_ types.IListContext        = (*WorkingTreeContext)(nil)
+	_ types.IFilterableContext  = (*WorkingTreeContext)(nil)
+	_ types.DiffMainViewContext = (*WorkingTreeContext)(nil)
 )
+
+func (self *WorkingTreeContext) GetDiffMainViewType() types.DiffMainViewType {
+	return types.DiffMainViewTypeStaging
+}
 
 func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	viewModel := filetree.NewFileTreeViewModel(
@@ -29,7 +34,7 @@ func NewWorkingTreeContext(c *ContextCommon) *WorkingTreeContext {
 	getDisplayStrings := func(_ int, _ int) [][]string {
 		showFileIcons := icons.IsIconEnabled() && c.UserConfig().Gui.ShowFileIcons
 		showNumstat := c.UserConfig().Gui.ShowNumstatInFilesView
-		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules, showFileIcons, showNumstat, &c.UserConfig().Gui.CustomIcons, c.UserConfig().Gui.ShowRootItemInFileTree)
+		lines := presentation.RenderFileTree(viewModel, c.Model().Submodules, showFileIcons, showNumstat, &c.UserConfig().Gui.CustomIcons, c.UserConfig().Gui.ShowRootItemInFileTree, c.Tr)
 		return lo.Map(lines, func(line string, _ int) []string {
 			return []string{line}
 		})

@@ -19,7 +19,9 @@ var FilterRecentRepos = NewIntegrationTest(NewIntegrationTestArgs{
 		current, _ := filepath.Abs(".")
 		other, _ := filepath.Abs("../other")
 		target, _ := filepath.Abs("../target")
-		cfg.GetAppState().RecentRepos = []string{current, other, target}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{current, other, target}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.CloneNonBare("other")

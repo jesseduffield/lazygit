@@ -111,7 +111,19 @@ func (self *SyncCommands) Pull(task gocui.Task, opts PullOptions) error {
 
 	// setting GIT_SEQUENCE_EDITOR to ':' as a way of skipping it, in case the user
 	// has 'pull.rebase = interactive' configured.
-	return self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task).Run()
+	cmdObj := self.cmd.New(cmdArgs).AddEnvVars("GIT_SEQUENCE_EDITOR=:").PromptOnCredentialRequest(task)
+
+	// With pull.rebase set, a lock error can stop the pull partway through its
+	// rebase.
+	gitDir := lo.Ternary(opts.WorktreeGitDir != "", opts.WorktreeGitDir, self.repoPaths.WorktreeGitDirPath())
+	return resumeRebaseAfterLockError(cmdObj, gitDir, self.config.GetCoreCommentChar(), func() *oscommands.CmdObj {
+		continueArgs := NewGitCmd("rebase").
+			Arg("--continue").
+			GitDirIf(opts.WorktreeGitDir != "", opts.WorktreeGitDir).
+			WorktreePathIf(opts.WorktreePath != "", opts.WorktreePath).
+			ToArgv()
+		return skipEditor(self.cmd.New(continueArgs))
+	}).Run()
 }
 
 // Fetches the given branches of the given remote, updating their

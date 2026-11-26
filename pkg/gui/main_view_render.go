@@ -11,6 +11,7 @@ import (
 
 	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
+	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/tasks"
 	"github.com/samber/lo"
 )
@@ -35,17 +36,37 @@ type renderSpec struct {
 // newRenderTask renders cmd's output into view, through the diff renderer the
 // user has configured. The renderer lays its rendering out to the width of the
 // view, which only the layout settles, so the task is created after it.
-func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) error {
+func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix types.Prefix) error {
+	// Ask whatever renders the diff to state, in an OSC 1717 record per line,
+	// which line of which file it is rendering. This lets us act on the line the
+	// user is pointing at even when the rendering no longer looks like a diff.
+	// The variable names the protocol versions we understand, and a renderer
+	// that doesn't understand it ignores it, so we can set it always. It has to
+	// be set before the plain path below, since on that path git renders the
+	// diff itself, and git speaks the protocol too, for its word-diff formats,
+	// whose markup we could not otherwise resolve.
+	cmd.Env = append(cmd.Env, "OSC1717=V1")
+
 	if gui.stateAccessor.GetDiffRendererConfigManager().GetDiffRendererType() == config.DiffRendererType_RawGit {
 		// If we're not using a custom diff renderer, then we don't need to use a pty
 		return gui.newCmdTask(view, cmd, prefix)
 	}
 
+	// The key the render is remembered under says which diff it is of, so that a
+	// re-render of the same diff can be told from a render of another one. Take
+	// it before anything else can touch the command's arguments.
+	cmdStr := strings.Join(cmd.Args, " ")
+
+	manager := gui.getManager(view)
+	// The task takes its place among the view's tasks now, although it is only
+	// created after the layout (see the matching call in newCmdTask).
+	reservation := manager.ReserveTask()
+
 	// Mark the view as loading synchronously now, before the layout pass: the
 	// actual task is created in afterLayout (below), which runs after layout, so
 	// without this the next layout pass would clamp the scroll position to the
 	// not-yet-loaded content.
-	gui.getManager(view).StartLoading()
+	manager.StartLoading()
 	// Hold the scrollbar at its current height while the re-render loads, so the
 	// thumb doesn't shrink and snap back when the first partial paint swaps in
 	// (see the matching call in newCmdTask).
@@ -53,9 +74,13 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 
 	// Run the render after layout so that it gets the correct size
 	gui.afterLayout(func() error {
+		if manager.IsSuperseded(reservation) {
+			return nil
+		}
+
 		// The layout may have changed the size of the view, so only now is the
 		// width to render at known, and with it the renderer command.
-		width := view.InnerWidth()
+		width := gui.renderWidth(view)
 		diffRendererConfigManager := gui.stateAccessor.GetDiffRendererConfigManager()
 		values := config.DiffRendererValues{
 			Width:           width,
@@ -70,8 +95,6 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 			// gets here. Git's own diff is shown instead.
 			gui.c.ErrorToast(err.Error())
 		}
-
-		cmdStr := strings.Join(cmd.Args, " ")
 
 		// This communicates to diff renderers that we're in a very simple
 		// terminal that they should not expect to have much capabilities.
@@ -100,10 +123,21 @@ func (gui *Gui) newRenderTask(view *gocui.View, cmd *exec.Cmd, prefix string) er
 		if rendersThroughAPipe() {
 			run = gui.pipedRender
 		}
-		return gui.newTaskForRender(spec, prefix, cmdStr, run)
+		return gui.newTaskForRender(reservation, spec, prefix, cmdStr, run)
 	})
 
 	return nil
+}
+
+// renderWidth is the width a render into view is laid out to: the view's own, less the
+// columns the custom patch's marks take from it where they are drawn over the render
+// (see DiffLineHelper.ShowsInclusionGutter).
+func (gui *Gui) renderWidth(view *gocui.View) int {
+	width := view.InnerWidth()
+	if gui.helpers.DiffLine.ShowsInclusionGutter(view) {
+		width -= view.InclusionGutterWidthWhenShown()
+	}
+	return max(0, width)
 }
 
 // The start and onClose functions a render hands to its task: how to get the
@@ -120,16 +154,24 @@ type (
 type runRender func(spec renderSpec) (startRender, onCloseRender)
 
 // newTaskForRender creates the task that reads the render's output into its
-// view, running the command the given way. key names what is rendered, so that
+// view, running the command the given way. The task takes the place that the
+// reservation holds among the view's tasks. key names what is rendered, so that
 // a re-render of the same content can be told from a render of other content.
-func (gui *Gui) newTaskForRender(spec renderSpec, prefix string, key string, run runRender) error {
+func (gui *Gui) newTaskForRender(reservation tasks.TaskReservation, spec renderSpec, prefix types.Prefix, key string, run runRender) error {
 	setColumnsEnvVar(spec.cmd, spec.width)
 
 	start, onClose := run(spec)
 
+	// The prefix is laid out here, on the UI thread, now that the width is
+	// known; its text is produced on the task's goroutine.
+	var producePrefix func() string
+	if prefix != nil {
+		producePrefix = prefix(spec.width)
+	}
+
 	manager := gui.getManager(spec.view)
 	linesToRead := gui.linesToReadFromCmdTask(spec.view)
-	return manager.NewTask(manager.NewCmdTask(start, prefix, linesToRead, onClose), key)
+	return manager.NewReservedTask(reservation, manager.NewCmdTask(start, producePrefix, linesToRead, onClose), key)
 }
 
 // renderWithoutPtyEnvVar makes a render take the piped path on a platform that

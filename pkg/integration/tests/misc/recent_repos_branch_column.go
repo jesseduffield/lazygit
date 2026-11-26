@@ -20,7 +20,9 @@ var RecentReposBranchColumn = NewIntegrationTest(NewIntegrationTestArgs{
 		onBranch, _ := filepath.Abs("../on-branch")
 		detached, _ := filepath.Abs("../detached")
 		submodule, _ := filepath.Abs("sub")
-		cfg.GetAppState().RecentRepos = []string{current, onBranch, detached, submodule}
+		_ = cfg.UpdateAppState(func(state *config.AppState) {
+			state.RecentRepos = []string{current, onBranch, detached, submodule}
+		})
 	},
 	SetupRepo: func(shell *Shell) {
 		shell.EmptyCommit("one")

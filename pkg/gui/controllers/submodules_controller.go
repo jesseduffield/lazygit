@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
+
 	"github.com/jesseduffield/lazygit/pkg/commands/models"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/context"
@@ -123,8 +125,8 @@ func (self *SubmodulesController) GetOnRenderToMain() func() {
 				if file == nil {
 					task = types.NewRenderStringTask(prefix)
 				} else {
-					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, false, !file.HasUnstagedChanges && file.HasStagedChanges, file.Names())
-					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), prefix)
+					cmdObj := self.c.Git().WorkingTree.WorktreeFileDiffCmdObj(file, git_commands.DiffModeRendered, !file.HasUnstagedChanges && file.HasStagedChanges, file.Names())
+					task = types.NewRunCommandTaskWithPrefix(cmdObj.GetCmd(), types.StaticPrefix(prefix))
 				}
 			}
 

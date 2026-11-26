@@ -167,6 +167,7 @@ func TestParseOneIgnoresUnknownSequences(t *testing.T) {
 		"\x1b[0 q",                               // intermediate byte after a param
 		"\x1b[1;;m",                              // malformed SGR: empty middle param
 		"\x1b]8bogus\x07",                        // OSC 8 missing ';'
+		"\x1b]1337;File=inline=1\x07",            // OSC with a number we don't implement
 		"\x1b[" + strings.Repeat("0", 300) + "m", // single param overflows length cap
 		"\x1b[" + strings.Repeat("1;", 25) + "1m", // too many params
 	}

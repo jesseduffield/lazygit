@@ -72,6 +72,10 @@ type IGuiCommon interface {
 	// return the view buffer manager for the given view, or nil if it doesn't have one
 	GetViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
 
+	// return the view buffer manager for the given view, making one if the view has
+	// never rendered anything, for saying something about a render still to come
+	GetOrCreateViewBufferManagerForView(view *gocui.View) *tasks.ViewBufferManager
+
 	// read enough lines into the given view's buffer to fill it at its current
 	// scroll position, plus some read-ahead for smooth scrolling
 	ReadLinesToFillView(view *gocui.View)
@@ -91,9 +95,10 @@ type IGuiCommon interface {
 	ContextForKey(key ContextKey) Context
 
 	GetConfig() config.AppConfigurer
-	GetAppState() *config.AppState
-	SaveAppState() error
-	SaveAppStateAndLogError()
+	// Reads state.yml. If it can't be read, logs the error and returns the defaults.
+	ReadAppState() *config.AppState
+	// Calls update to change state.yml, and logs any error.
+	UpdateAppState(update func(state *config.AppState))
 
 	// Runs the given function on the UI thread (this is for things like showing a popup asking a user for input).
 	// Only necessary to call if you're not already on the UI thread i.e. you're inside a goroutine.
@@ -461,8 +466,8 @@ type IRepoStateAccessor interface {
 	SetScreenMode(ScreenMode)
 	InSearchPrompt() bool
 	GetSearchState() *SearchState
-	SetSplitMainPanel(bool)
-	GetSplitMainPanel() bool
+	SetMainPanes(MainPanes)
+	GetMainPanes() MainPanes
 	GetMergeOrRebaseStartedInLazygit() bool
 	SetMergeOrRebaseStartedInLazygit(bool)
 }
@@ -486,3 +491,17 @@ const (
 	SCREEN_HALF
 	SCREEN_FULL
 )
+
+// Returning this error from a handler quits lazygit like gocui.ErrQuit does,
+// and then prints the message in the terminal.
+type ErrQuitWithMessage struct {
+	Message string
+}
+
+func (e ErrQuitWithMessage) Error() string {
+	return e.Message
+}
+
+func (e ErrQuitWithMessage) Unwrap() error {
+	return gocui.ErrQuit
+}

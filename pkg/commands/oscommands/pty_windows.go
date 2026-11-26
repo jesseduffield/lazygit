@@ -207,7 +207,7 @@ func (p *winPty) Close() error {
 func startWaiter(proc *os.Process, p *winPty) func() error {
 	done := make(chan struct{})
 	var waitErr error
-	go func() {
+	go utils.Safe(func() {
 		defer close(done)
 		state, err := proc.Wait()
 		p.closeHpc()
@@ -218,7 +218,7 @@ func startWaiter(proc *os.Process, p *winPty) func() error {
 		if !state.Success() {
 			waitErr = fmt.Errorf("exit status %d", state.ExitCode())
 		}
-	}()
+	})
 	return func() error {
 		<-done
 		return waitErr

@@ -3,6 +3,7 @@ package gui
 import (
 	"errors"
 
+	"github.com/jesseduffield/lazygit/pkg/config"
 	"github.com/jesseduffield/lazygit/pkg/gocui"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
 	"github.com/jesseduffield/lazygit/pkg/utils"
@@ -311,7 +312,7 @@ func (gui *Gui) onRepoViewReset() error {
 
 func (gui *Gui) onInitialViewsCreation() error {
 	if !gui.c.UserConfig().DisableStartupPopups {
-		storedPopupVersion := gui.c.GetAppState().StartupPopupVersion
+		storedPopupVersion := gui.c.ReadAppState().StartupPopupVersion
 		if storedPopupVersion < StartupPopupVersion {
 			gui.showIntroPopupMessage()
 		} else {
@@ -319,8 +320,9 @@ func (gui *Gui) onInitialViewsCreation() error {
 		}
 	}
 
-	gui.c.GetAppState().LastVersion = gui.Config.GetVersion()
-	gui.c.SaveAppStateAndLogError()
+	gui.c.UpdateAppState(func(state *config.AppState) {
+		state.LastVersion = gui.Config.GetVersion()
+	})
 
 	if gui.showRecentRepos {
 		if err := gui.helpers.Repos.CreateRecentReposMenu(); err != nil {

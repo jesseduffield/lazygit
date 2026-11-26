@@ -414,8 +414,8 @@ func (self *Shell) Stash(message string) *Shell {
 	return self
 }
 
-func (self *Shell) StartBisect(good string, bad string) *Shell {
-	self.RunCommand([]string{"git", "bisect", "start", good, bad})
+func (self *Shell) StartBisect(bad string, good string) *Shell {
+	self.RunCommand([]string{"git", "bisect", "start", bad, good})
 	return self
 }
 

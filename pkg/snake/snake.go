@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/samber/lo"
 )
 
@@ -77,7 +78,7 @@ func NewGame(width, height int, render func(cells [][]CellType, alive bool), log
 }
 
 func (self *Game) Start() {
-	go self.gameLoop()
+	go utils.Safe(self.gameLoop)
 }
 
 func (self *Game) Exit() {

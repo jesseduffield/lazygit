@@ -53,14 +53,6 @@ func (self *ConfirmationHelper) wrappedPromptConfirmationFunction(
 	preserveWhitespace bool,
 ) func() error {
 	return func() error {
-		if self.c.GocuiGui().IsPasting {
-			// The user is pasting multi-line text into a prompt; we don't want to handle the
-			// line feeds as "confirm" keybindings. Simply ignoring them is the best we can do; this
-			// will cause the entire pasted text to appear as a single line in the prompt. Hopefully
-			// the user knows that ctrl-u allows them to delete it again...
-			return nil
-		}
-
 		response := getResponse()
 		if !preserveWhitespace {
 			response = strings.TrimSpace(response)
@@ -505,7 +497,7 @@ func (self *ConfirmationHelper) TooltipForMenuItem(menuItem *types.MenuItem) str
 		if tooltip != "" {
 			tooltip += "\n\n"
 		}
-		tooltip += style.FgRed.Sprintf(self.c.Tr.DisabledMenuItemPrefix) + menuItem.DisabledReason.Text
+		tooltip += style.FgRed.Sprint(self.c.Tr.DisabledMenuItemPrefix) + menuItem.DisabledReason.Text
 	}
 	return tooltip
 }

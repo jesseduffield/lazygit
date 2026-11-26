@@ -64,18 +64,18 @@ var WorktreeInRepo = NewIntegrationTest(NewIntegrationTestArgs{
 			Press(keys.Universal.Remove).
 			Tap(func() {
 				t.ExpectPopup().Menu().
-					Title(Equals("Discard changes")).
-					Select(Contains("Discard all changes")).
+					Title(Equals("Remove worktree 'linked-worktree'?")).
+					Select(MatchesRegexp("Remove worktree$")).
 					Confirm()
 			}).
 			IsEmpty()
 
-		// confirm worktree appears as missing
+		t.FileSystem().PathNotPresent("linked-worktree")
+
 		t.Views().Worktrees().
 			Focus().
 			Lines(
 				Contains("(main worktree)").IsSelected(),
-				Contains("linked-worktree (missing)"),
 			)
 	},
 })

@@ -231,10 +231,70 @@ func (self *BranchesHelper) promptWorktreeBranchDelete(
 	})
 }
 
+// RemoveWorktreeMenu shows the menu for removing a worktree, optionally along
+// with the branch that it has checked out.
+func (self *BranchesHelper) RemoveWorktreeMenu(worktree *models.Worktree) error {
+	if worktree.IsMain {
+		return errors.New(self.c.Tr.CantDeleteMainWorktree)
+	}
+
+	if worktree.IsCurrent {
+		return errors.New(self.c.Tr.CantDeleteCurrentWorktree)
+	}
+
+	removeWorktreeItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktree,
+		Keys:  menuKey('w'),
+		OnPress: func() error {
+			return self.worktreeHelper.Remove(worktree, nil)
+		},
+	}
+
+	branch, branchFound := lo.Find(self.c.Model().Branches, func(branch *models.Branch) bool {
+		return branch.Name == worktree.Branch
+	})
+	// A worktree with a detached HEAD has no branch to delete
+	detachedReason := &types.DisabledReason{Text: self.c.Tr.WorktreeNotCheckedOutOnBranch}
+
+	removeWorktreeAndBranchItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktreeAndDeleteBranch,
+		Keys:  menuKey('b'),
+		OnPress: func() error {
+			return self.RemoveWorktreeAndDeleteBranch(worktree, branch)
+		},
+	}
+	if !branchFound {
+		removeWorktreeAndBranchItem.DisabledReason = detachedReason
+	}
+
+	removeWorktreeAndBothBranchesItem := &types.MenuItem{
+		Label: self.c.Tr.RemoveWorktreeAndDeleteBothBranches,
+		Keys:  menuKey('r'),
+		OnPress: func() error {
+			return self.RemoveWorktreeAndDeleteBothBranches(worktree, branch)
+		},
+	}
+	if !branchFound {
+		removeWorktreeAndBothBranchesItem.DisabledReason = detachedReason
+	} else if !branch.IsTrackingRemote() || branch.UpstreamGone {
+		removeWorktreeAndBothBranchesItem.DisabledReason = &types.DisabledReason{
+			Text: self.c.Tr.UpstreamNotSetError,
+		}
+	}
+
+	return self.c.Menu(types.CreateMenuOptions{
+		Title: utils.ResolvePlaceholderString(
+			self.c.Tr.RemoveWorktreeMenuTitle,
+			map[string]string{"worktreeName": worktree.Name},
+		),
+		Items: []*types.MenuItem{removeWorktreeItem, removeWorktreeAndBranchItem, removeWorktreeAndBothBranchesItem},
+	})
+}
+
 // RemoveWorktreeAndDeleteBranch removes the worktree and deletes the local branch
 // it has checked out, force-warning first if the branch isn't fully merged. It's
-// the worktrees-panel counterpart to deleting a worktree-checked-out branch from
-// the branches panel.
+// the remove-worktree menu's counterpart to deleting a worktree-checked-out
+// branch from the branches panel.
 func (self *BranchesHelper) RemoveWorktreeAndDeleteBranch(
 	worktree *models.Worktree, branch *models.Branch,
 ) error {

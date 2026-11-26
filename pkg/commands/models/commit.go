@@ -20,6 +20,7 @@ const (
 	StatusMerged
 	StatusRebasing
 	StatusCherryPickingOrReverting
+	StatusApplyingPatch
 	StatusConflicted
 	StatusReflog
 )
@@ -62,6 +63,10 @@ type Commit struct {
 	Action     todo.TodoCommand
 	ActionFlag string     // e.g. "-C" for fixup -C
 	Divergence Divergence // set to DivergenceNone unless we are showing the divergence view
+
+	// For a patch that "git am" hasn't applied yet, the file that contains
+	// it; empty for all other commits.
+	PatchFile string
 }
 
 type NewCommitOpts struct {
@@ -77,6 +82,7 @@ type NewCommitOpts struct {
 	UnixTimestamp int64
 	Divergence    Divergence
 	Parents       []string
+	PatchFile     string
 }
 
 func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
@@ -92,6 +98,7 @@ func NewCommit(hashPool *utils.StringPool, opts NewCommitOpts) *Commit {
 		AuthorEmail:   opts.AuthorEmail,
 		UnixTimestamp: opts.UnixTimestamp,
 		Divergence:    opts.Divergence,
+		PatchFile:     opts.PatchFile,
 		parents:       lo.Map(opts.Parents, func(s string, _ int) *string { return hashPool.Add(s) }),
 	}
 }
@@ -144,7 +151,13 @@ func (c *Commit) ID() string {
 }
 
 func (c *Commit) Description() string {
-	return fmt.Sprintf("%s %s", c.Hash()[:7], c.Name)
+	return CommitDescription(c.Hash(), c.Name)
+}
+
+// CommitDescription returns the short hash and the subject of a commit, e.g.
+// "6f71c57 Fix the thing".
+func CommitDescription(hash string, subject string) string {
+	return fmt.Sprintf("%s %s", hash[:min(7, len(hash))], subject)
 }
 
 func (c *Commit) IsMerge() bool {

@@ -12,8 +12,7 @@ import (
 )
 
 func (gui *Gui) desiredPtySize(view *gocui.View) (cols, rows uint16) {
-	width, height := view.InnerSize()
-	return uint16(width), uint16(height)
+	return uint16(gui.renderWidth(view)), uint16(view.InnerHeight())
 }
 
 func (gui *Gui) onResize() error {

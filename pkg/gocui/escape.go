@@ -20,6 +20,25 @@ type escapeInterpreter struct {
 	instruction            instruction
 	hyperlink              strings.Builder
 
+	// the digits of the OSC number seen so far, while we don't yet know which
+	// OSC this is
+	oscNumber strings.Builder
+	// the payload of an OSC 1717 sequence, in which a diff renderer states
+	// which line of which file it is about to render; accumulated like
+	// hyperlink, and attached to the cells that follow it
+	metadata strings.Builder
+	// whether the payload currently in metadata has reached a cell, so that one
+	// that never does can be recognized and kept as an orphan
+	metadataConsumed bool
+	// OSC 1717 payloads that no cell took, because the next record followed
+	// with nothing rendered in between. A renderer emits records back to back
+	// wherever two diff lines share a rendered line — the deletion and the
+	// addition of a modification collapsed into one column, or a banner
+	// announcing a file and its first hunk at once. The write loop gives these
+	// cells of their own, so that a line keeps every record it was given rather
+	// than only the last.
+	orphanedMetadata []string
+
 	// ConPTY emits cursor-positioning escapes (CUP) to skip over blank
 	// rows rather than emitting LFs for them. To convert those into row
 	// advances the view can act on, we track where in the pseudo-terminal
@@ -82,9 +101,9 @@ const (
 	stateParams
 	stateCSIDiscard
 	stateOSC
-	stateOSCWaitForParams
 	stateOSCParams
 	stateOSCHyperlink
+	stateOSCMetadata
 	stateOSCEndEscape
 	stateOSCSkipUnknown
 
@@ -150,7 +169,7 @@ func (ei *escapeInterpreter) reset() {
 	ei.state = stateNone
 	ei.curFgColor = ColorDefault
 	ei.curBgColor = ColorDefault
-	ei.csiParam = nil
+	ei.csiParam = ei.csiParam[:0]
 }
 
 // resetScreenCursor returns the screen-cursor tracking to the top of the
@@ -240,7 +259,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 	// much better than leaking the accumulated garbage into the view.
 	if len(ei.csiParam) > 20 || (len(ei.csiParam) > 0 && len(ei.csiParam[len(ei.csiParam)-1]) > 255) {
 		ei.state = stateCSIDiscard
-		ei.csiParam = nil
+		ei.csiParam = ei.csiParam[:0]
 		return true, nil
 	}
 
@@ -311,12 +330,12 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// one we don't implement; consume the rest until the final
 			// byte.
 			ei.state = stateCSIDiscard
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case len(ch) == 1 && ch[0] >= 0x40 && ch[0] <= 0x7E:
 			// Valid CSI final byte we don't implement — swallow.
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		default:
 			return false, errCSIParseError
@@ -343,7 +362,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.curFgColor, ei.curBgColor = savedFg, savedBg
 			}
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'K'):
 			p := 0
@@ -362,7 +381,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			}
 
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'H'), characterEquals(ch, 'f'),
 			characterEquals(ch, 'd'):
@@ -383,7 +402,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 				ei.emitCursorAdvance(targetRow - ei.screenRow)
 			}
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'B'), characterEquals(ch, 'E'):
 			// CUD / CNL — relative row advance by N. CNL also resets
@@ -391,7 +410,7 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// equivalent for our purposes.
 			ei.emitCursorAdvance(ei.firstParamOrDefault(1))
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case characterEquals(ch, 'C'):
 			// CUF — cursor forward N. Emit space cells so the gap
@@ -399,20 +418,20 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			// notifyCellsWritten as those spaces are emitted.)
 			ei.instruction = cursorForward{n: ei.firstParamOrDefault(1)}
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case len(ch) == 1 && ch[0] >= 0x20 && ch[0] <= 0x2F:
 			// CSI intermediate byte after params. The final byte will
 			// have a semantic we don't implement (e.g. `[0 q` =
 			// DECSCUSR); consume everything until it arrives.
 			ei.state = stateCSIDiscard
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		case len(ch) == 1 && ch[0] >= 0x40 && ch[0] <= 0x7E:
 			// Valid CSI final byte we don't implement — swallow the
 			// whole sequence rather than printing it as text.
 			ei.state = stateNone
-			ei.csiParam = nil
+			ei.csiParam = ei.csiParam[:0]
 			return true, nil
 		default:
 			return false, errCSIParseError
@@ -427,27 +446,42 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		}
 		return true, nil
 	case stateOSC:
-		if characterEquals(ch, '8') {
-			ei.state = stateOSCWaitForParams
-			ei.hyperlink.Reset()
+		// Accumulate the OSC number until the ';' that terminates it, then
+		// dispatch on the whole number rather than on a single digit.
+		switch {
+		case len(ch) == 1 && ch[0] >= '0' && ch[0] <= '9':
+			ei.oscNumber.WriteByte(ch[0])
+			return true, nil
+		case characterEquals(ch, ';'):
+			switch ei.oscNumber.String() {
+			case "8":
+				ei.hyperlink.Reset()
+				ei.state = stateOSCParams
+			case "1717":
+				ei.orphanUnconsumedMetadata()
+				ei.state = stateOSCMetadata
+			default:
+				ei.state = stateOSCSkipUnknown
+			}
+			ei.oscNumber.Reset()
+			return true, nil
+		default:
+			// Not an OSC we understand — it has no number, or a character
+			// follows the number where the ';' should be. Rather than
+			// erroring, which would reset state mid-OSC and leak the rest of
+			// the sequence into the view as literal text, skip to its
+			// terminator, which this character may already be.
+			ei.oscNumber.Reset()
+			switch {
+			case characterEquals(ch, 0x07):
+				ei.state = stateNone
+			case characterEquals(ch, 0x1b):
+				ei.state = stateOSCEndEscape
+			default:
+				ei.state = stateOSCSkipUnknown
+			}
 			return true, nil
 		}
-
-		ei.state = stateOSCSkipUnknown
-		return true, nil
-	case stateOSCWaitForParams:
-		if !characterEquals(ch, ';') {
-			// Malformed OSC 8 (expected ';' after '8'). Rather than
-			// erroring — which would reset state mid-OSC and cause the
-			// rest of the sequence to leak as literal text — treat the
-			// whole OSC as one we don't understand and skip to its
-			// terminator.
-			ei.state = stateOSCSkipUnknown
-			return true, nil
-		}
-
-		ei.state = stateOSCParams
-		return true, nil
 	case stateOSCParams:
 		if characterEquals(ch, ';') {
 			ei.state = stateOSCHyperlink
@@ -463,6 +497,18 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 			ei.hyperlink.Write(ch)
 		}
 		return true, nil
+	case stateOSCMetadata:
+		switch {
+		case characterEquals(ch, 0x07):
+			ei.dropMetadataIfHandshake()
+			ei.state = stateNone
+		case characterEquals(ch, 0x1b):
+			ei.dropMetadataIfHandshake()
+			ei.state = stateOSCEndEscape
+		default:
+			ei.metadata.Write(ch)
+		}
+		return true, nil
 	case stateOSCEndEscape:
 		ei.state = stateNone
 		return true, nil
@@ -476,6 +522,37 @@ func (ei *escapeInterpreter) parseOne(ch []byte) (isEscape bool, err error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+// orphanUnconsumedMetadata clears the metadata accumulator for a new OSC 1717
+// record, keeping the payload it held as an orphan if no cell took it (see
+// orphanedMetadata).
+func (ei *escapeInterpreter) orphanUnconsumedMetadata() {
+	if ei.metadata.Len() > 0 && !ei.metadataConsumed {
+		ei.orphanedMetadata = append(ei.orphanedMetadata, ei.metadata.String())
+	}
+	ei.metadata.Reset()
+	ei.metadataConsumed = false
+}
+
+// takeOrphanedMetadata hands the accumulated orphaned payloads to the caller and
+// clears the list.
+func (ei *escapeInterpreter) takeOrphanedMetadata() []string {
+	result := ei.orphanedMetadata
+	ei.orphanedMetadata = nil
+	return result
+}
+
+// dropMetadataIfHandshake discards a just-completed OSC 1717 payload that
+// carries nothing beyond the version. A diff renderer emits such a record ahead
+// of everything else to announce that it speaks the protocol, so that a host can
+// find that out by asking rather than by inspecting a rendering. It says nothing
+// about any line, so it must not attach to the line that follows it; a per-line
+// record always has fields, and is kept.
+func (ei *escapeInterpreter) dropMetadataIfHandshake() {
+	if !strings.Contains(ei.metadata.String(), ";") {
+		ei.metadata.Reset()
+	}
 }
 
 func (ei *escapeInterpreter) outputCSI() error {

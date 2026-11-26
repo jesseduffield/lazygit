@@ -99,18 +99,24 @@ func (self *AppStatusHelper) WithWaitingStatusBlockingInput(opts types.WaitingSt
 		self.modeHelper.SetSuppressWorkingTreeStateMode(true)
 	}
 	self.c.OnWorker(func(task gocui.Task) error {
-		// End the block and restore the mode indicator once the operation and its
-		// refresh have applied their UI updates: OnUIThread queues this after the
-		// refresh's model bounces and Then (which RefreshFromWorker has already
-		// enqueued by the time f returns), so the replayed keys act on the
-		// refreshed state and any resulting working tree state shows correctly.
-		defer self.c.OnUIThread(func() error {
-			if opts.HideWorkingTreeState {
-				self.modeHelper.SetSuppressWorkingTreeStateMode(false)
-			}
-			return self.c.GocuiGui().EndBlockingEvents()
-		})
+		defer self.endBlockingInput(opts.HideWorkingTreeState)
 		return self.WithWaitingStatusImpl(opts.Message, f, task)
+	})
+}
+
+// endBlockingInput lets input through again once the operation and its refresh
+// have applied their UI updates, and restores the mode indicator with it.
+// OnUIThread queues this after the refresh's model bounces and Then (which
+// RefreshFromWorker has already enqueued by the time the operation returns), so
+// the replayed keys act on the refreshed state and any resulting working tree
+// state shows correctly.
+func (self *AppStatusHelper) endBlockingInput(hideWorkingTreeState bool) {
+	self.c.OnUIThread(func() error {
+		if hideWorkingTreeState {
+			self.modeHelper.SetSuppressWorkingTreeStateMode(false)
+		}
+		self.c.GocuiGui().EndBlockingEvents()
+		return nil
 	})
 }
 

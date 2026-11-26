@@ -32,7 +32,7 @@ var DirectoryDiffWithRenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  R  dir/nested/file3 → file3"),
 			)
 
-		t.Views().Main().ContainsLines(
+		t.Views().Secondary().ContainsLines(
 			Equals("diff --git a/file1 b/dir/file1"),
 			Equals("similarity index 100%"),
 			Equals("rename from file1"),
@@ -51,7 +51,7 @@ var DirectoryDiffWithRenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 			SelectNextItem().
 			SelectedLine(Equals("  ▼ dir"))
 
-		t.Views().Main().
+		t.Views().Secondary().
 			ContainsLines(
 				Equals("diff --git a/file1 b/dir/file1"),
 				Equals("similarity index 100%"),
@@ -75,7 +75,7 @@ var DirectoryDiffWithRenamedFiles = NewIntegrationTest(NewIntegrationTestArgs{
 				Equals("  R  file1 → file1"),
 			)
 
-		t.Views().Main().
+		t.Views().Secondary().
 			ContainsLines(
 				Equals("diff --git a/file1 b/dir/file1"),
 				Equals("similarity index 100%"),

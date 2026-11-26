@@ -267,7 +267,7 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 	hashChan := make(chan string)
 
 	for _, h := range deletedLineHunks {
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			blameOutput, err := self.c.Git().Blame.BlameLineRange(h.filename, "HEAD", h.startLineIdx, h.numLines)
 			if err != nil {
 				return err
@@ -277,16 +277,16 @@ func (self *FixupHelper) blameDeletedLines(deletedLineHunks []*hunk) ([]string, 
 				hashChan <- strings.Split(line, " ")[0]
 			}
 			return nil
-		})
+		}))
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		// We don't care about the error here, we'll check it later (in the
 		// return statement below). Here we only wait for all the goroutines to
 		// finish so that we can close the channel.
 		_ = errg.Wait()
 		close(hashChan)
-	}()
+	})
 
 	result := set.New[string]()
 	for hash := range hashChan {
@@ -301,7 +301,7 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 	hashesChan := make(chan []string)
 
 	for _, h := range addedLineHunks {
-		errg.Go(func() error {
+		errg.Go(utils.SafeFuncWithError(func() error {
 			result := make([]string, 0, 2)
 
 			appendBlamedLine := func(blameOutput string) {
@@ -340,16 +340,16 @@ func (self *FixupHelper) blameAddedLines(commits []*models.Commit, addedLineHunk
 
 			hashesChan <- result
 			return nil
-		})
+		}))
 	}
 
-	go func() {
+	go utils.Safe(func() {
 		// We don't care about the error here, we'll check it later (in the
 		// return statement below). Here we only wait for all the goroutines to
 		// finish so that we can close the channel.
 		_ = errg.Wait()
 		close(hashesChan)
-	}()
+	})
 
 	result := set.New[string]()
 	for hashes := range hashesChan {

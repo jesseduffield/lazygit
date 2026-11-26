@@ -10,8 +10,8 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <pgup>, K, <ctrl+u> (fn+up/shift+k) `` | メインウィンドウを上にスクロール |  |
 | `` <pgdown>, J, <ctrl+d> (fn+down/shift+j) `` | メインウィンドウを下にスクロール |  |
 | `` @ `` | コマンドログオプションを表示 | コマンドログのオプションを表示します（例：コマンドログの表示/非表示、コマンドログへのフォーカスなど）。 |
-| `` P `` | プッシュ | 現在のブランチを対応するアップストリームブランチにプッシュします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
-| `` p `` | プル | 現在のブランチのリモートから変更をプルします。アップストリームが設定されていない場合、アップストリームブランチの設定を求められます。 |
+| `` P `` | プッシュ | Push the current branch to its upstream branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have commits to push, you are offered to push those too. |
+| `` p `` | プル | Pull changes from the remote for the current branch. If no upstream is configured, you will be prompted to configure an upstream branch. If other branches are stacked below the current one and have changed on the remote, you are offered to update those too. |
 | `` ) `` | リネーム検出の類似度しきい値を上げる | Increase the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` ( `` | リネーム検出の類似度しきい値を下げる | Decrease the similarity threshold for a deletion and addition pair to be treated as a rename.<br><br>The default can be changed in the config file with the key 'git.renameSimilarityThreshold'. |
 | `` } `` | 差分コンテキストサイズを増やす | Increase the amount of the context shown around changes in the diff view.<br><br>The default can be changed in the config file with the key 'git.diffContextSize'. |
@@ -24,6 +24,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` _ `` | 前の画面モード |  |
 | `` \| `` | Cycle diff renderers | Choose the next renderer in the list of configured diff renderers. |
 | `` \ `` | Cycle diff renderers (reverse) | Choose the previous renderer in the list of configured diff renderers. |
+| `` <ctrl+g> `` | Jump to file in diff | Pick one of the files of the diff shown in the main view, and scroll the main view to it. The focus stays in this panel. |
 | `` <esc> `` | キャンセル |  |
 | `` ? `` | キーバインディングメニューを開く |  |
 | `` <ctrl+s> `` | フィルターオプションを表示 | コミットログのフィルタリングオプションを表示し、フィルタに一致するコミットのみを表示します。 |
@@ -114,7 +115,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` <ctrl+t> `` | 外部差分ツールを開く（git difftool） |  |
 | `` <space> `` | パッチに含めるファイルを切り替え | ファイルがカスタムパッチに含まれるかどうかを切り替えます。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
 | `` a `` | すべてのファイルを切り替え | コミットのすべてのファイルをカスタムパッチに追加/削除します。https://github.com/jesseduffield/lazygit#rebase-magic-custom-patchesを参照してください。 |
-| `` <enter> `` | ファイルに入る / ディレクトリの折りたたみを切り替える | ファイルが選択されている場合、そのファイルに入ってカスタムパッチに個々の行を追加/削除できます。ディレクトリが選択されている場合、ディレクトリを切り替えます。 |
+| `` <enter> `` | Focus file diff / Toggle directory | If a file is selected, focus its diff so you can act on individual lines. If it is a directory, collapse or expand it. |
 | `` ` `` | ファイルツリービューを切り替え | ファイル表示をフラット表示とツリー表示で切り替えます。フラット表示はすべてのファイルパスを一覧で表示し、ツリー表示はディレクトリごとにファイルをグループ化します。<br><br>デフォルトは設定ファイル内の 'gui.showFileTree' キーで変更できます。 |
 | `` - `` | すべてのファイルを折りたたむ | ファイルツリー内のすべてのディレクトリを折りたたみます |
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
@@ -191,8 +192,25 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 
 | Key | Action | Info |
 |-----|--------|-------------|
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
+| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
+| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
+| `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` c `` | コミット | ステージされた変更をコミットします。 |
+| `` w `` | pre-commitフックなしで変更をコミット |  |
+| `` C `` | Gitエディタを使用して変更をコミット |  |
+| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## タグ
@@ -231,7 +249,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` s `` | スタッシュ | すべての変更をスタッシュします。スタッシュの他のバリエーションについては、スタッシュオプションを表示するキーバインディングを使用してください。 |
 | `` S `` | スタッシュオプションを表示 | スタッシュオプション（すべてをスタッシュ、ステージされた変更をスタッシュ、ステージされていない変更をスタッシュなど）を表示します。 |
 | `` a `` | すべてステージ | ワーキングツリー内のすべてのファイルのステージ/アンステージを切り替えます。 |
-| `` <enter> `` | 行をステージ / ディレクトリを折りたたむ | 選択された項目がファイルの場合、個々のハンク/行をステージできるようにステージングビューにフォーカスします。選択された項目がディレクトリの場合、ディレクトリを折りたたむ/展開します。 |
+| `` <enter> `` | Focus file diff / Collapse directory | If the selected item is a file, focus its diff so you can act on individual hunks or lines. If it is a directory, collapse or expand it. |
 | `` d `` | 破棄 | 選択したファイルの変更を破棄するオプションを表示します。 |
 | `` g `` | アップストリームへのリセットオプションを表示 |  |
 | `` D `` | リセット | 作業ツリーのリセットオプション（例：作業ツリーの完全破棄）を表示します。 |
@@ -243,44 +261,6 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` = `` | すべてのファイルを展開 | ファイルツリー内のすべてのディレクトリを展開します |
 | `` 0 `` | メインビューにフォーカス |  |
 | `` / `` | 現在のビューをテキストでフィルタリング |  |
-
-## メインパネル（ステージング）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 前のハンクに移動 |  |
-| `` <right>, l `` | 次のハンクに移動 |  |
-| `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
-| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
-| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
-| `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
-| `` <esc> `` | ファイルパネルに戻る |  |
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
-| `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
-| `` c `` | コミット | ステージされた変更をコミットします。 |
-| `` w `` | pre-commitフックなしで変更をコミット |  |
-| `` C `` | Gitエディタを使用して変更をコミット |  |
-| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
-| `` / `` | 現在のビューをテキストで検索 |  |
-
-## メインパネル（パッチ作成）
-
-| Key | Action | Info |
-|-----|--------|-------------|
-| `` <left>, h `` | 前のハンクに移動 |  |
-| `` <right>, l `` | 次のハンクに移動 |  |
-| `` v `` | 範囲選択を切り替え |  |
-| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
-| `` <ctrl+o> `` | 選択したテキストをクリップボードにコピー |  |
-| `` o `` | ファイルを開く | デフォルトのアプリケーションでファイルを開きます。 |
-| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
-| `` <space> `` | パッチ内の行を切り替え |  |
-| `` d `` | Remove lines from commit | Remove the selected lines from this commit. This runs an interactive rebase in the background, so you may get a merge conflict if a later commit also changes these lines. |
-| `` <esc> `` | カスタムパッチビルダーを終了 |  |
-| `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メインパネル（マージ中）
 
@@ -304,8 +284,25 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 |-----|--------|-------------|
 | `` <mouse wheel down> (fn+up) `` | 下にスクロール |  |
 | `` <mouse wheel up> (fn+down) `` | 上にスクロール |  |
-| `` <tab> `` | ビューを切り替え | 他のビュー（ステージされた変更/ステージされていない変更）に切り替えます。 |
+| `` <tab> `` | Switch diff pane | Switch to the other focused diff pane. |
+| `` a `` | ハンクの選択を切り替える | Toggle line-by-line vs. hunk selection mode. |
+| `` v `` | 範囲選択を切り替え |  |
+| `` e `` | ファイルを編集 | 外部エディタでファイルを開きます。 |
+| `` <space> `` | ステージ | 選択された部分のステージ / アンステージを切り替えます。 |
+| `` d `` | 破棄 | ステージされていない変更が選択されている場合、`git reset`を使用して変更を破棄します。ステージされた変更が選択されている場合、変更をアンステージします。 |
+| `` E `` | ハンクを編集 | 選択したハンクを外部エディタで編集します。 |
+| `` <ctrl+o> `` | Copy selected diff lines to clipboard |  |
+| `` <left>, h `` | 前のハンクに移動 |  |
+| `` <right>, l `` | 次のハンクに移動 |  |
+| `` N `` | Go to previous file |  |
+| `` n `` | Go to next file |  |
+| `` <ctrl+g> `` | Jump to file |  |
+| `` G `` | Open pull request at selected line | Open the branch's pull request in your browser, at the line the selection is on, so that you can comment on it there. Only pull requests on GitHub are found. |
 | `` <esc> `` | サイドパネルに戻る |  |
+| `` c `` | コミット | ステージされた変更をコミットします。 |
+| `` w `` | pre-commitフックなしで変更をコミット |  |
+| `` C `` | Gitエディタを使用して変更をコミット |  |
+| `` <ctrl+f> `` | フィックスアップのベースコミットを検索 | 現在の変更が基づいているコミットを見つけて、コミットの修正/フィックスアップを行います。これにより、ブランチのコミットを一つずつ確認して、どのコミットを修正/フィックスアップすべきかを調べる手間が省けます。詳細はドキュメントを参照: <https://github.com/jesseduffield/lazygit/tree/master/docs/Fixup_Commits.md> |
 | `` / `` | 現在のビューをテキストで検索 |  |
 
 ## メニュー
@@ -387,7 +384,7 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` d `` | 削除 | ローカル/リモートブランチの削除オプションを表示します。 |
 | `` r `` | リベース | チェックアウトしたブランチを選択したブランチ上にリベースします。 |
 | `` M `` | マージ | 選択した項目を現在のブランチにマージするためのオプションを表示します（通常のマージ、スカッシュマージ） |
-| `` f `` | ブランチを最新化（fast-forward） | 選択したブランチを対応するアップストリームの最新状態に追いつかせます（fast-forward）。 |
+| `` f `` | ブランチを最新化（fast-forward） | Fast-forward selected branch from its upstream. If the branch has diverged from its upstream because the upstream branch was rewritten, and it has no commits of its own, it is reset to its upstream instead. This needs reflogs to be enabled; a bare repository doesn't keep them by default (core.logAllRefUpdates). |
 | `` T `` | 新しいタグを作成 |  |
 | `` s `` | 並び順 |  |
 | `` g `` | リセット |  |

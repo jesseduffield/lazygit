@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/jesseduffield/lazygit/pkg/utils"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 )
@@ -45,7 +46,7 @@ func handleResumeSignal(log *logrus.Entry, onResume func() error) {
 }
 
 func installResumeSignalHandler(log *logrus.Entry, onResume func() error) {
-	go func() {
+	go utils.Safe(func() {
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGCONT)
 
@@ -55,5 +56,5 @@ func installResumeSignalHandler(log *logrus.Entry, onResume func() error) {
 				handleResumeSignal(log, onResume)
 			}
 		}
-	}()
+	})
 }

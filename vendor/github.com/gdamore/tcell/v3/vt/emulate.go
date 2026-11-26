@@ -24,7 +24,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/clipperhouse/uax29/v2/graphemes"
@@ -1970,16 +1969,9 @@ func (em *emulator) putRune(r rune) {
 				if em.graphemeIter.Next() && len(em.graphemeIter.Value()) == len(buf) {
 					// we are adding to a cluster
 					cluster := em.graphemeIter.Value()
-					width := em.cells[lastIdx].W
-					if w := textWidthOptions.Rune(r); w > width {
-						width = w
-					}
-					if isRegionalIndicator(r) && width < 2 {
-						width = 2
-					}
-					if r == '\uFE0F' && width < 2 {
-						width = 2
-					}
+					// not the same as the widest rune in the cluster: a flag
+					// is two width-1 runes but occupies two columns.
+					width := textWidthOptions.Bytes(cluster)
 					em.cells[lastIdx].C = em.clusterString(cluster)
 					em.cells[lastIdx].W = width
 					col := Col(lastIdx) % dim.X
@@ -2052,29 +2044,15 @@ func (em *emulator) clusterString(cluster []byte) string {
 	return em.clusterStrings.stringFor(cluster)
 }
 
+// shouldCheckGrapheme reports whether r might extend a cluster ending in the
+// ASCII byte prev.  It may say yes needlessly, but never no wrongly.
 func shouldCheckGrapheme(prev byte, r rune) bool {
 	if r < utf8.RuneSelf {
+		// an ASCII pair never clusters, except CR LF
 		return prev == '\r' && r == '\n'
 	}
-
-	if unicode.Is(unicode.M, r) {
-		return true
-	}
-	if r == '\u200d' {
-		return true
-	}
-	if r >= 0xFE00 && r <= 0xFE0F {
-		return true
-	}
-	if r >= 0xE0100 && r <= 0xE01EF {
-		return true
-	}
-
-	return false
-}
-
-func isRegionalIndicator(r rune) bool {
-	return r >= 0x1F1E6 && r <= 0x1F1FF
+	b := uint32(r) >> 6
+	return graphemeJoinerBlocks[b>>6]&(1<<(b&63)) != 0
 }
 
 // eraseCell erases a single cell at the given offset.

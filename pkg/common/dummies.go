@@ -18,12 +18,11 @@ func NewDummyCommon() *Common {
 	return cmn
 }
 
-func NewDummyCommonWithUserConfigAndAppState(userConfig *config.UserConfig, appState *config.AppState) *Common {
+func NewDummyCommonWithUserConfig(userConfig *config.UserConfig) *Common {
 	tr := i18n.EnglishTranslationSet()
 	cmn := &Common{
-		Log:      utils.NewDummyLog(),
-		Tr:       tr,
-		AppState: appState,
+		Log: utils.NewDummyLog(),
+		Tr:  tr,
 		// TODO: remove dependency on actual filesystem in tests and switch to using
 		// in-memory for everything
 		Fs: afero.NewOsFs(),

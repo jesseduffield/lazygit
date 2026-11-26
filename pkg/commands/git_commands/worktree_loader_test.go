@@ -353,6 +353,28 @@ func TestGetUniqueNamesFromPaths(t *testing.T) {
 				"e/c/d",
 			},
 		},
+		{
+			input: []string{
+				"/a/b/c",
+				"/a/b/c",
+			},
+			expected: []string{
+				"c",
+				"c",
+			},
+		},
+		{
+			input: []string{
+				"/a/b/c",
+				"/a/b/c/",
+				"/a/d/c",
+			},
+			expected: []string{
+				"b/c",
+				"b/c",
+				"d/c",
+			},
+		},
 	} {
 		actual := getUniqueNamesFromPaths(scenario.input)
 		assert.EqualValues(t, scenario.expected, actual)

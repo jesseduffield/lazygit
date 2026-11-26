@@ -28,7 +28,7 @@ func (gui *Gui) handleTestMode() {
 			gui.c.GocuiGui().WaitUntilIdle()
 		}
 
-		go func() {
+		go utils.Safe(func() {
 			waitUntilIdle()
 
 			toastChan := make(chan string, 100)
@@ -43,7 +43,7 @@ func (gui *Gui) handleTestMode() {
 
 			// Wait for the event loop to actually exit.
 			<-gui.g.LoopExited()
-		}()
+		})
 
 		if os.Getenv(components.WAIT_FOR_DEBUGGER_ENV_VAR) == "" {
 			timeout := 40 * time.Second * testTimeoutMultiplier

@@ -8,10 +8,16 @@ gui:
     activeBorderColor:
     - green
     - bold
+    # Not the "black" of the terminal palette: that is a real black in an
+    # ordinary terminal, which makes the frames all but invisible when you run
+    # a test with `just e2e-cli`.
     inactiveBorderColor:
-    - black
+    - '#999999'
   # Not important in tests but it creates clutter in demos
   showRandomTip: false
+  # The expected output of the tests draws the commit graph with box drawing
+  # characters, whichever terminal a test runs in
+  commitGraphStyle: classic
   animateExplosion: false # takes too long
 git:
   # We don't want to run any periodic background git commands because it'll introduce race conditions and flakiness.

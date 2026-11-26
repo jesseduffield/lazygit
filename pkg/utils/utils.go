@@ -85,6 +85,18 @@ func SafeWithError(f func() error) error {
 	return err
 }
 
+// SafeFunc returns a function that runs f through Safe. Use it for functions
+// that something else runs on a goroutine of its own, such as time.AfterFunc.
+func SafeFunc(f func()) func() {
+	return func() { Safe(f) }
+}
+
+// SafeFuncWithError is like SafeFunc, for functions that return an error, such
+// as the ones passed to errgroup.Group.Go.
+func SafeFuncWithError(f func() error) func() error {
+	return func() error { return SafeWithError(f) }
+}
+
 func StackTrace() string {
 	buf := make([]byte, 10000)
 	n := runtime.Stack(buf, false)
