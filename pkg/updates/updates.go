@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -251,75 +252,130 @@ func (u *Updater) update(newVersion string) error {
 }
 
 func (u *Updater) downloadAndInstall(rawUrl string) error {
-	configDir := u.Config.GetUserConfigDir()
-	u.Log.Info("Download directory is " + configDir)
+	// One temp dir for download + extraction, cleaned up on exit
+	tempDir, err := os.MkdirTemp("", "lazygit-*")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tempDir)
+	u.Log.Info("Temp directory is " + tempDir)
 
-	zipPath := filepath.Join(configDir, "temp_lazygit."+u.zipExtension())
+	zipPath := filepath.Join(tempDir, "temp_lazygit."+u.zipExtension())
 	u.Log.Info("Temp path to tarball/zip file is " + zipPath)
 
-	// remove existing zip file
-	if err := os.RemoveAll(zipPath); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	// Create the zip file
-	out, err := os.Create(zipPath)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Get the data
-	resp, err := http.Get(rawUrl)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check server response
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error while trying to download latest lazygit: %s", resp.Status)
-	}
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
+	if err := u.download(rawUrl, zipPath); err != nil {
 		return err
 	}
 
 	u.Log.Info("untarring tarball/unzipping zip file")
-	err = u.OSCommand.Cmd.New([]string{"tar", "-zxf", zipPath, "lazygit"}).Run()
+	err = u.OSCommand.Cmd.New([]string{"tar", "-zxf", zipPath, "-C", tempDir, "lazygit"}).Run()
 	if err != nil {
 		return err
 	}
-
-	// the `tar` terminal cannot store things in a new location without permission
-	// so it creates it in the current directory. As such our path is fairly simple.
-	// You won't see it because it's gitignored.
-	tempLazygitFilePath := "lazygit"
-
+	tempLazygitFilePath := filepath.Join(tempDir, "lazygit")
 	u.Log.Infof("Path to temp binary is %s", tempLazygitFilePath)
 
-	// get the path of the current binary
 	binaryPath, err := osext.Executable()
 	if err != nil {
 		return err
 	}
 	u.Log.Info("Binary path is " + binaryPath)
 
-	// Verify the main file exists
-	if _, err := os.Stat(zipPath); err != nil {
-		return err
-	}
-
 	// swap out the old binary for the new one
-	err = os.Rename(tempLazygitFilePath, binaryPath)
-	if err != nil {
+	if err := moveWithFallback(tempLazygitFilePath, binaryPath); err != nil {
 		return err
 	}
 	u.Log.Info("Update complete!")
-
 	return nil
+}
+
+func (u *Updater) download(rawUrl, dstPath string) error {
+	client := &http.Client{Timeout: 3 * time.Minute}
+	resp, err := client.Get(rawUrl)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error while trying to download latest lazygit: %s", resp.Status)
+	}
+
+	out, err := os.Create(dstPath)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, resp.Body); err != nil {
+		out.Close()
+		return err
+	}
+	// Close explicitly so flush errors surface and the file is ready for tar
+	return out.Close()
+}
+
+func moveWithFallback(src, dst string) error {
+	err := os.Rename(src, dst)
+	if err == nil {
+		return nil
+	}
+
+	// Only fall back for cross-device moves; surface any other error as-is.
+	// Windows reports cross-drive renames with a different errno, so there we
+	// fall back on any LinkError.
+	var linkErr *os.LinkError
+	if !errors.As(err, &linkErr) {
+		return err
+	}
+	if runtime.GOOS != "windows" && !errors.Is(linkErr.Err, syscall.EXDEV) {
+		return err
+	}
+
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	info, err := srcFile.Stat()
+	if err != nil {
+		return err
+	}
+
+	// Temp file next to dst so the final rename is same-filesystem and atomic
+	tmp, err := os.CreateTemp(filepath.Dir(dst), ".lazygit-*")
+	if err != nil {
+		return err
+	}
+	tmpName := tmp.Name()
+	cleanup := func() { os.Remove(tmpName) }
+
+	if _, err := io.Copy(tmp, srcFile); err != nil {
+		tmp.Close()
+		cleanup()
+		return err
+	}
+	if err := tmp.Sync(); err != nil {
+		tmp.Close()
+		cleanup()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		cleanup()
+		return err
+	}
+	// CreateTemp uses 0600, so restore the original (executable) permissions
+	if err := os.Chmod(tmpName, info.Mode().Perm()); err != nil {
+		cleanup()
+		return err
+	}
+	if err := os.Rename(tmpName, dst); err != nil {
+		cleanup()
+		return err
+	}
+
+	// release the handle before removing (matters on Windows)
+	srcFile.Close()
+	return os.Remove(src)
 }
 
 func (u *Updater) verifyResourceFound(rawUrl string) bool {
