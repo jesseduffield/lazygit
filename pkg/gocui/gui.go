@@ -231,6 +231,7 @@ type Gui struct {
 	lastHoverView        *View
 	mouseCapture         *View
 	mouseGestureCanceled bool
+	wheelAxisLock        wheelAxisLock
 
 	// uiThreadID is the goroutine id of the main event loop, recorded when
 	// MainLoop starts. IsUIThread compares against it. Written once, read from
@@ -1829,6 +1830,9 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			if ev.Key.KeyName() == MouseRelease {
 				g.mouseGestureCanceled = false
 			}
+			return nil
+		}
+		if axis, isWheel := wheelAxisOfKey(ev.Key.KeyName()); isWheel && !g.wheelAxisLock.accept(axis, ev.When) {
 			return nil
 		}
 		// While the mouse is captured, all mouse events go to the view that
