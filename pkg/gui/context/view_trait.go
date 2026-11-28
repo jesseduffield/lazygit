@@ -66,6 +66,10 @@ func (self *ViewTrait) ScrollRight() {
 	self.view.ScrollRight(self.horizontalScrollAmount())
 }
 
+func (self *ViewTrait) ClampOriginXToContent() {
+	self.view.ClampOriginXToContent()
+}
+
 func (self *ViewTrait) horizontalScrollAmount() int {
 	return self.view.InnerWidth() / HORIZONTAL_SCROLL_FACTOR
 }

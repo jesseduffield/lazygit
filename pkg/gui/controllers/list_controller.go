@@ -90,10 +90,17 @@ func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 // afterScrollingSideways renders the context again if it wants to be rendered again
 // when the width of its view changes. How much of its content fits depends on the
 // horizontal scroll position too.
+//
+// Then, if the view is scrolled further right than to where the end of the widest
+// line is at the right edge, it scrolls back to there, so that scrolling right
+// doesn't scroll the content out of view. This has to come after rendering, because
+// some contexts fit their lines to the width of the view plus its horizontal scroll
+// position.
 func afterScrollingSideways(context types.Context) {
 	if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
 		context.HandleRender()
 	}
+	context.GetViewTrait().ClampOriginXToContent()
 }
 
 func (self *ListController) handleLineChange(change int) error {

@@ -539,6 +539,7 @@ var tests = []*components.IntegrationTest{
 	main_view.ResetThePatchFromThePaneShowingIt,
 	main_view.ScrollBackWhenTheDiffGetsNarrower,
 	main_view.ScrollDiffHorizontally,
+	main_view.ScrollDiffHorizontallyStopsAtTheEnd,
 	main_view.SearchCollapsesTheSelection,
 	main_view.SearchFollowsTheSelection,
 	main_view.SearchOverACommitLogKeepsTheCurrentMatchOnRefresh,
