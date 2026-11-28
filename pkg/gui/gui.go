@@ -1015,6 +1015,10 @@ func (gui *Gui) Run(startArgs appTypes.StartArgs) error {
 		return gui.helpers.SidePanelResize.InterceptMouse(ev)
 	}
 
+	gui.g.LogWheelEvent = func(line string) {
+		gui.c.Log.Info(line)
+	}
+
 	gui.g.ShouldHandleMouseEvent = func(view *gocui.View, key gocui.KeyName) bool {
 		if gui.helpers.Confirmation.IsPopupPanelFocused() && gui.currentViewName() != view.Name() &&
 			!gocui.IsMouseScrollKey(key) {

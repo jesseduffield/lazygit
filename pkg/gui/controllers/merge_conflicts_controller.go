@@ -188,12 +188,14 @@ func (self *MergeConflictsController) HandleOpenFile() error {
 
 func (self *MergeConflictsController) HandleScrollLeft() error {
 	self.context().GetViewTrait().ScrollLeft()
+	afterScrollingSideways(self.context())
 
 	return nil
 }
 
 func (self *MergeConflictsController) HandleScrollRight() error {
 	self.context().GetViewTrait().ScrollRight()
+	afterScrollingSideways(self.context())
 
 	return nil
 }

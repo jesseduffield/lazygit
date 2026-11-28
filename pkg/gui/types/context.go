@@ -357,6 +357,9 @@ type IViewTrait interface {
 	ViewPortYBounds() (int, int)
 	ScrollLeft()
 	ScrollRight()
+	ScrollLeftBy(amount int)
+	ScrollRightBy(amount int)
+	ClampOriginXToContent()
 	ScrollUp(value int)
 	ScrollDown(value int)
 	PageDelta() int

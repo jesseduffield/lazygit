@@ -241,6 +241,11 @@ type Gui struct {
 	lastHoverView        *View
 	mouseCapture         *View
 	mouseGestureCanceled bool
+	wheelAxisLock        wheelAxisLock
+
+	// LogWheelEvent, if set, receives a line describing each wheel gesture.
+	LogWheelEvent   func(string)
+	wheelGestureLog wheelGestureLog
 
 	// OnMouseMove, if set, is called whenever the mouse moves while no button
 	// is held, wherever the pointer is.
@@ -330,6 +335,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = newUserEventQueue()
 	g.taskManager = newTaskManager()
+
+	g.wheelAxisLock.weighted = true // os.Getenv("LAZYGIT_WHEEL_LOCK") == "weighted"
+	g.wheelGestureLog.label = "WHEEL"
+	if g.wheelAxisLock.weighted {
+		g.wheelGestureLog.label = "WHEEL[weighted]"
+	}
 
 	if opts.PlayRecording {
 		g.replayedEvents = replayedEvents{
@@ -1867,6 +1878,16 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 		}
 		if g.interceptMouseEvent(ev) {
 			return nil
+		}
+		if axis, isWheel := wheelAxisOfKey(ev.Key.KeyName()); isWheel {
+			previousEventTime, previousAxis := g.wheelAxisLock.lastEventTime, g.wheelAxisLock.axis
+			accepted := g.wheelAxisLock.accept(axis, ev.When)
+			if g.LogWheelEvent != nil {
+				g.wheelGestureLog.record(g.LogWheelEvent, ev, previousEventTime, previousAxis, accepted, g.wheelAxisLock.axis)
+			}
+			if !accepted {
+				return nil
+			}
 		}
 		// While the mouse is captured, all mouse events go to the view that
 		// was under the pointer when the button was pressed, even if the

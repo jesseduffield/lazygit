@@ -74,6 +74,14 @@ func (self *fakeGuiDriver) ScrollWheelDown(x, y int) {
 	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
 }
 
+func (self *fakeGuiDriver) ScrollWheelLeft(x, y int) {
+	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
+}
+
+func (self *fakeGuiDriver) ScrollWheelRight(x, y int) {
+	self.scrolledCoordinates = append(self.scrolledCoordinates, coordinate{x: x, y: y})
+}
+
 func (self *fakeGuiDriver) RefreshInBackground() {
 }
 
