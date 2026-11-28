@@ -25,13 +25,29 @@ func NewBranchesContext(c *ContextCommon) *BranchesContext {
 	)
 
 	getDisplayStrings := func(_ int, _ int) [][]string {
+		branches := viewModel.GetItems()
+		prs := c.Model().PullRequestsMap
+		fullDescription := c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL
+
+		// The rows are as wide as the view plus its horizontal scroll position, so that
+		// scrolling right reveals more of a long branch name. Once every name fits,
+		// rendering wider would only move the right-aligned divergence from the base
+		// branch further right, and scrolling right could go on forever.
+		view := c.Views().Branches
+		width := view.InnerWidth()
+		if view.OriginX() > 0 {
+			untruncatedWidth := presentation.GetBranchListUntruncatedWidth(
+				branches, c.State().GetItemOperation, prs, fullDescription, c.Tr, c.UserConfig(), c.Model().Worktrees)
+			width += min(view.OriginX(), max(0, untruncatedWidth-width))
+		}
+
 		return presentation.GetBranchListDisplayStrings(
-			viewModel.GetItems(),
+			branches,
 			c.State().GetItemOperation,
-			c.Model().PullRequestsMap,
-			c.State().GetRepoState().GetScreenMode() != types.SCREEN_NORMAL,
+			prs,
+			fullDescription,
 			c.Modes().Diffing.Ref,
-			c.Views().Branches.InnerWidth()+c.Views().Branches.OriginX(),
+			width,
 			c.Tr,
 			c.UserConfig(),
 			c.Model().Worktrees,

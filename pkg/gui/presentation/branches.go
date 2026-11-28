@@ -45,6 +45,24 @@ func GetBranchListDisplayStrings(
 	})
 }
 
+// GetBranchListUntruncatedWidth returns the smallest view width at which no branch
+// name in the list is truncated.
+func GetBranchListUntruncatedWidth(
+	branches []*models.Branch,
+	getItemOperation func(item types.HasUrn) types.ItemOperation,
+	prs map[string]*models.GithubPullRequest,
+	fullDescription bool,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+	worktrees []*models.Worktree,
+) int {
+	now := time.Now()
+	return lo.Max(lo.Map(branches, func(branch *models.Branch, _ int) int {
+		parts := getBranchRowParts(branch, getItemOperation(branch), fullDescription, tr, userConfig, worktrees, now, prs)
+		return parts.widthExceptName(parts.worktreeIcon) + utils.StringWidth(parts.displayName)
+	}))
+}
+
 // getBranchDisplayStrings returns the display string of branch
 func getBranchDisplayStrings(
 	b *models.Branch,
