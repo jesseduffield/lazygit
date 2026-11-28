@@ -807,6 +807,23 @@ func (self *ViewDriver) ScrollWheelDown() *ViewDriver {
 	return self
 }
 
+// scrolls the view left by one event of the horizontal mouse wheel, i.e. by twice
+// gui.scrollHeight columns.
+func (self *ViewDriver) ScrollWheelLeft() *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+	self.t.scrollWheelLeft(offsetX+1, offsetY+1)
+	return self
+}
+
+// scrolls the view right by one event of the horizontal mouse wheel, i.e. by twice
+// gui.scrollHeight columns, but no further than to where the end of the widest line
+// is at the right edge.
+func (self *ViewDriver) ScrollWheelRight() *ViewDriver {
+	offsetX, offsetY, _ := self.viewGeometry()
+	self.t.scrollWheelRight(offsetX+1, offsetY+1)
+	return self
+}
+
 func (self *ViewDriver) viewGeometry() (offsetX int, offsetY int, innerHeight int) {
 	self.t.gui.OnUIThreadAndWait(func() {
 		view := self.getView()

@@ -88,6 +88,14 @@ func (self *GuiDriver) ScrollWheelDown(x, y int) {
 	self.replayMouseEvent(x, y, tcell.WheelDown, gocui.ModNone)
 }
 
+func (self *GuiDriver) ScrollWheelLeft(x, y int) {
+	self.replayMouseEvent(x, y, tcell.WheelLeft, gocui.ModNone)
+}
+
+func (self *GuiDriver) ScrollWheelRight(x, y int) {
+	self.replayMouseEvent(x, y, tcell.WheelRight, gocui.ModNone)
+}
+
 func (self *GuiDriver) MouseRelease(x, y int) {
 	self.replayMouseEvent(x, y, tcell.ButtonNone, gocui.ModNone)
 }
