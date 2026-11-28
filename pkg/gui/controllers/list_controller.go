@@ -83,7 +83,6 @@ func (self *ListController) HandleScrollDown() error {
 func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 	scrollFunc()
 
-	self.context.HandleFocus(types.OnFocusOpts{})
 	if self.context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
 		self.context.HandleRender()
 	}
