@@ -19,6 +19,7 @@ import (
 type wheelGestureLog struct {
 	mutex      sync.Mutex
 	generation int
+	label      string
 
 	pauseBefore time.Duration // negative for the first gesture
 	start, last time.Time
@@ -100,7 +101,7 @@ func (l *wheelGestureLog) flushLocked(log func(string)) {
 	if len(l.mods) > 0 {
 		details += ", mods " + strings.Join(l.mods, "+")
 	}
-	log(fmt.Sprintf("WHEEL after %s: %s  (%s)", pause, l.events.String(), details))
+	log(fmt.Sprintf("%s after %s: %s  (%s)", l.label, pause, l.events.String(), details))
 
 	l.events.Reset()
 	l.eventCount = 0

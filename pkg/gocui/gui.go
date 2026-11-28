@@ -6,6 +6,7 @@ package gocui
 
 import (
 	standardErrors "errors"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -310,6 +311,12 @@ func NewGui(opts NewGuiOpts) (*Gui, error) {
 	g.gEvents = make(chan GocuiEvent, 20)
 	g.userEvents = newUserEventQueue()
 	g.taskManager = newTaskManager()
+
+	g.wheelAxisLock.weighted = os.Getenv("LAZYGIT_WHEEL_LOCK") == "weighted"
+	g.wheelGestureLog.label = "WHEEL"
+	if g.wheelAxisLock.weighted {
+		g.wheelGestureLog.label = "WHEEL[weighted]"
+	}
 
 	if opts.PlayRecording {
 		g.replayedEvents = replayedEvents{

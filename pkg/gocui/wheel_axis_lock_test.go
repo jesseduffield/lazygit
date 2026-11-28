@@ -21,8 +21,9 @@ func TestWheelAxisLock(t *testing.T) {
 	}
 
 	scenarios := []struct {
-		name   string
-		events []event
+		name     string
+		weighted bool
+		events   []event
 	}{
 		{
 			name:   "drift during a vertical gesture is dropped",
@@ -48,12 +49,37 @@ func TestWheelAxisLock(t *testing.T) {
 			name:   "an event on the gesture's axis interrupts the run",
 			events: []event{{V, 0, true}, {H, 10, false}, {H, 20, false}, {V, 30, true}, {H, 40, false}, {H, 50, false}, {H, 60, true}},
 		},
+		{
+			name:     "weighted: two vertical events switch a horizontal gesture",
+			weighted: true,
+			events:   []event{{H, 0, true}, {V, 10, false}, {V, 20, true}, {H, 30, false}},
+		},
+		{
+			name:     "weighted: a horizontal event between them doesn't stop two vertical events from switching a horizontal gesture",
+			weighted: true,
+			events:   []event{{H, 0, true}, {V, 10, false}, {H, 20, true}, {V, 30, true}},
+		},
+		{
+			name:     "weighted: three horizontal events in a row switch a vertical gesture",
+			weighted: true,
+			events:   []event{{V, 0, true}, {H, 10, false}, {H, 20, false}, {H, 30, true}, {V, 40, false}},
+		},
+		{
+			name:     "weighted: twice as many horizontal events as vertical ones don't switch a vertical gesture",
+			weighted: true,
+			events:   []event{{V, 0, true}, {H, 10, false}, {H, 20, false}, {V, 30, true}, {H, 40, false}, {H, 50, false}, {V, 60, true}},
+		},
+		{
+			name:     "weighted: a pause starts a new gesture",
+			weighted: true,
+			events:   []event{{V, 0, true}, {H, 300, true}, {V, 310, false}},
+		},
 	}
 
 	start := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
 	for _, s := range scenarios {
 		t.Run(s.name, func(t *testing.T) {
-			lock := wheelAxisLock{}
+			lock := wheelAxisLock{weighted: s.weighted}
 			for i, e := range s.events {
 				when := start.Add(time.Duration(e.ms) * time.Millisecond)
 				assert.Equal(t, e.accepted, lock.accept(e.axis, when), "event %d", i)
