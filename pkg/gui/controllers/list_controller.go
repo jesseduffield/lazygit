@@ -83,10 +83,17 @@ func (self *ListController) HandleScrollDown() error {
 func (self *ListController) scrollHorizontal(scrollFunc func()) error {
 	scrollFunc()
 
-	if self.context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
-		self.context.HandleRender()
-	}
+	afterScrollingSideways(self.context)
 	return nil
+}
+
+// afterScrollingSideways renders the context again if it wants to be rendered again
+// when the width of its view changes. How much of its content fits depends on the
+// horizontal scroll position too.
+func afterScrollingSideways(context types.Context) {
+	if context.NeedsRerenderOnWidthChange() == types.NEEDS_RERENDER_ON_WIDTH_CHANGE_WHEN_WIDTH_CHANGES {
+		context.HandleRender()
+	}
 }
 
 func (self *ListController) handleLineChange(change int) error {
