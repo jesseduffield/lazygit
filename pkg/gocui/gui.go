@@ -233,6 +233,10 @@ type Gui struct {
 	mouseGestureCanceled bool
 	wheelAxisLock        wheelAxisLock
 
+	// LogWheelEvent, if set, receives a line describing each wheel gesture.
+	LogWheelEvent   func(string)
+	wheelGestureLog wheelGestureLog
+
 	// uiThreadID is the goroutine id of the main event loop, recorded when
 	// MainLoop starts. IsUIThread compares against it. Written once, read from
 	// worker goroutines, so it's atomic.
@@ -1832,8 +1836,15 @@ func (g *Gui) onKey(ev *GocuiEvent) error {
 			}
 			return nil
 		}
-		if axis, isWheel := wheelAxisOfKey(ev.Key.KeyName()); isWheel && !g.wheelAxisLock.accept(axis, ev.When) {
-			return nil
+		if axis, isWheel := wheelAxisOfKey(ev.Key.KeyName()); isWheel {
+			previousEventTime, previousAxis := g.wheelAxisLock.lastEventTime, g.wheelAxisLock.axis
+			accepted := g.wheelAxisLock.accept(axis, ev.When)
+			if g.LogWheelEvent != nil {
+				g.wheelGestureLog.record(g.LogWheelEvent, ev, previousEventTime, previousAxis, accepted, g.wheelAxisLock.axis)
+			}
+			if !accepted {
+				return nil
+			}
 		}
 		// While the mouse is captured, all mouse events go to the view that
 		// was under the pointer when the button was pressed, even if the

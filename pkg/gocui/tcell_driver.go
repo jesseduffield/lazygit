@@ -184,6 +184,9 @@ type GocuiEvent struct {
 	Focused bool
 	Start   bool
 	N       int
+	// WheelMod holds the modifiers that the terminal reported with a wheel event,
+	// for logging only.
+	WheelMod Modifier
 
 	// task tracks the processing of this event for idle detection. Events
 	// replayed by integration tests carry a task from the moment they are
@@ -470,11 +473,12 @@ func gocuiEventFromTcellEvent(tev tcell.Event) GocuiEvent {
 		}
 
 		return GocuiEvent{
-			Type:   eventMouse,
-			MouseX: x,
-			MouseY: y,
-			Key:    NewKey(mouseKey, "", mouseMod),
-			When:   tev.When(),
+			Type:     eventMouse,
+			MouseX:   x,
+			MouseY:   y,
+			Key:      NewKey(mouseKey, "", mouseMod),
+			When:     tev.When(),
+			WheelMod: Modifier(tev.Modifiers()),
 		}
 	case *tcell.EventFocus:
 		return GocuiEvent{
