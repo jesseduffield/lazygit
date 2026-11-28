@@ -1057,11 +1057,13 @@ func (self *MainViewController) handleGotoBottom() error {
 
 func (self *MainViewController) handleScrollLeft() error {
 	self.context.GetViewTrait().ScrollLeft()
+	afterScrollingSideways(self.context)
 	return nil
 }
 
 func (self *MainViewController) handleScrollRight() error {
 	self.context.GetViewTrait().ScrollRight()
+	afterScrollingSideways(self.context)
 	return nil
 }
 

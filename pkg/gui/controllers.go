@@ -173,6 +173,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	contextLinesController := controllers.NewContextLinesController(common)
 	renameSimilarityThresholdController := controllers.NewRenameSimilarityThresholdController(common)
 	verticalScrollControllerFactory := controllers.NewVerticalScrollControllerFactory(common)
+	horizontalScrollControllerFactory := controllers.NewHorizontalScrollControllerFactory(common)
 
 	branchesController := controllers.NewBranchesController(common)
 	gitFlowController := controllers.NewGitFlowController(common)
@@ -278,16 +279,19 @@ func (gui *Gui) resetHelpersAndControllers() {
 	// TODO: add scroll controllers for main panels (need to bring some more functionality across for that e.g. reading more from the currently displayed git command)
 	controllers.AttachControllers(gui.State.Contexts.MergeConflicts,
 		mergeConflictsController,
+		horizontalScrollControllerFactory.Create(gui.State.Contexts.MergeConflicts),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Normal,
 		mainViewController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.Normal),
+		horizontalScrollControllerFactory.Create(gui.State.Contexts.Normal),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.NormalSecondary,
 		secondaryViewController,
 		verticalScrollControllerFactory.Create(gui.State.Contexts.NormalSecondary),
+		horizontalScrollControllerFactory.Create(gui.State.Contexts.NormalSecondary),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.Files,
@@ -341,6 +345,7 @@ func (gui *Gui) resetHelpersAndControllers() {
 	controllers.AttachControllers(gui.State.Contexts.Menu,
 		menuController,
 		menuListController,
+		horizontalScrollControllerFactory.Create(gui.State.Contexts.Menu),
 	)
 
 	controllers.AttachControllers(gui.State.Contexts.CommitMessage,
@@ -399,7 +404,10 @@ func (gui *Gui) resetHelpersAndControllers() {
 			// already attached above, next to the menu controller that delegates to it
 			continue
 		}
-		controllers.AttachControllers(context, listControllerFactory.Create(context))
+		controllers.AttachControllers(context,
+			listControllerFactory.Create(context),
+			horizontalScrollControllerFactory.Create(context),
+		)
 	}
 }
 

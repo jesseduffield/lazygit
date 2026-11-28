@@ -45,6 +45,24 @@ func GetBranchListDisplayStrings(
 	})
 }
 
+// GetBranchListUntruncatedWidth returns the smallest view width at which no branch
+// name in the list is truncated.
+func GetBranchListUntruncatedWidth(
+	branches []*models.Branch,
+	getItemOperation func(item types.HasUrn) types.ItemOperation,
+	prs map[string]*models.GithubPullRequest,
+	fullDescription bool,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+	worktrees []*models.Worktree,
+) int {
+	now := time.Now()
+	return lo.Max(lo.Map(branches, func(branch *models.Branch, _ int) int {
+		parts := getBranchRowParts(branch, getItemOperation(branch), fullDescription, tr, userConfig, worktrees, now, prs)
+		return parts.widthExceptName(parts.worktreeIcon) + utils.StringWidth(parts.displayName)
+	}))
+}
+
 // getBranchDisplayStrings returns the display string of branch
 func getBranchDisplayStrings(
 	b *models.Branch,
@@ -58,62 +76,15 @@ func getBranchDisplayStrings(
 	now time.Time,
 	prs map[string]*models.GithubPullRequest,
 ) []string {
-	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
-	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
-	branchStatus := BranchStatus(b, itemOperation, tr, now, userConfig)
-	divergence := divergenceStr(b, itemOperation, tr, userConfig)
+	parts := getBranchRowParts(b, itemOperation, fullDescription, tr, userConfig, worktrees, now, prs)
+	displayName := parts.displayName
 
-	// Recency is always three characters, plus one for the space
-	availableWidth := viewWidth - 4
-	if len(divergence) > 0 {
-		availableWidth -= utils.StringWidth(divergence) + 1
+	// If the worktree name doesn't fit in the available width, omit it
+	worktreeIcon := parts.worktreeIcon
+	if viewWidth-parts.widthExceptName(worktreeIcon) < utils.StringWidth(displayName) {
+		worktreeIcon = parts.shortWorktreeIcon
 	}
-	if showCommitHash {
-		availableWidth -= utils.COMMIT_HASH_SHORT_SIZE + 1
-	}
-	if len(prs) > 0 {
-		// if we have PRs then we assume that at least one branch in the list has one
-		availableWidth -= 2
-	}
-	paddingNeededForDivergence := availableWidth
-
-	displayName := b.Name
-	if b.DisplayName != "" {
-		displayName = b.DisplayName
-	}
-
-	if len(branchStatus) > 0 {
-		availableWidth -= utils.StringWidth(utils.Decolorise(branchStatus)) + 1
-	}
-
-	worktreeIcon := ""
-	if checkedOutByWorkTree {
-		if wt, ok := git_commands.WorktreeForBranch(b, worktrees); ok && wt.Name != b.Name {
-			if icons.IsIconEnabled() {
-				worktreeIcon = fmt.Sprintf("(%s %s)", icons.LINKED_WORKTREE_ICON, wt.Name)
-			} else {
-				worktreeIcon = fmt.Sprintf("(%s %s)", tr.LcWorktree, wt.Name)
-			}
-
-			// If the worktree name doesn't fit in the available width, omit it
-			remaining := availableWidth - utils.StringWidth(worktreeIcon) - 1
-			if remaining < utils.StringWidth(displayName) {
-				if icons.IsIconEnabled() {
-					worktreeIcon = icons.LINKED_WORKTREE_ICON
-				} else {
-					worktreeIcon = fmt.Sprintf("(%s)", tr.LcWorktree)
-				}
-			}
-		} else {
-			if icons.IsIconEnabled() {
-				worktreeIcon = icons.LINKED_WORKTREE_ICON
-			} else {
-				worktreeIcon = fmt.Sprintf("(%s)", tr.LcWorktree)
-			}
-		}
-
-		availableWidth -= utils.StringWidth(worktreeIcon) + 1
-	}
+	availableWidth := viewWidth - parts.widthExceptName(worktreeIcon)
 
 	nameTextStyle := GetBranchTextStyle(b.Name)
 	if diffed {
@@ -127,11 +98,11 @@ func getBranchDisplayStrings(
 		displayName = utils.TruncateWithEllipsis(displayName, len)
 	}
 	coloredName := nameTextStyle.Sprint(displayName)
-	if checkedOutByWorkTree {
+	if worktreeIcon != "" {
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}
-	if len(branchStatus) > 0 {
-		coloredName = fmt.Sprintf("%s %s", coloredName, branchStatus)
+	if len(parts.branchStatus) > 0 {
+		coloredName = fmt.Sprintf("%s %s", coloredName, parts.branchStatus)
 	}
 
 	recencyColor := style.FgCyan
@@ -161,22 +132,24 @@ func getBranchDisplayStrings(
 	}
 	res = append(res, coloredPrIcon)
 
-	if showCommitHash {
+	if parts.showCommitHash {
 		// The CommitHash of a detached HEAD is empty, but its Name is the hash
 		res = append(res, utils.ShortHash(lo.Ternary(b.DetachedHead, b.Name, b.CommitHash)))
 	}
 
-	if divergence != "" {
+	if parts.divergence != "" {
+		var paddingNeededForDivergence int
 		if fullDescription {
 			// don't right-align the divergence in half or full screen mode, since other fields
 			// follow in that case and we don't know the width of our column
 			paddingNeededForDivergence = 1
 		} else {
-			paddingNeededForDivergence -= utils.StringWidth(utils.Decolorise(coloredName)) - 1
+			// The room that the name leaves, plus the space before the divergence
+			paddingNeededForDivergence = availableWidth - utils.StringWidth(displayName) + 1
 		}
 		if paddingNeededForDivergence > 0 {
 			coloredName += strings.Repeat(" ", paddingNeededForDivergence)
-			coloredName += style.FgCyan.Sprint(divergence)
+			coloredName += style.FgCyan.Sprint(parts.divergence)
 		}
 	}
 	res = append(res, coloredName)
@@ -192,6 +165,88 @@ func getBranchDisplayStrings(
 		)
 	}
 	return res
+}
+
+// branchRowParts holds the name to show in a branch's row, and everything that shares
+// the row with it.
+type branchRowParts struct {
+	displayName    string
+	showCommitHash bool
+	// Whether the rows have a column for pull request icons
+	hasPrColumn  bool
+	branchStatus string
+	divergence   string
+	// The icon for a branch that another worktree has checked out, with the
+	// worktree's name if it differs from the branch's, and the icon without the
+	// name for a row that is too narrow for it. Both are empty if no other worktree
+	// has the branch checked out.
+	worktreeIcon      string
+	shortWorktreeIcon string
+}
+
+func getBranchRowParts(
+	b *models.Branch,
+	itemOperation types.ItemOperation,
+	fullDescription bool,
+	tr *i18n.TranslationSet,
+	userConfig *config.UserConfig,
+	worktrees []*models.Worktree,
+	now time.Time,
+	prs map[string]*models.GithubPullRequest,
+) branchRowParts {
+	parts := branchRowParts{
+		displayName:    b.Name,
+		showCommitHash: fullDescription || userConfig.Gui.ShowBranchCommitHash,
+		// if we have PRs then we assume that at least one branch in the list has one
+		hasPrColumn:  len(prs) > 0,
+		branchStatus: BranchStatus(b, itemOperation, tr, now, userConfig),
+		divergence:   divergenceStr(b, itemOperation, tr, userConfig),
+	}
+	if b.DisplayName != "" {
+		parts.displayName = b.DisplayName
+	}
+
+	if git_commands.CheckedOutByOtherWorktree(b, worktrees) {
+		if icons.IsIconEnabled() {
+			parts.shortWorktreeIcon = icons.LINKED_WORKTREE_ICON
+		} else {
+			parts.shortWorktreeIcon = fmt.Sprintf("(%s)", tr.LcWorktree)
+		}
+		parts.worktreeIcon = parts.shortWorktreeIcon
+
+		if wt, ok := git_commands.WorktreeForBranch(b, worktrees); ok && wt.Name != b.Name {
+			if icons.IsIconEnabled() {
+				parts.worktreeIcon = fmt.Sprintf("(%s %s)", icons.LINKED_WORKTREE_ICON, wt.Name)
+			} else {
+				parts.worktreeIcon = fmt.Sprintf("(%s %s)", tr.LcWorktree, wt.Name)
+			}
+		}
+	}
+
+	return parts
+}
+
+// widthExceptName returns the width of everything in the row except the name, with
+// the given worktree icon, including the spaces that separate the parts.
+func (self branchRowParts) widthExceptName(worktreeIcon string) int {
+	// Recency is always three characters, plus one for the space
+	width := 4
+	if len(self.divergence) > 0 {
+		width += utils.StringWidth(self.divergence) + 1
+	}
+	if self.showCommitHash {
+		width += utils.COMMIT_HASH_SHORT_SIZE + 1
+	}
+	if self.hasPrColumn {
+		width += 2
+	}
+	if len(self.branchStatus) > 0 {
+		width += utils.StringWidth(utils.Decolorise(self.branchStatus)) + 1
+	}
+	if worktreeIcon != "" {
+		width += utils.StringWidth(worktreeIcon) + 1
+	}
+	return width
 }
 
 // GetBranchTextStyle branch color
